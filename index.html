@@ -449,6 +449,14 @@ const CARDS = [
 <p><strong>Why it matters:</strong> the elasticity drives everything. If the true ε is −3, the optimum is ₩10,500; charging ₩14,000 earns about ₩255K versus about ₩302K. A wrong elasticity gives a confident wrong price.</p>`,
     trap: "Don't present the optimizer as the system. Inputs, guardrails and the learning loop decide whether it's safe." },
 
+  { cluster: "🏗️ System design", q: "How is an optimization model designed and implemented?",
+    a: `<p><strong>Structure — Formulate → Estimate → Solve → Constrain → Validate → Deploy → Monitor</strong></p>
+<p><strong>Formulate:</strong> decision variables (the price of each item), an objective (total contribution profit) and constraints (margin floor, ±5% daily change, competitor cap, category price index). <strong>Estimate:</strong> a separate demand model gives units as a function of price; its quality caps the whole system. <strong>Solve:</strong> closed form for one simple item; per-item grid search for any demand model; joint optimization when items share a constraint. <strong>Constrain:</strong> hard rules become constraints or filters on the candidate prices; preferences become penalties. <strong>Validate:</strong> unit tests, backtest, shadow mode, then a controlled test with a holdout. <strong>Deploy:</strong> data checks → demand scoring → parallel optimizer → guardrail checks → publish plus decision log, orchestrated with retries and SLAs. <strong>Monitor:</strong> input drift, share of items stuck on a constraint, predicted versus actual demand, profit versus holdout, a kill switch and an owner.</p>
+<p><strong>Terms:</strong></p>
+<p><strong>Per-item grid search:</strong> list candidate prices for one item, predict profit at each, keep the best. <strong>Price ladder:</strong> the short list of allowed prices per item (e.g. ₩9,900 / ₩10,500 / ₩11,000); also used to mean larger packs must have a lower unit price. <strong>Joint optimization:</strong> solving all items together because a shared constraint (category price index, budget) couples them. <strong>Mixed-integer problem:</strong> some variables must be whole choices (pick exactly one price option: 0 or 1) while others are continuous. <strong>Knapsack-style problem:</strong> pick the best set of options under a limited budget; here each item picks one price, profit is the value, and price-index headroom is the budget. <strong>Price elasticity input:</strong> estimated from price experiments, or from a log-log regression with controls and instruments, pooled across category, brand and SKU.</p>
+<p>Close: the demand estimate and the constraints matter more than the solver.</p>`,
+    trap: "Don't spend the answer on solver names. Interviewers score the formulation, the demand input, and how you validate before launch." },
+
   { cluster: "🏗️ System design", q: "What goes into a good pricing guardrail, and why do you need them at all?",
     a: `<p><strong>Structure — Failure mode → Guardrail → Trigger → Owner</strong></p>
 <p>Algorithms optimize what you tell them to, on the data they see. Failure modes: a bad competitor feed, a stale cost, a feedback loop with a competitor's algorithm. Guardrails: margin floor, max daily change, parity bounds, spend caps. Each needs a trigger (alert or auto-rollback) and a named owner who can override.</p>`,
@@ -579,6 +587,86 @@ const CARDS = [
     a: `<p><strong>Structure — Standards → Review → Teach → Scale</strong></p>
 <p>Set standards (metric definitions, templates, documentation). Review code and analyses with a focus on the "why". Teach by pairing on how to challenge a requirement. Scale by turning recurring lessons into shared tools and checklists.</p>`,
     trap: null },
+
+  // ---- SQL (from mock interview) ----
+  { cluster: "💻 SQL", q: "SQL: for each category, find 1P KVI categories whose 7-day average price index on the latest date is above 105 (index = sales-weighted average of our_price ÷ comp_price × 100).",
+    a: `<p><strong>Structure — Grain → Filter → Weight → Aggregate per day → Average the days → Threshold</strong></p>
+<p><strong>Grain:</strong> one index per category per day, then average the 7 daily values (not one pooled index, which would overweight busy days). <strong>Filter:</strong> 1P, KVI, in stock, valid competitor price. <strong>Weight:</strong> units (everyday high-volume items; revenue would skew toward mid-value items). The denominator is units of <em>qualifying</em> rows only.</p>
+<pre><code>WITH latest AS (SELECT MAX(dt) AS max_dt FROM sales_daily),
+daily AS (
+  SELECT s.dt, d.category_id,
+         SUM(s.units * p.our_price * 1.0 / p.comp_price) * 100.0
+           / SUM(s.units) AS idx
+  FROM sales_daily s
+  JOIN sku_dim d ON d.sku_id = s.sku_id
+       AND d.seller_type = '1P' AND d.is_kvi
+  JOIN price_daily p ON p.sku_id = s.sku_id AND p.dt = s.dt
+  WHERE s.dt &gt;= DATE_ADD('day', -6, (SELECT max_dt FROM latest))
+    AND p.in_stock AND p.comp_price &gt; 0
+  GROUP BY 1, 2)
+SELECT category_id, AVG(idx) AS idx_7d, COUNT(*) AS days
+FROM daily
+GROUP BY 1
+HAVING AVG(idx) &gt; 105.0;</code></pre>
+<p>Say out loud: why units, what happens with fewer than 7 valid days (the query returns the day count so a one-day spike is visible).</p>`,
+    trap: "Don't add SUM(units) OVER (...) inside a GROUP BY. The group is already the category-day. Use MAX(dt) for 'latest date', not CURRENT_DATE. Weighting by same-day units is slightly circular: a price rise lowers that item's units and weight, so baseline-period units are cleaner." },
+
+  { cluster: "💻 SQL", q: "SQL: list 1P price changes larger than 5% in the last 14 days of data, with units that day and the average units over the 7 in-stock days before the change.",
+    a: `<p><strong>Structure — Grain → Windows partitioned by SKU → Detect the change → Baseline that excludes stockouts → Filter to the report window last</strong></p>
+<p>Grain is one row per SKU per day. Compute windows over extra history, then filter to the last 14 days in the outer query, so the first days of the window still have a previous price and a full baseline. Stock filtering applies only to the baseline, never to price-change detection.</p>
+<pre><code>WITH latest AS (SELECT MAX(dt) AS max_dt FROM price_daily),
+daily AS (
+  SELECT p.sku_id, p.dt, p.our_price,
+    COALESCE(s.units, 0) AS units,
+    LAG(p.our_price) OVER (PARTITION BY p.sku_id ORDER BY p.dt)
+      AS prev_price,
+    AVG(CASE WHEN p.in_stock THEN COALESCE(s.units, 0) END) OVER (
+      PARTITION BY p.sku_id ORDER BY p.dt
+      ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING) AS avg_units_prior_7d,
+    COUNT(CASE WHEN p.in_stock THEN 1 END) OVER (
+      PARTITION BY p.sku_id ORDER BY p.dt
+      ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING) AS baseline_days
+  FROM price_daily p
+  JOIN sku_dim d ON d.sku_id = p.sku_id AND d.seller_type = '1P'
+  LEFT JOIN sales_daily s ON s.sku_id = p.sku_id AND s.dt = p.dt
+  WHERE p.dt &gt;= DATE_ADD('day', -21, (SELECT max_dt FROM latest)))
+SELECT sku_id, dt, prev_price, our_price,
+  our_price * 1.0 / prev_price - 1 AS pct_change,
+  units AS units_sold_that_day, avg_units_prior_7d, baseline_days
+FROM daily
+WHERE prev_price &gt; 0
+  AND ABS(our_price * 1.0 / prev_price - 1) &gt; 0.05
+  AND dt &gt;= DATE_ADD('day', -13, (SELECT max_dt FROM latest))
+ORDER BY avg_units_prior_7d DESC NULLS LAST, sku_id, dt;</code></pre>`,
+    trap: "Missing PARTITION BY on any window makes 'previous row' cross SKUs. Zero units on an out-of-stock day is missing supply, not zero demand, so exclude those days from the baseline (CASE WHEN in_stock) but count in-stock days with no sales as 0. Expose baseline_days instead of silently dropping low-history SKUs." },
+
+  { cluster: "💻 SQL", q: "What habits stop you making mistakes in window-function SQL during a live interview?",
+    a: `<p><strong>Structure — State the grain → Partition → Frame → Filter order → Reread the spec</strong></p>
+<p><strong>State the grain</strong> before typing ("one row per SKU per day"). <strong>Partition</strong> every window by the entity (SKU). <strong>Frame</strong> explicitly: 7 PRECEDING AND 1 PRECEDING means the 7 days before, excluding today. <strong>Filter order:</strong> filters on window outputs go in an outer query, and the date filter that feeds a window must include extra history. <strong>Reread the spec</strong> line by line against the query (1P only? more than 5%? in-stock only for the baseline?). Qualify columns, use INNER JOIN when a WHERE filters the right-hand table, and say your assumptions out loud.</p>`,
+    trap: "Aggregates are not allowed in WHERE. Use HAVING, or a window COUNT." },
+
+  // ---- Mock case ----
+  { cluster: "🎯 Mock case", q: "Difference-in-differences: how do you isolate the effect of a pricing launch with no holdout?",
+    a: `<p><strong>Structure — Choose the comparison → Check pre-trends → Subtract → Net the metrics → State the caveats</strong></p>
+<p><strong>Choose:</strong> a comparable category on the same weeks that did not get the change (same seller type, similar volume). <strong>Check pre-trends:</strong> were the two moving together over the prior weeks? <strong>Subtract:</strong> effect = (treated change) − (comparison change), for every metric, including side metrics such as WOW conversion. <strong>Net:</strong> combine effects into one number before deciding. <strong>Caveats:</strong> parallel trends may not hold if a shock hit categories unequally; spillover between substitute categories; short window and novelty effects; no randomization, so propose a holdout next.</p>`,
+    trap: "Apply the same subtraction to every metric. Attributing the raw WOW drop (−1.7pt) to the algorithm, when the comparison category also fell −1.0pt, leaves only −0.7pt attributable." },
+
+  { cluster: "🎯 Mock case", q: "Profit per order is up and units are down after a pricing launch. How do you decide whether it worked?",
+    a: `<p><strong>Structure — Convert to one number → Look at the trend → Check guardrails → Decide</strong></p>
+<p>Total profit ≈ orders × profit per order, so net the two. From the mock case (difference-in-differences vs. Kitchen &amp; Dining):</p>
+<p>Week 1: profit per order +5pp, units −2pp, net about <strong>+3pp</strong>. Week 2: +4pp and −4pp, net about <strong>0pp</strong>. The gain faded while the price-index gap widened (+2 to +3) and the attributable WOW gap widened (−0.2 to −0.7pt). That is a worsening trend, not a stable win.</p>
+<p><strong>Guardrails:</strong> state the interpretation. Raw week 2 breached both (units −9%, index 109); on a difference-in-differences basis units were −4pp, but the index was 106 even in the comparison category because of the competitor promotion. A guardrail should trigger on an absolute breach regardless of cause, and the algorithm should respond to competitor price drops.</p>`,
+    trap: "Saying 'gains outweigh the units loss' without computing the net is the most common miss." },
+
+  { cluster: "🎯 Mock case", q: "Mock case: an algorithm launched on all 1P non-KVI Household Staples with no holdout. Profit per order +4%, units −6%, price index 101 → 106, WOW conversion −1pt; a competitor ran a site-wide promo in week 2. Keep, roll back, or expand?",
+    a: `<p><strong>Structure — Clarify → Isolate → Net → Decide → Derisk</strong></p>
+<p><strong>Clarify:</strong> the objective was contribution profit with guardrails of index ≤ 105 and units no worse than −5%; WOW is monitored. Ask for the weekly split (week 1 / week 2) and a comparison category.</p>
+<p><strong>Isolate:</strong> use Kitchen &amp; Dining (1P, non-KVI, no algorithm) as the comparison. Week 2 effects: profit per order +4pp, units −4pp, index +3, WOW −0.7pt.</p>
+<p><strong>Net:</strong> profit gain is offset by volume loss; net about +3pp in week 1 and about 0pp in week 2, with the index and WOW gaps widening.</p>
+<p><strong>Decide:</strong> do not expand, and do not fully roll back yet. Net profit is fading, and perception and member risk are rising, but the competitor promo explains most of the raw drop.</p>
+<p><strong>Derisk:</strong> make the index and WOW hard guardrails, fix competitor reaction so prices fall when the index rises, run a randomized holdout (for example 15% of SKUs) for two weeks, and set a checkpoint: roll back if net profit stays near zero or the attributable WOW loss grows. Then name the company principle: the customer experience is not traded for short-term profit, and the guardrails make that explicit.</p>`,
+    trap: "A binary 'roll it back because of a principle' answer skips the quantified tradeoff. Lead with the numbers, then the principle, and offer a middle path." },
+
 ];
 
 
