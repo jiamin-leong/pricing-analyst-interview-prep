@@ -645,6 +645,46 @@ ORDER BY avg_units_prior_7d DESC NULLS LAST, sku_id, dt;</code></pre>`,
 <p><strong>State the grain</strong> before typing ("one row per SKU per day"). <strong>Partition</strong> every window by the entity (SKU). <strong>Frame</strong> explicitly: 7 PRECEDING AND 1 PRECEDING means the 7 days before, excluding today. <strong>Filter order:</strong> filters on window outputs go in an outer query, and the date filter that feeds a window must include extra history. <strong>Reread the spec</strong> line by line against the query (1P only? more than 5%? in-stock only for the baseline?). Qualify columns, use INNER JOIN when a WHERE filters the right-hand table, and say your assumptions out loud.</p>`,
     trap: "Aggregates are not allowed in WHERE. Use HAVING, or a window COUNT." },
 
+  { cluster: "💻 SQL", q: "In a randomized coupon test with a 14-day outcome window, how do you handle customers whose window isn't complete yet?",
+    a: `<p><strong>Structure — Define maturity → Filter on assignment date only → Apply to both groups → Check the split</strong></p>
+<p>A customer assigned in the last 13 days of data has an incomplete 14-day window, so their orders are undercounted. <strong>Define maturity:</strong> the assignment date must be at least 13 days before the latest data date. <strong>Filter on assignment date only:</strong> it is set before the outcome is known, so it keeps randomization intact. <strong>Apply to both groups</strong> identically. <strong>Check the split:</strong> confirm the treatment/holdout ratio still matches the design after the filter (sample-ratio check).</p>
+<pre><code>WHERE p.assigned_dt &lt;= DATE_ADD('day', -13,
+        (SELECT MAX(order_dt) FROM orders))</code></pre>`,
+    trap: "Never filter customers on anything observed after assignment (for example 'ordered at least once'). That conditions on the outcome and breaks the comparison. Keep zero-order customers at 0." },
+
+  { cluster: "💻 SQL", q: "How do you get a confidence interval for the treatment-minus-holdout difference in SQL?",
+    a: `<p><strong>Structure — One row per customer → Per-group n, mean, variance → Standard error → Mean difference ± 1.96 × standard error</strong></p>
+<p>Build one row per assigned customer (including zero-order customers), then use the two-sample (Welch) interval: difference in means ± 1.96 × √(s₁²/n₁ + s₂²/n₂). The normal approximation is fine at large n even for skewed data, because of the central limit theorem.</p>
+<pre><code>stats AS (
+  SELECT assignment,
+         COUNT(*) AS n,
+         AVG(contribution_profit_per_customer) AS mean_x,
+         VAR_SAMP(contribution_profit_per_customer) AS var_x
+  FROM base GROUP BY 1)
+SELECT t.mean_x - c.mean_x AS diff,
+       SQRT(t.var_x / t.n + c.var_x / c.n) AS se,
+       (t.mean_x - c.mean_x)
+         - 1.96 * SQRT(t.var_x / t.n + c.var_x / c.n) AS ci_low,
+       (t.mean_x - c.mean_x)
+         + 1.96 * SQRT(t.var_x / t.n + c.var_x / c.n) AS ci_high
+FROM stats t
+JOIN stats c ON t.assignment = 'treatment'
+            AND c.assignment = 'holdout';</code></pre>
+<p>Repeat for orders per customer. If the interval includes 0, you cannot claim the coupon moved the metric. For the <strong>percentage lift</strong>, dividing the interval by the holdout mean is an approximation; a proper interval uses the delta method or a bootstrap. A Staff-level extra: CUPED (adjust each customer's outcome by their pre-period value) to shrink variance.</p>`,
+    trap: "Heavy-tail customers do not bias a randomized difference in means; they add variance, so the estimate is noisy in either direction. Report the interval instead of a point estimate alone." },
+
+  { cluster: "💻 SQL", q: "If you winsorize customer-level outcomes in a randomized test, how do you define the cap threshold?",
+    a: `<p><strong>Structure — One pooled threshold → Fix the percentile in advance → Consider both tails → Report raw and capped side by side</strong></p>
+<p><strong>One pooled threshold:</strong> compute the percentile across all customers combined and apply the same cap to both groups. A group-specific cap trims the treatment tail by a different amount than the holdout tail and biases the difference toward zero. <strong>Fix the percentile in advance</strong> (for example the 99th) before looking at results, then show 99.5th as a sensitivity check. <strong>Both tails:</strong> contribution profit can be negative (coupon cost on low-margin orders), so consider 1st and 99th. <strong>Report raw and capped</strong> estimates: if they agree, the heavy tail is not driving the result.</p>
+<pre><code>caps AS (
+  SELECT approx_percentile(contribution_profit_per_customer, 0.99)
+           AS cap_hi
+  FROM base)
+SELECT b.assignment,
+       LEAST(b.contribution_profit_per_customer, c.cap_hi) AS profit_w
+FROM base b CROSS JOIN caps c;</code></pre>`,
+    trap: "Winsorizing trades a little bias for lower variance, and it can trim the very effect the coupon aims for (heavier buyers). It is a sensitivity check, not a replacement for the raw estimate and its interval." },
+
   // ---- Mock case ----
   { cluster: "🎯 Mock case", q: "Difference-in-differences: how do you isolate the effect of a pricing launch with no holdout?",
     a: `<p><strong>Structure — Choose the comparison → Check pre-trends → Subtract → Net the metrics → State the caveats</strong></p>
@@ -666,6 +706,37 @@ ORDER BY avg_units_prior_7d DESC NULLS LAST, sku_id, dt;</code></pre>`,
 <p><strong>Decide:</strong> do not expand, and do not fully roll back yet. Net profit is fading, and perception and member risk are rising, but the competitor promo explains most of the raw drop.</p>
 <p><strong>Derisk:</strong> make the index and WOW hard guardrails, fix competitor reaction so prices fall when the index rises, run a randomized holdout (for example 15% of SKUs) for two weeks, and set a checkpoint: roll back if net profit stays near zero or the attributable WOW loss grows. Then name the company principle: the customer experience is not traded for short-term profit, and the guardrails make that explicit.</p>`,
     trap: "A binary 'roll it back because of a principle' answer skips the quantified tradeoff. Lead with the numbers, then the principle, and offer a middle path." },
+
+
+  // ---- Mock case 2 ----
+  { cluster: "🎯 Mock case", q: "Mock case 2: Packaged Food (1P) contribution profit per order fell 6% QoQ while GMV rose 8% and orders 10%. Loss days cluster in ~120 SKUs where an instant discount and a coupon overlap. What's driving it, is it a problem, and what do you do?",
+    a: `<p><strong>Structure — Clarify → Decompose → Locate → Test → Recommend → Derisk</strong></p>
+<p><strong>Clarify:</strong> the goal is total contribution profit while keeping WOW healthy; per-order profit is the tracked KPI. Ask for the per-order breakdown by line, who funds each discount (instant discounts about 30% supplier-funded, recorded as a credit in COGS; coupons 100% Coupang), and who can access each (coupons about 85% to WOW; no rule against stacking).</p>
+<p><strong>Decompose:</strong> per order, profit fell ₩4,800 → ₩4,510 (−₩290). WOW orders (65% of orders) fell −₩430 (−8.2%) and non-WOW −₩30, so WOW is about 96% of the decline. Promo cost per WOW order rose ₩488: ₩245 instant discount (+26%) and ₩243 coupon (+47%). Against the ₩430 decline each is about 57%, together about 113%, offset by about ₩58 elsewhere. WOW and non-WOW orders both grew +10%, but WOW GMV per order fell −2.4%.</p>
+<p><strong>Locate:</strong> name the four possible causes of rising instant-discount cost (breadth, depth, penetration, stacking). 120 leak SKUs hold 58% of the promo cost increase on 14% of WOW units; stacked lines (12% of lines) hold 55%. About 80% of the stacking-driven increase sits on leak SKUs, and 35 of the 120 are KVIs.</p>
+<p><strong>Test:</strong> compare the same SKUs with and without stacking, split by event versus normal days. See the next card for the table and caveats.</p>
+<p><strong>Recommend:</strong> stop default stacking on the 85 non-KVI leak SKUs and cap promo cost at a per-unit floor (+₩100 per unit means promo cost about ₩1,450 at today's ₩300). Keep KVIs on instant discount only. Stacking is 55% of the increase: about ₩268 per WOW order (about ₩174 blended), recovering roughly 60% of the ₩290 decline before volume loss.</p>
+<p><strong>Derisk:</strong> randomized holdout on stacking; track units, profit, WOW conversion and basket; guardrail; review in 2–3 weeks.</p>`,
+    trap: "Don't remove 'the steepest discounts' before decomposing the cause: depth, breadth, penetration or stacking each need a different lever, and removing discounts removes volume." },
+
+  { cluster: "🎯 Mock case", q: "How do you test whether stacking a coupon on an instant discount is worth it, using the same SKUs?",
+    a: `<p><strong>Structure — Hold the SKU fixed → Separate event days from normal days → Compare three conditions → Net volume against per-unit profit → State the confounds</strong></p>
+<p>Same 120 leak SKUs, WOW orders, Q3:</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Condition</th><th>Units per SKU-day (index)</th><th>Coupang promo cost per unit</th><th>Profit per unit</th><th>Profit per SKU-day (index)</th></tr>
+<tr><td>Normal day, instant discount only</td><td>100</td><td>₩1,150</td><td>+₩480</td><td>48,000</td></tr>
+<tr><td>Event day, instant discount only</td><td>118</td><td>₩1,250</td><td>+₩300</td><td>35,400</td></tr>
+<tr><td>Event day, instant discount + coupon</td><td>136</td><td>₩1,850</td><td>−₩300</td><td>−40,800</td></tr>
+</table></div>
+<p><strong>Read:</strong> event-day instant discount gives +18% units for −37% per-unit profit. Adding the coupon gives +15% units versus instant-discount-only (+18 index points), +48% promo cost, and flips per-unit profit from +₩300 to −₩300. The coupon subsidizes all 136 buyers, including those who would have bought anyway: about ₩4,200 of profit lost per extra unit.</p>
+<p><strong>Confounds:</strong> event traffic drives much of the volume lift (even instant discount alone earns less total profit than a normal day, so this data does not show it is incremental); which SKUs get stacked is not random; basket and halo effects and WOW retention are unmeasured; KVIs may justify cost for price image.</p>`,
+    trap: "Quote percentages carefully: +15% (not +18%) units and +48% (not +52%) promo cost for stacking. Say 'index points' when you mean points." },
+
+  { cluster: "🎯 Mock case", q: "Is a minimum contribution profit per unit a good guardrail for promotions?",
+    a: `<p><strong>Structure — State the per-unit floor → Convert it to a promo cap → Net against volume → Add the incrementality test</strong></p>
+<p><strong>Floor to cap:</strong> if each extra won of promo cost removes about one won of profit, a floor of +₩100 per unit on a ₩300 baseline means promo cost can rise by ₩200, from ₩1,250 to about ₩1,450. <strong>Net against volume:</strong> total profit = units × profit per unit, so a per-unit floor alone does not guarantee a good outcome. <strong>Incrementality:</strong> the right criterion is incremental profit per promo won, measured with a holdout, because an average per-unit margin ignores whether the volume was incremental. Use the floor as a guardrail and the test as the decision rule.</p>`,
+    trap: "A per-unit floor assumes one-for-one pass-through and ignores volume response. Say both assumptions out loud." },
+
 
 ];
 
