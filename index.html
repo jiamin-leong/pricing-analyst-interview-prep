@@ -709,15 +709,36 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
 
 
   // ---- Mock case 2 ----
-  { cluster: "🎯 Mock case", q: "Mock case 2: Packaged Food (1P) contribution profit per order fell 6% QoQ while GMV rose 8% and orders 10%. Loss days cluster in ~120 SKUs where an instant discount and a coupon overlap. What's driving it, is it a problem, and what do you do?",
-    a: `<p><strong>Structure — Clarify → Decompose → Locate → Test → Recommend → Derisk</strong></p>
-<p><strong>Clarify:</strong> the goal is total contribution profit while keeping WOW healthy; per-order profit is the tracked KPI. Ask for the per-order breakdown by line, who funds each discount (instant discounts about 30% supplier-funded, recorded as a credit in COGS; coupons 100% Coupang), and who can access each (coupons about 85% to WOW; no rule against stacking).</p>
-<p><strong>Decompose:</strong> per order, profit fell ₩4,800 → ₩4,510 (−₩290). WOW orders (65% of orders) fell −₩430 (−8.2%) and non-WOW −₩30, so WOW is about 96% of the decline. Promo cost per WOW order rose ₩488: ₩245 instant discount (+26%) and ₩243 coupon (+47%). Against the ₩430 decline each is about 57%, together about 113%, offset by about ₩58 elsewhere. WOW and non-WOW orders both grew +10%, but WOW GMV per order fell −2.4%.</p>
-<p><strong>Locate:</strong> name the four possible causes of rising instant-discount cost (breadth, depth, penetration, stacking). 120 leak SKUs hold 58% of the promo cost increase on 14% of WOW units; stacked lines (12% of lines) hold 55%. About 80% of the stacking-driven increase sits on leak SKUs, and 35 of the 120 are KVIs.</p>
-<p><strong>Test:</strong> compare the same SKUs with and without stacking, split by event versus normal days. See the next card for the table and caveats.</p>
-<p><strong>Recommend:</strong> stop default stacking on the 85 non-KVI leak SKUs and cap promo cost at a per-unit floor (+₩100 per unit means promo cost about ₩1,450 at today's ₩300). Keep KVIs on instant discount only. Stacking is 55% of the increase: about ₩268 per WOW order (about ₩174 blended), recovering roughly 60% of the ₩290 decline before volume loss.</p>
-<p><strong>Derisk:</strong> randomized holdout on stacking; track units, profit, WOW conversion and basket; guardrail; review in 2–3 weeks.</p>`,
-    trap: "Don't remove 'the steepest discounts' before decomposing the cause: depth, breadth, penetration or stacking each need a different lever, and removing discounts removes volume." },
+  { cluster: "🎯 Mock case", q: `Mock case 2 (25–30 min, about 3 clarifying questions): Packaged Food (1P) contribution profit per order fell 6% QoQ (₩4,800 → ₩4,510) while GMV rose 8% and orders 10%. The VP asks: what's driving it, is it a problem, and what would you do?
+<pre><code>Exhibit 1 — per order, Q2 → Q3 (KRW)
+                     WOW            Non-WOW
+Contribution profit  5,220 → 4,790  4,020 → 3,990
+Promo cost to us*    1,464 → 1,952    824 → 932
+Orders: +10% in both (WOW = 65% of orders)
+GMV per order: WOW −2.4%, non-WOW −0.5%
+*instant discount (70% Coupang-funded) + coupon (100%)
+
+Exhibit 2 — where the WOW promo cost increase sits (+₩488 per order)
+120 leak SKUs (loss days ≥ 3)   58%  (35 KVI: 21%, 85 non-KVI: 37%)
+Other discounted SKUs           33%
+Non-promo SKUs                   9%
+Lines with instant discount + coupon stacked:
+  12% of lines, 55% of the increase
+
+Exhibit 3 — same 120 leak SKUs, WOW, Q3
+                          Units   Promo cost   Profit
+                          (index) per unit     per unit
+Normal day, discount only   100    ₩1,150       +₩480
+Event day, discount only    118    ₩1,250       +₩300
+Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
+    a: `<p><strong>Structure — Clarify → Decompose → Locate → Test → Recommend → Derisk</strong> (about 3 / 5 / 5 / 5 / 7 / 3 minutes)</p>
+<p><strong>Clarify (3 questions):</strong> the objective (total contribution profit while keeping WOW healthy; per-order profit is the KPI), who can use the discounts (coupons about 85% to WOW; no rule against stacking), and a comparison or baseline.</p>
+<p><strong>Decompose (Exhibit 1):</strong> the ₩290 decline is about 96% WOW (−₩430 per WOW order). Promo cost per WOW order rose ₩488, more than the decline, so promotions are the driver. Orders grew +10% in both segments but WOW basket value fell, so this is cost, not demand.</p>
+<p><strong>Locate (Exhibit 2):</strong> concentrated, not broad. 120 SKUs hold 58% of the increase, and stacked lines (12% of lines) hold 55%. 35 of the 120 are KVIs, so KVI and non-KVI need different treatment.</p>
+<p><strong>Test (Exhibit 3):</strong> stacking adds about 15% units versus discount only (118 → 136) but takes profit per unit from +₩300 to −₩300, so total profit on those SKU-days turns negative. Caveats: event traffic inflates the volume lift, stacked SKUs are not randomly chosen, and basket and WOW retention effects are unmeasured.</p>
+<p><strong>Recommend:</strong> stop default stacking on the 85 non-KVI leak SKUs, keep KVIs on instant discount only to protect price image, and cap promo cost per unit (a +₩100 profit floor allows about ₩1,450). Be honest about size: this recovers an estimated 15–31% of the decline (an upper bound of about ₩89 per order blended; stopping stacking removes the coupon, not the instant discount). Name phase 2 for the rest: discount depth on non-stacked leak SKUs and the other discounted SKUs (33% of the increase).</p>
+<p><strong>Derisk:</strong> randomized holdout on stacking for 2–3 weeks; track units, profit per order, WOW conversion and basket; roll back if profit does not improve or conversion falls below the discount-only level.</p>`,
+    trap: "Don't present the stacking fix as the whole answer: it closes 15–31% of the decline. Say what it covers, what it doesn't, and what comes next." },
 
   { cluster: "🎯 Mock case", q: "How do you test whether stacking a coupon on an instant discount is worth it, using the same SKUs?",
     a: `<p><strong>Structure — Hold the SKU fixed → Separate event days from normal days → Compare three conditions → Net volume against per-unit profit → State the confounds</strong></p>
