@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing Analyst Interview Prep — Coupang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #f6f5f0;
+    --panel: #ffffff;
+    --panel-2: #eeece3;
+    --text: #1c1a14;
+    --muted: #6b6558;
+    --accent: #c2272d;
+    --accent-strong: #9b1c22;
+    --accent-soft: #fbe3e4;
+    --on-accent: #ffffff;
+    --trap-bg: #fdf0e4;
+    --trap-border: #c2530a;
+    --trap-text: #7c2d12;
+    --good: #15803d;
+    --bad: #b91c1c;
+    --star: #c2410c;
+    --border: #e2ddcc;
+    --code-text: #9b1c22;
+    --shadow: 0 10px 28px rgba(28,26,20,.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 24px 18px 80px; }
+  header { text-align: center; margin-bottom: 18px; }
+  h1 { font-size: 20px; margin: 0 0 4px; font-weight: 650; }
+  .sub { color: var(--muted); font-size: 13px; }
+
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    justify-content: center; margin: 16px 0;
+  }
+  .chip {
+    background: var(--panel); color: var(--muted); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 20px; font-size: 12.5px; cursor: pointer;
+    user-select: none; transition: all .12s ease;
+  }
+  .chip:hover { color: var(--text); border-color: var(--accent); }
+  .chip.active { background: var(--accent-soft); color: var(--accent-strong); border-color: var(--accent); }
+
+  .btn {
+    background: var(--panel); color: var(--text); border: 1px solid var(--border);
+    padding: 7px 14px; border-radius: 8px; font-size: 13px; cursor: pointer;
+    transition: all .12s ease;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.08); }
+
+  .meta { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12.5px; margin: 8px 4px; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+    padding: 26px 24px; min-height: 260px; position: relative;
+    box-shadow: 0 8px 30px var(--shadow);
+  }
+  .tag {
+    display: inline-block; font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-soft); padding: 3px 9px; border-radius: 6px; margin-bottom: 14px;
+  }
+  .q { font-size: 19px; font-weight: 600; margin: 0 0 6px; }
+  .q pre {
+    background: var(--panel-2); padding: 12px 14px; border-radius: 8px;
+    overflow-x: auto; margin: 12px 0 4px; line-height: 1.5;
+    font-size: 13px; font-weight: 400; white-space: pre;
+  }
+  .q pre code { font-family: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace; color: var(--code-text); }
+  .q .ask { display: block; font-size: 15px; font-weight: 500; color: var(--muted); margin-top: 10px; }
+  .q .hint { display: block; font-size: 13.5px; font-weight: 400; font-style: italic; color: var(--muted); margin-top: 8px; }
+  .answer { margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--border); }
+  .answer.hidden { display: none; }
+  .answer p { margin: 0 0 10px; }
+  .answer code {
+    background: var(--panel-2); padding: 1px 6px; border-radius: 5px;
+    font-family: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace; font-size: 13px; color: var(--code-text);
+  }
+  .answer pre {
+    background: var(--panel-2); padding: 10px 12px; border-radius: 8px;
+    overflow-x: auto; margin: 0 0 10px; line-height: 1.45;
+  }
+  .answer pre code { background: none; padding: 0; font-size: 12.5px; color: var(--code-text); }
+  .answer strong { color: var(--text); }
+  .trap {
+    background: var(--trap-bg); border-left: 3px solid var(--trap-border);
+    color: var(--trap-text); padding: 10px 14px; border-radius: 8px; font-size: 14px; margin-top: 12px;
+  }
+  .trap b { color: var(--accent-strong); }
+
+  .reveal-hint { color: var(--muted); font-size: 13px; margin-top: 22px; font-style: italic; }
+
+  .nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; }
+  .star {
+    background: none; border: none; cursor: pointer; font-size: 22px; line-height: 1;
+    color: var(--muted); transition: transform .1s ease, color .1s ease;
+  }
+  .star:hover { transform: scale(1.15); }
+  .star.marked { color: var(--star); }
+
+  .progress-bar { height: 4px; background: var(--panel-2); border-radius: 4px; overflow: hidden; margin: 4px 0 14px; }
+  .progress-fill { height: 100%; background: var(--good); width: 0%; transition: width .2s ease; }
+
+  .kbd { font-family: "IBM Plex Mono", "SF Mono", Menlo, monospace; background: var(--panel-2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: 11.5px; }
+  .footer-hint { text-align: center; color: var(--muted); font-size: 12px; margin-top: 22px; }
+  .empty { text-align: center; color: var(--muted); padding: 60px 20px; }
+
+  .viewtoggle { display: flex; gap: 8px; justify-content: center; margin: 4px 0 20px; }
+  .viewtoggle .tab {
+    background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+    padding: 8px 20px; border-radius: 10px; cursor: pointer; font-size: 13.5px; font-weight: 600;
+    transition: all .12s ease;
+  }
+  .viewtoggle .tab:hover { color: var(--text); }
+  .viewtoggle .tab.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+
+  .cs-section { margin: 24px 0; }
+  .cs-section h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); margin: 0 0 10px; }
+  table.cs { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table.cs td { padding: 11px 14px; border-top: 1px solid var(--border); vertical-align: top; font-size: 14px; }
+  table.cs tr:first-child td { border-top: none; }
+  table.cs .term { font-weight: 700; color: var(--text); white-space: nowrap; width: 118px; }
+  table.cs code { background: var(--panel-2); padding: 1px 6px; border-radius: 5px; font-family: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; color: var(--code-text); }
+  table.cs .hint { color: var(--muted); }
+  table.cs.scan .term { width: 210px; white-space: nowrap; }
+  table.cs .dir { display: block; margin-top: 5px; color: var(--bad); font-weight: 600; }
+  table.cs .fix { display: block; margin-top: 3px; color: var(--muted); }
+  table.cs .fix b { color: var(--accent-strong); font-weight: 700; }
+  table.cs .hd td { background: var(--panel-2); font-size: 11px; font-weight: 800; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--muted); padding: 7px 14px; white-space: nowrap; }
+  /* Display formulas: own line, left-aligned, scrollable on narrow screens */
+  .fml { display: block; background: var(--panel-2); border-left: 2px solid var(--accent);
+         border-radius: 0 6px 6px 0; padding: 4px 12px; margin: 9px 0; overflow-x: auto; }
+  .fml + .fml { margin-top: -3px; }
+  .katex-display { margin: 6px 0; text-align: left; }
+  .katex-display > .katex { text-align: left; display: inline-block; white-space: nowrap; }
+  .fml .katex-display { margin: 4px 0; }
+  .fml-label { display: block; font-size: 12px; color: var(--muted); margin-bottom: -2px; }
+  .wex { display: block; background: rgba(21,128,61,.08); border-left: 2px solid var(--good);
+         border-radius: 0 6px 6px 0; padding: 7px 12px; margin: 10px 0; font-size: 13.5px; color: var(--text); }
+  .wex b { color: var(--good); font-weight: 600; }
+  .wex-title { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+               color: var(--good); font-weight: 800; margin-bottom: 4px; }
+  .wex .step { display: block; margin: 2px 0; }
+  .cmp-wrap { overflow-x: auto; margin: 4px 0 14px; }
+  table.cmp { border-collapse: collapse; background: var(--panel); border: 1px solid var(--border);
+              border-radius: 12px; overflow: hidden; font-size: 13px; min-width: 640px; width: 100%; }
+  table.cmp th { text-align: left; padding: 9px 11px; background: var(--panel-2); color: var(--text);
+                 font-size: 11.5px; font-weight: 800; letter-spacing: .03em; border-bottom: 1px solid var(--border); }
+  table.cmp td { padding: 9px 11px; border-top: 1px solid var(--border); vertical-align: top; }
+  table.cmp td:first-child { font-weight: 700; color: var(--accent-strong); white-space: nowrap; }
+  table.cmp .err { display: block; color: var(--bad); font-weight: 600; font-size: 12px; margin-top: 4px; }
+  table.cmp .ok { display: block; color: var(--good); font-size: 12px; margin-top: 4px; }
+
+  /* ---- collapsible cheatsheet ---- */
+  .cs-toolbar { position: sticky; top: 0; z-index: 20; background: var(--bg);
+                padding: 10px 0 10px; margin: 0 0 14px; border-bottom: 1px solid var(--border); }
+  .cs-searchrow { display: flex; gap: 8px; align-items: center; }
+  .cs-search { flex: 1; background: var(--panel); border: 1px solid var(--border); color: var(--text);
+               border-radius: 9px; padding: 9px 12px; font-size: 14px; font-family: inherit; }
+  .cs-search:focus { outline: none; border-color: var(--accent); }
+  .cs-btn { background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+            border-radius: 9px; padding: 9px 11px; font-size: 12px; cursor: pointer; white-space: nowrap; font-family: inherit; }
+  .cs-btn:hover { color: var(--text); border-color: var(--accent); }
+  .cs-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .cs-chip { background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+             border-radius: 999px; padding: 5px 11px; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .cs-chip:hover, .cs-chip.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  .cs-hits { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  pre.ctree { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+              padding: 12px 14px; margin: 6px 0 15px; overflow-x: auto; font-size: 12px;
+              line-height: 1.5; color: var(--text); white-space: pre;
+              font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .cs-note { font-size: 12.5px; color: var(--muted); margin: 10px 4px 2px; line-height: 1.5; }
+
+  .cs-block { margin: 0 0 10px; scroll-margin-top: 108px; }
+  .cs-block > .cs-group { margin: 0; display: flex; align-items: center; gap: 10px; cursor: pointer;
+                          border-bottom: 2px solid var(--border); padding: 11px 4px; user-select: none; }
+  .cs-block.open > .cs-group { border-bottom-color: var(--accent); }
+  .cs-block > .cs-group:hover { color: var(--text); }
+  .cs-group .chev { font-size: 11px; color: var(--muted); transition: transform .15s ease; margin-left: auto; }
+  .cs-block.open .chev { transform: rotate(90deg); }
+  .cs-group .cnt { font-size: 11px; font-weight: 600; color: var(--muted); background: var(--panel-2);
+                   border-radius: 999px; padding: 2px 8px; letter-spacing: 0; text-transform: none; }
+  .cs-body { display: none; padding-top: 4px; }
+  .cs-block.open > .cs-body { display: block; }
+  .cs-block > .cs-body > .cs-section:first-child { margin-top: 14px; }
+
+  .to-top { position: fixed; right: 16px; bottom: 16px; z-index: 30; background: var(--panel);
+            border: 1px solid var(--border); color: var(--muted); border-radius: 999px;
+            padding: 9px 13px; font-size: 13px; cursor: pointer; display: none; font-family: inherit; }
+  .to-top.show { display: block; }
+  .to-top:hover { color: var(--text); border-color: var(--accent); }
+  .cs-group { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-strong); border-bottom: 2px solid var(--accent); padding-bottom: 6px; margin: 36px 0 8px; }
+  .ptable-wrap { overflow: auto; -webkit-overflow-scrolling: touch; margin: 4px 0 10px; border: 1px solid var(--border); border-radius: 12px; max-height: 80vh; }
+  .ptable-wrap.full { max-height: none; }
+  .ptable-wrap.full table.ptable th { position: static; }
+  table.ptable { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; min-width: 680px; background: var(--panel); }
+  table.ptable th { text-align: left; color: var(--accent); font-size: 10.5px; text-transform: uppercase; letter-spacing: .03em; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; white-space: nowrap; position: sticky; top: 0; background: var(--panel-2); z-index: 2; }
+  table.ptable td { padding: 9px 10px; border-top: 1px solid var(--border); vertical-align: top; }
+  table.ptable td.prod, table.ptable th:first-child { position: sticky; left: 0; z-index: 1; background: var(--panel-2); box-shadow: 1px 0 0 var(--border); }
+  table.ptable th:first-child { z-index: 3; }
+  table.ptable td.prod { font-weight: 700; color: var(--text); white-space: normal; overflow-wrap: break-word;
+                         width: 1%; min-width: 110px; max-width: 160px; }
+  table.ptable td.ns { color: var(--accent-strong); }
+  table.ptable ol { margin: 0; padding-left: 15px; }
+  table.ptable li { margin-bottom: 2px; }
+  .sayit { background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+           padding: 9px 12px; margin: 11px 0 5px; font-size: 13px; line-height: 1.6; }
+  .sayit b { color: var(--accent); font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+           display: block; margin-bottom: 4px; font-weight: 700; }
+  .probe { font-size: 12px; color: var(--muted); margin: 0 0 13px 3px; line-height: 1.55; }
+  .tri { display: grid; gap: 7px; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); margin: 10px 0 4px; }
+  .tri > div { background: var(--panel); border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; font-size: 13px; line-height: 1.55; }
+  .tri .n { color: var(--accent); font-weight: 700; margin-right: 5px; }
+  table.ptable td.detail { background: var(--bg); border-top: 1px dashed var(--border);
+                           padding: 13px 14px 15px; line-height: 1.6; font-size: 12px; }
+  table.ptable td.detail p { font-size: 12px; }
+  table.ptable td.detail .detail-hd { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em;
+                           color: var(--accent); margin-bottom: 9px; font-weight: 700; }
+  table.ptable td.detail .detail-grid { display: grid; gap: 9px 26px;
+                           grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+  table.ptable td.detail .detail-grid > p { margin: 0; }
+  @media (max-width: 640px) {
+    table.ptable td.detail .detail-grid { grid-template-columns: 1fr; gap: 11px; }
+    table.ptable td.detail { padding: 12px 11px 14px; }
+    .tri { grid-template-columns: 1fr; }
+  }
+  a { color: var(--accent-strong); }
+  a:hover { text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Pricing Analyst Interview Prep</h1>
+    <div class="sub">Staff Data Analyst, Pricing &amp; Retail Analytics (Coupang) · say it out loud, then reveal</div>
+  </header>
+
+  <div class="viewtoggle">
+    <button class="tab" id="tabCheat">📋 Cheatsheet</button>
+    <button class="tab" id="tabCards">🎴 Flashcards</button>
+  </div>
+
+  <div id="cheatsheetView">
+
+    <div class="cs-group">🎯 Tonight's priority</div>
+    <div class="cs-note">Weighted against the JD's explicit asks. Coupang-specific facts below are inferred from public knowledge and the JD — confirm against what the interviewers say.</div>
+    <div class="tri">
+      <div><span class="n">1</span><strong>Pricing as a system — top priority.</strong> The JD says "design, develop, and maintain decision-making systems." Be ready to describe tiers, objective, logic, guardrails and measurement, not individual price calls.</div>
+      <div><span class="n">2</span><strong>Articulating a pricing decision — top priority.</strong> The brief is "clarify requirements, align objectives, challenge assumptions." Lead with the structure, then the tradeoff, then a recommendation.</div>
+      <div><span class="n">3</span><strong>Causal inference &amp; experimentation — high priority.</strong> Elasticity from observational data is biased. Know endogeneity, switchback and geo tests, and interference between SKUs.</div>
+      <div><span class="n">4</span><strong>Metrics &amp; report quality — high priority.</strong> "Ensuring the quality of regular reports and metrics" is the first responsibility. Know metric definitions, data checks and ownership.</div>
+      <div><span class="n">5</span><strong>Staff-level leadership — high priority.</strong> End-to-end ownership, influencing leadership, mentoring analysts. Have two project stories ready.</div>
+      <div><span class="n">6</span><strong>SQL / tooling — refresher only.</strong> Expert SQL is a basic qualification. Spark, Airflow and GitHub are preferred, so know the vocabulary.</div>
+    </div>
+
+    <div class="cs-group">⭐ The only 8 things to memorise</div>
+    <div class="cs-note">Learn these cold. Everything below is recognition-only.</div>
+    <div class="tri">
+      <div><span class="n">1</span><strong>You design a system, not prices.</strong> At tens of millions of listings, decide which items get which logic, what the algorithm optimizes, what bounds it, and how you know it works.</div>
+      <div><span class="n">2</span><strong>Triage by impact into tiers:</strong> price-image items (KVIs) get tight, competitor-anchored control; the mid-tail gets algorithmic pricing within guardrails; the long tail and new items get rules or pooled estimates.</div>
+      <div><span class="n">3</span><strong>State the objective before the method.</strong> Maximize contribution profit subject to constraints (price index on KVIs, GMV floor, sell-through). "Traffic" and "margin" are different objectives with different tools.</div>
+      <div><span class="n">4</span><strong>The price the customer sees is the effective price</strong> after coupons, instant discounts, card offers and WOW pricing. Never analyze list price alone.</div>
+      <div><span class="n">5</span><strong>Margin means contribution margin</strong> (net of fulfillment, delivery, promo funding), not gross margin. Cost-to-serve varies by item.</div>
+      <div><span class="n">6</span><strong>Observational elasticity is biased.</strong> Promos coincide with demand spikes and competitors react to demand. Use experiments or quasi-random variation, and pool estimates (category → brand → SKU) for sparse data.</div>
+      <div><span class="n">7</span><strong>Evaluate at category or basket level,</strong> not per item: cannibalization, substitution to 3P, and halo effects all hide in SKU-level reads. Randomize by time, geo or cluster, not SKU.</div>
+      <div><span class="n">8</span><strong>Every answer: Objective → Segment → Lever → Evidence → Guardrails → Measurement,</strong> then close with a recommendation, the risk, and how you'd roll it out in waves.</div>
+    </div>
+    <div class="probe"><strong>Two habits that carry every answer:</strong> quantify scale ("~2K KVIs drive X% of traffic; the long tail runs on rules") · name what you would <em>not</em> do and why.</div>
+
+    <div class="cs-group">🧭 The core shift: system, not prices</div>
+    <div class="cs-note">The frame that makes every other answer coherent.</div>
+    <div class="sayit"><b>Say this</b>"At this scale nobody decides individual prices, so I think in tiers. A few thousand price-image items drive perception and traffic, so those get competitor-anchored control and close monitoring. The mid-tail runs on an algorithm optimizing contribution profit inside guardrails. The long tail and new items run on rules or pooled estimates, because per-SKU modeling there is noise. My job is deciding which tier an item sits in, what objective it serves, and how we measure it."</div>
+    <div class="cs-section">
+      <table class="cs">
+        <tr class="hd"><td>Tier</td><td>Items</td><td>Approach</td></tr>
+        <tr><td class="term">Price-image items (KVIs)</td><td>Key value items: the few staples customers remember and compare, so they shape the "cheap" perception (diapers, water, eggs, rice). A few thousand SKUs, picked by traffic, frequency, price visibility and sensitivity to gaps. The list shifts with seasonality and inflation, so it needs an owner.</td><td>Competitor-anchored price index targets, often semi-manual, monitored in near-real time. Margin is the constraint, not the objective. Don't auto-match: hold if delivery or WOW value carries the item.</td></tr>
+        <tr><td class="term">Mid-tail</td><td>Large, steady-selling catalog with enough data for elasticity.</td><td>Algorithmic pricing maximizing contribution profit within guardrails. Pooled elasticity estimates, tested via experiments.</td></tr>
+        <tr><td class="term">Long tail / new items</td><td>Sparse or no history.</td><td>Rules (cost-plus, category benchmark), fast learning, pooled priors from the category. Don't build per-SKU models.</td></tr>
+      </table>
+    </div>
+    <div class="probe"><strong>If probed →</strong> how items move between tiers (traffic, velocity, data volume) · who owns the KVI list · how often tiers are re-evaluated · what happens when a long-tail item suddenly goes viral.</div>
+
+    <div class="cs-group">🛒 Coupang context</div>
+    <div class="cs-note">Inferred from public information. Frame as "my understanding is… correct me" in the interview.</div>
+    <div class="cs-section">
+      <table class="cs">
+        <tr><td class="term">1P (Rocket)</td><td>Coupang owns inventory and sets the price, so it owns the margin. Levers: price, promo funding, assortment. Objective can be directly optimized.</td></tr>
+        <tr><td class="term">3P (Marketplace)</td><td>Sellers set prices. Coupang influences through fees, promotions, ranking and Buy Box-style placement, plus Rocket Fulfillment for sellers. Levers are indirect, so the objectives differ: price competitiveness and conversion for the platform, not unit margin.</td></tr>
+        <tr><td class="term">WOW membership</td><td>Free fast delivery and member pricing are bundled value. Over-discounting can cannibalize membership value, and member-only prices need their own measurement.</td></tr>
+        <tr><td class="term">Price comparison</td><td>Korean shoppers compare heavily (for example via Naver Shopping), so competitive price position drives traffic share. Competitor price tracking is a core input.</td></tr>
+        <tr><td class="term">Logistics cost</td><td>Delivery and fulfillment cost vary by size, weight and temperature (fresh versus ambient). Use contribution margin, not gross.</td></tr>
+        <tr><td class="term">Promotion stacking</td><td>Coupons, instant discounts, card discounts and bundles interact. Analyze the effective price and who funds each piece (Coupang, seller, card issuer).</td></tr>
+        <tr><td class="term">Speed</td><td>Competitors move prices constantly, so you need near-real-time reaction, automated alerts, and clear human ownership of exceptions.</td></tr>
+        <tr><td class="term">Non-price value</td><td>Delivery speed is a competitive advantage. For some items the right answer is <em>not</em> to match a lower competitor price, because the delivery promise carries the value.</td></tr>
+      </table>
+    </div>
+
+    <div class="cs-group">⚙️ Components of a pricing system</div>
+    <div class="cs-section">
+      <table class="cs">
+        <tr><td class="term">1. Objective</td><td>Maximize contribution profit subject to constraints: price-index targets on KVIs, a GMV floor, sell-through for aging inventory. State this first, always.</td></tr>
+        <tr><td class="term">2. Inputs</td><td>Cost and cost-to-serve, competitor prices, demand forecast, elasticity estimates, inventory and age, promo calendar, seasonality.</td></tr>
+        <tr><td class="term">3. Decision logic</td><td>Rules, an optimization model, or a hybrid. Rules for cold-start and KVIs; a model for the mid-tail. Keep logic explainable so category managers trust it.</td></tr>
+        <tr><td class="term">4. Guardrails</td><td>Margin floors, max price change per day, parity limits, brand or legal constraints, circuit breakers for competitor-triggered price wars.</td></tr>
+        <tr><td class="term">5. Measurement</td><td>A/B or switchback tests with a permanent holdout, and a metric tree: contribution profit per order, price index, GMV, conversion.</td></tr>
+        <tr><td class="term">6. Monitoring &amp; override</td><td>Anomaly alerts (price spikes, margin breaches, stale data), exception ownership, an audit trail of why a price was set, and a feedback loop into the model.</td></tr>
+        <tr><td class="term">⚠️ Failure mode</td><td>A "reasonable" algorithm quietly chasing a bad competitor price feed or a stale cost. Data-quality checks on inputs matter as much as the model.</td></tr>
+      </table>
+    </div>
+
+    <div class="cs-group">🔬 Hard problems at scale</div>
+    <div class="cs-note">Where seniority shows. Pick two or three per answer, don't recite all.</div>
+    <div class="sayit"><b>Say this</b>"Historical price changes weren't random: promos coincide with demand spikes and competitors react to demand, so a naive log-log regression overstates how price-insensitive customers are. I'd use experiments where I can, quasi-random variation where I can't, and pool across the category so sparse SKUs borrow strength."</div>
+    <div class="cs-section">
+      <table class="cs">
+        <tr><td class="term">Sparse data</td><td>Hierarchical or pooled elasticity (category → brand → SKU) with shrinkage toward the parent. Don't regress per-SKU on a few noisy points.</td></tr>
+        <tr><td class="term">Endogeneity</td><td>Price correlates with unobserved demand shocks. Fix with randomized price tests, instruments (supplier cost shocks), or event-based variation. Say "biased toward zero or wrong sign" and explain why.</td></tr>
+        <tr><td class="term">Cross-effects</td><td>Cannibalization within category, substitution to 3P, basket halo (cheap diapers driving wipes). Evaluate at the category or basket level.</td></tr>
+        <tr><td class="term">Experiment interference</td><td>SKU-level randomization leaks across substitutes and shared inventory. Use switchback (by time), geo, or cluster-level randomization. Check for novelty effects.</td></tr>
+        <tr><td class="term">Short vs. long run</td><td>Discounts pull demand forward and shape reference prices. Look at post-promo dips, repeat rate, and WOW retention, not just the promo week.</td></tr>
+        <tr><td class="term">Competitor reaction</td><td>Price wars. Model best-response and set guardrails; don't assume competitors hold still.</td></tr>
+        <tr><td class="term">Metric choice</td><td>Contribution profit per order, price index versus competitors, GMV, conversion, margin dollars. Revenue alone rewards bad discounting.</td></tr>
+        <tr><td class="term">Automation vs. manual</td><td>Automate where rules are stable and volume is high; keep humans on KVIs, new categories and exceptions. Define the handoff explicitly.</td></tr>
+      </table>
+    </div>
+
+    <div class="cs-group">🗣️ Articulating a pricing decision</div>
+    <div class="cs-note">Lead with the named structure. Spell it out, don't abbreviate it.</div>
+    <div class="sayit"><b>Structure</b>Objective → Segment → Lever → Evidence → Guardrails → Measurement</div>
+    <div class="cs-section">
+      <h2>Worked example: "How would you decide whether to cut prices on category X?"</h2>
+      <table class="cs">
+        <tr><td class="term">Objective</td><td>Is the goal traffic and price perception, or margin? That decides everything. Assume we want share without destroying contribution profit.</td></tr>
+        <tr><td class="term">Segment</td><td>Don't treat the category as one unit. Split into price-sensitive, high-traffic items where we're above competitors, and the long tail where cuts barely move volume.</td></tr>
+        <tr><td class="term">Lever</td><td>A permanent cut, targeted coupon, member-only price, or bundle? Each differs in cost and reversibility.</td></tr>
+        <tr><td class="term">Evidence</td><td>Elasticity by segment, competitor gaps, cross-effect on substitutes. For a decision this size rely on a test, since observational elasticities are biased by promo timing.</td></tr>
+        <tr><td class="term">Guardrails</td><td>Margin floor per item, spend cap, automatic rollback if contribution profit per order falls below a threshold.</td></tr>
+        <tr><td class="term">Measurement</td><td>Geo or switchback test with a holdout, reading contribution profit, traffic and conversion, plus the post-period for pull-forward.</td></tr>
+        <tr><td class="term">Close</td><td>Scale in waves: segments with proven lift first, automate once rules are stable. Name the main risk (competitor price war) and the cap that contains it.</td></tr>
+      </table>
+    </div>
+    <div class="cs-section">
+      <h2>Habits that signal Staff level</h2>
+      <table class="cs">
+        <tr><td class="term">Tradeoff + recommendation</td><td>State the tradeoff and pick one. Never a survey of options.</td></tr>
+        <tr><td class="term">Quantify scale</td><td>"This applies to ~2K KVIs driving X% of traffic; the long tail runs on rules."</td></tr>
+        <tr><td class="term">Say what you won't do</td><td>"I wouldn't build a per-SKU model for the long tail; the signal isn't there."</td></tr>
+        <tr><td class="term">Say how it fails</td><td>"The risk is a competitor-triggered price war, so we cap daily change and alert on breaches."</td></tr>
+        <tr><td class="term">Challenge the ask</td><td>"Before I build it: what decision does this report inform, and who acts on it?" Matches the JD's "clarify requirements… challenge assumptions."</td></tr>
+      </table>
+    </div>
+
+    <div class="cs-group">📊 Metrics &amp; formulas</div>
+    <div class="cs-section">
+      <table class="cs">
+        <tr><td class="term">Contribution profit</td><td>Net revenue − COGS − fulfillment/delivery − promo funding borne by Coupang. The objective for most mid-tail pricing.</td></tr>
+        <tr><td class="term">Price index</td><td>Weighted average of (our price ÷ competitor price) across a basket, weighted by traffic or sales. 100 = parity. Track separately for KVIs and overall.</td></tr>
+        <tr><td class="term">Own-price elasticity</td><td><code>ε = %ΔQ ÷ %ΔP</code>. In a log-log model <code>ln Q = α + ε ln P + controls</code>, the coefficient is ε. |ε| &gt; 1 means cutting price raises revenue; margin needs a separate check.</td></tr>
+        <tr><td class="term">Cross-elasticity</td><td>%ΔQ of item B for a 1% price change in item A. Negative for complements (diapers → wipes), positive for substitutes.</td></tr>
+        <tr><td class="term">Break-even lift</td><td>For a price cut of d on margin m: required volume lift = d ÷ (m − d). A 5-point cut on 20% margin needs a 33% volume lift to break even on unit profit.</td></tr>
+        <tr><td class="term">Incrementality</td><td>(Treatment outcome − control outcome) ÷ incremental cost. Distinguishes promo-driven demand from demand that would have happened anyway.</td></tr>
+        <tr><td class="term">Pull-forward</td><td>Post-promo dip in baseline sales. Net lift = promo-period lift − post-period dip.</td></tr>
+        <tr><td class="term">Report quality checks</td><td>Freshness, row-count and null checks, reconciliation against finance, definition ownership, metric versioning. "Same number, one definition."</td></tr>
+      </table>
+    </div>
+
+    <div class="cs-group">🧰 Tooling refresher</div>
+    <div class="cs-note">Expert SQL is a basic qualification. Know the patterns and the vocabulary, don't over-invest.</div>
+    <div class="cs-section">
+      <table class="cs">
+        <tr><td class="term">Price index by day</td><td><code>SUM(our_price/comp_price * weight) / SUM(weight)</code> grouped by date and category; join our price table to the competitor feed on item match key and date. Watch the item-matching quality.</td></tr>
+        <tr><td class="term">Price change detection</td><td><code>price - LAG(price) OVER (PARTITION BY sku ORDER BY date)</code>; flag changes above a threshold for the anomaly report.</td></tr>
+        <tr><td class="term">Promo vs. baseline</td><td>Baseline = trailing median of non-promo days; lift = promo-day units ÷ baseline. Exclude stockout days.</td></tr>
+        <tr><td class="term">Stockout bias</td><td>Zero sales on a stockout day isn't zero demand. Filter or impute before estimating elasticity.</td></tr>
+        <tr><td class="term">Spark / Hadoop</td><td>Distributed processing for large item × day × competitor tables. Know partitioning, broadcast joins and avoiding skew on top SKUs.</td></tr>
+        <tr><td class="term">Airflow</td><td>Orchestrates the daily pipeline: competitor feed → cleaning → price index → report. Know retries, dependencies, backfills, SLAs and data-quality gates.</td></tr>
+        <tr><td class="term">GitHub</td><td>Version-controlled SQL and model code, code review, and documented metric definitions.</td></tr>
+      </table>
+    </div>
+
+    <div class="cs-group">👔 Staff-level &amp; fit</div>
+    <div class="cs-note">The JD stresses ownership, documentation, influencing leadership and team culture.</div>
+    <div class="cs-section">
+      <table class="cs">
+        <tr><td class="term">End-to-end project story</td><td>Situation → Task → Action → Result → Learnings. Pick one where you changed a decision, with numbers. Reuse the Wise project deep-dive structure.</td></tr>
+        <tr><td class="term">Influencing leadership</td><td>Lead with the decision and the recommendation, then the evidence. Name the tradeoff and the cost of being wrong.</td></tr>
+        <tr><td class="term">Ambiguity</td><td>Clarify the decision, propose a scoped first version, name assumptions explicitly, set a checkpoint. (From the Google loop feedback: answer the question asked, show how you'd structure the ambiguity.)</td></tr>
+        <tr><td class="term">Documentation</td><td>Metric definitions, assumptions log, methodology notes, decision records. "If I'm out for a week, someone can pick it up."</td></tr>
+        <tr><td class="term">Mentoring</td><td>Code review, shared templates, teaching how to challenge a requirement. Ready with one example.</td></tr>
+        <tr><td class="term">Why Coupang</td><td>Scale, speed, ownership, and a pricing problem where the algorithm and the business interact directly.</td></tr>
+        <tr><td class="term">Questions to ask them</td><td>How are KVIs defined and who owns them? How much pricing is algorithmic today? How is a pricing algorithm change validated before rollout? What does the analyst-developer split look like?</td></tr>
+      </table>
+    </div>
+
+  </div><!-- /cheatsheetView -->
+
+  <div id="flashcardView" style="display:none">
+  <div class="controls" id="clusterFilters"></div>
+  <div class="controls">
+    <button class="btn" id="shuffleBtn">🔀 Shuffle</button>
+    <button class="btn" id="orderBtn">↩︎ Original order</button>
+    <button class="chip" id="reviewFilter">★ Review only</button>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="meta">
+    <span id="counter">—</span>
+    <span id="markedCount"></span>
+  </div>
+
+  <div id="cardHost"></div>
+
+  <div class="footer-hint">
+    <span class="kbd">Space</span> reveal · <span class="kbd">←</span>/<span class="kbd">→</span> prev/next · <span class="kbd">M</span> mark for review
+  </div>
+  </div><!-- /flashcardView -->
+
+</div>
+
+<script>
+const CARDS = [
+  // ---- System design ----
+  { cluster: "🏗️ System design", q: "How would you set up a system to price 10M SKUs?",
+    a: `<p><strong>Structure — Objective → Tiers → Logic → Guardrails → Measurement → Monitoring</strong></p>
+<p><strong>Objective:</strong> maximize contribution profit subject to a price-index target on price-image items and a GMV floor. <strong>Tiers:</strong> a few thousand KVIs get competitor-anchored control; the mid-tail gets an algorithm; the long tail and new items get rules or pooled priors. <strong>Logic:</strong> hybrid, explainable. <strong>Guardrails:</strong> margin floors, daily change caps, circuit breakers. <strong>Measurement:</strong> switchback or geo tests with a permanent holdout. <strong>Monitoring:</strong> anomaly alerts and exception ownership.</p>
+<p>Close: roll out by tier, starting where the evidence is strongest.</p>`,
+    trap: "Don't start with the model. Start with the objective and the triage. The model is one box in the system." },
+
+  { cluster: "🏗️ System design", q: "Walk me through how algorithmic pricing works, step by step, for one item.",
+    a: `<p><strong>Structure — Objective → Inputs → Demand model → Optimize → Guardrails → Publish → Learn</strong></p>
+<p><strong>Example:</strong> full cost ₩7,000 (₩6,000 product + ₩1,000 delivery), current price ₩10,000, 100 units/day, competitor at ₩10,500.</p>
+<p><strong>1. Objective:</strong> maximize contribution profit = (price − ₩7,000) × units. <strong>2. Inputs:</strong> cost, competitor price, recent sales, stock, promo calendar. <strong>3. Demand model:</strong> with elasticity ε = −2, units = 100 × (price ÷ 10,000)<sup>−2</sup>. <strong>4. Optimize:</strong> try candidate prices; ₩10,000 → ₩300K, ₩11,000 → ₩331K, ₩14,000 → ₩357K, so the raw optimum is ₩14,000 (cost × ε ÷ (1 + ε)). <strong>5. Guardrails:</strong> ₩14,000 is 33% above the competitor, and rules say price index ≤ 105 and max +5% per day, so ₩11,000 is published. <strong>6. Publish</strong> with a log of why. <strong>7. Learn:</strong> new sales update the demand estimate; periodic tests check it.</p>
+<p><strong>Why it matters:</strong> the elasticity drives everything. If the true ε is −3, the optimum is ₩10,500; charging ₩14,000 earns about ₩255K versus about ₩302K. A wrong elasticity gives a confident wrong price.</p>`,
+    trap: "Don't present the optimizer as the system. Inputs, guardrails and the learning loop decide whether it's safe." },
+
+  { cluster: "🏗️ System design", q: "What goes into a good pricing guardrail, and why do you need them at all?",
+    a: `<p><strong>Structure — Failure mode → Guardrail → Trigger → Owner</strong></p>
+<p>Algorithms optimize what you tell them to, on the data they see. Failure modes: a bad competitor feed, a stale cost, a feedback loop with a competitor's algorithm. Guardrails: margin floor, max daily change, parity bounds, spend caps. Each needs a trigger (alert or auto-rollback) and a named owner who can override.</p>`,
+    trap: "A guardrail with no owner is just a log line." },
+
+  { cluster: "🏗️ System design", q: "When do you automate a price decision versus keep a human in the loop?",
+    a: `<p><strong>Structure — Volume → Stability → Stakes → Handoff</strong></p>
+<p>Automate where volume is high, the rules are stable and a single wrong decision is cheap (mid-tail). Keep humans on high-stakes items (KVIs, new categories, large promos) and exceptions. Define the handoff explicitly: what triggers escalation and who decides.</p>`,
+    trap: null },
+
+  { cluster: "🏗️ System design", q: "How do you price a brand-new item with no history?",
+    a: `<p><strong>Structure — Prior → Rule → Learn → Graduate</strong></p>
+<p><strong>Prior:</strong> start from the category, brand and comparable items. <strong>Rule:</strong> cost-plus or competitor benchmark with margin floor. <strong>Learn:</strong> modest price variation to learn elasticity quickly. <strong>Graduate:</strong> move to the algorithmic tier once data volume passes a threshold.</p>`,
+    trap: "Don't regress on a handful of points. Borrow strength from the category." },
+
+  // ---- Coupang context ----
+  { cluster: "🛒 Coupang context", q: "How does pricing differ between Rocket (1P) and Marketplace (3P)?",
+    a: `<p><strong>Structure — Who sets price → Levers → Objective → Measurement</strong></p>
+<p>1P: Coupang sets the price and owns margin, so you can optimize contribution profit directly. 3P: sellers set prices; Coupang influences with fees, promotions, ranking and fulfillment incentives, so the objective shifts toward price competitiveness, conversion and seller health. Measurement needs to account for seller reaction.</p>`,
+    trap: "Don't describe 3P pricing as if Coupang controls it." },
+
+  { cluster: "🛒 Coupang context", q: "Which pricing constraints apply to 1P versus 3P, and what exactly does Coupang change in each?",
+    a: `<p><strong>Structure — Who sets price → Whose money is at risk → What Coupang controls → Resulting constraint</strong></p>
+<p>Ask three ownership questions per constraint: who sets the price, whose margin and inventory are exposed, and which levers Coupang actually holds. In <strong>1P</strong>, constraints bind Coupang's own algorithm. In <strong>3P</strong>, they become rules and incentives that shape the seller's decision.</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th></th><th>1P (Rocket)</th><th>3P (Marketplace)</th></tr>
+<tr><td>Who sets the price</td><td>Coupang</td><td>The seller</td></tr>
+<tr><td>What Coupang changes directly</td><td>The price itself, promo depth, assortment, and clearance timing</td><td>Platform-side levers only: fees, promotion eligibility and funding, placement or badges, fulfillment terms, listing rules</td></tr>
+<tr><td>What Coupang only influences</td><td>Competitor reaction and customer response</td><td>The seller's price, and how the seller reacts to those levers</td></tr>
+<tr><td>Margin</td><td>Hard floor on the algorithm: contribution margin after fulfillment and funded promo</td><td>Not Coupang's unit margin; Coupang watches take rate and seller viability</td></tr>
+<tr><td>Competitor price gap</td><td>Algorithm bound (price-index target, tightest on KVIs)</td><td>Enforced indirectly: gap affects placement, badges or promo eligibility; sellers get alerts</td></tr>
+<tr><td>Max daily change, circuit breaker</td><td>Guardrail on the algorithm</td><td>Platform safeguard: flag or block extreme drops (e.g. typo prices)</td></tr>
+<tr><td>Inventory</td><td>Coupang's stock drives clearance and protection</td><td>Seller's stock; Coupang can limit exposure, not price against it</td></tr>
+<tr><td>Promo funding</td><td>Coupang funds</td><td>Seller, Coupang or split; who pays is part of the design</td></tr>
+<tr><td>Price ladders, consistency</td><td>Algorithm rule</td><td>Harder: platform can flag or surface, not set</td></tr>
+<tr><td>Measurement</td><td>Randomize price or promo directly</td><td>Randomize the lever (fee, promo, badge); seller response is part of the effect</td></tr>
+<tr><td>Main risk</td><td>Bad inputs drive a confident wrong price</td><td>Levers harm seller health or sellers respond in unexpected ways</td></tr>
+</table></div>
+<p><strong>Confirm with the interviewer:</strong> "How much of 3P pricing do you influence versus leave to sellers, and through which levers?" I'm inferring the Coupang 3P mechanics from the general marketplace structure.</p>`,
+    trap: "Don't describe a 3P margin floor or price ladder as if Coupang can set it. For 3P, say what you'd change (the lever) and how you'd measure the seller's response." },
+
+  { cluster: "🛒 Coupang context", q: "A competitor undercuts us on 500 KVIs. What do you do in the first hour, first week, and first quarter?",
+    a: `<p><strong>Structure — Hour → Week → Quarter</strong></p>
+<p><strong>First hour:</strong> verify it's real (matching, stock, shipping, price feed) and size exposure by traffic. <strong>First week:</strong> decide per item: match, partially match, or hold on delivery value; estimate margin cost versus traffic loss; test where uncertain. <strong>First quarter:</strong> build a repeatable response: automated detection, tiered response rules, a price-war circuit breaker, and a review of why we were exposed.</p>`,
+    trap: "Don't auto-match everything. Some items should hold on delivery speed and membership value." },
+
+  { cluster: "🛒 Coupang context", q: "Why does WOW membership complicate pricing analysis?",
+    a: `<p><strong>Structure — Effective price → Cannibalization → Retention</strong></p>
+<p>Members see different effective prices, and free fast delivery is bundled value. Member-only discounts may pull demand that would have bought anyway, or may drive retention. Measure effective price by segment, incrementality of member offers, and downstream retention, not just promo-week sales.</p>`,
+    trap: "List price is not what the member pays." },
+
+  { cluster: "🛒 Coupang context", q: "How would you handle promotion stacking when evaluating price changes?",
+    a: `<p><strong>Structure — Effective price → Funding → Overlap → Incrementality</strong></p>
+<p>Compute the effective price after coupons, instant discounts and card offers. Track who funds each (Coupang, seller, issuer). Identify overlapping promos on the same item and attribute lift carefully, ideally with a test that varies one lever. Report contribution profit net of Coupang-funded promo cost.</p>`,
+    trap: null },
+
+  // ---- Causal & experiments ----
+  { cluster: "🔬 Causal & experiments", q: "How would you estimate price elasticity for a mid-tail category?",
+    a: `<p><strong>Structure — Problem → Identification → Estimation → Validation</strong></p>
+<p><strong>Problem:</strong> price is endogenous; promos and competitor moves correlate with demand. <strong>Identification:</strong> randomized price tests where possible; otherwise instruments (supplier cost shocks) or event-based variation. <strong>Estimation:</strong> log-log with item and time fixed effects, hierarchical pooling across category/brand/SKU, handle stockouts. <strong>Validation:</strong> compare to experiment results on a subset and check holdout predictions.</p>`,
+    trap: "A naive log-log on historical data is the textbook wrong answer. Name the bias before you're asked." },
+
+  { cluster: "🔬 Causal & experiments", q: "Why can't you randomize price tests at the SKU level, and what do you do instead?",
+    a: `<p><strong>Structure — Interference → Design options → Tradeoffs</strong></p>
+<p>Substitutes share demand and shared inventory, so a price cut on treated SKUs pulls from control SKUs, biasing the estimate. Alternatives: <strong>switchback</strong> (alternate by time block), <strong>geo</strong> (randomize regions), or <strong>cluster</strong> (randomize whole category groups). Tradeoffs: switchback risks carryover; geo needs enough regions and has more variance; cluster reduces effective sample size.</p>`,
+    trap: null },
+
+  { cluster: "🔬 Causal & experiments", q: "How do you measure the true incremental impact of a coupon program?",
+    a: `<p><strong>Structure — Question → Control → Metric → Read-out</strong></p>
+<p><strong>Question:</strong> is it incremental demand or subsidizing purchases that would have happened? <strong>Control:</strong> randomized holdout of eligible customers. <strong>Metric:</strong> incremental contribution profit per eligible customer, net of coupon cost, plus the post-period for pull-forward. <strong>Read-out:</strong> incremental profit per coupon dollar, by segment, with a recommendation on who to target.</p>`,
+    trap: "Redemption rate is not incrementality." },
+
+  { cluster: "🔬 Causal & experiments", q: "The algorithm raised margin 2% but GMV dropped 1%. Is it a success?",
+    a: `<p><strong>Structure — Objective → Net effect → Source → Decision</strong></p>
+<p><strong>Objective:</strong> what was the algorithm meant to optimize? <strong>Net effect:</strong> contribution profit dollars, not margin %. <strong>Source:</strong> did GMV fall in KVIs (price perception risk) or the long tail (fine)? <strong>Decision:</strong> keep if profit up and KVI traffic held; watch the long-run effect on repeat rate and price perception.</p>`,
+    trap: "Margin % up with volume down can still mean profit dollars fell." },
+
+  { cluster: "🔬 Causal & experiments", q: "Our test shows a lift during the promo week. What else do you check before calling it a win?",
+    a: `<p><strong>Structure — Baseline → Pull-forward → Cannibalization → Cost</strong></p>
+<p>Check the baseline (stockouts, seasonality), the post-period dip (pull-forward), cannibalization of substitutes and other channels, and the full cost (promo funding, delivery). Net lift = promo lift − post-dip − cannibalized volume, valued at contribution profit.</p>`,
+    trap: null },
+
+  // ---- Metrics & reporting ----
+  { cluster: "📊 Metrics & reporting", q: "How would you detect that the pricing algorithm is behaving badly before it costs real money?",
+    a: `<p><strong>Structure — Input checks → Output checks → Outcome checks → Response</strong></p>
+<p><strong>Input:</strong> freshness and sanity on competitor and cost feeds. <strong>Output:</strong> distribution of price changes, share of items hitting margin floor or change cap, outlier alerts. <strong>Outcome:</strong> leading indicators (conversion, price index, margin) versus a holdout. <strong>Response:</strong> auto-pause rules, a named owner, and a post-mortem template.</p>`,
+    trap: "Most failures are input failures, not model failures." },
+
+  { cluster: "📊 Metrics & reporting", q: "How do you ensure the quality of regular pricing reports?",
+    a: `<p><strong>Structure — Definition → Pipeline → Validation → Ownership</strong></p>
+<p><strong>Definition:</strong> one documented, versioned definition per metric. <strong>Pipeline:</strong> orchestrated with dependency and SLA checks. <strong>Validation:</strong> freshness, row-count, null checks, reconciliation against finance, and week-over-week anomaly flags. <strong>Ownership:</strong> a named owner per report and a change log.</p>`,
+    trap: null },
+
+  { cluster: "📊 Metrics & reporting", q: "What metrics would you put on a pricing dashboard for leadership?",
+    a: `<p><strong>Structure — Outcome → Perception → Efficiency → Health</strong></p>
+<p><strong>Outcome:</strong> GMV and contribution profit. <strong>Perception:</strong> price index versus competitors (KVI and overall). <strong>Efficiency:</strong> profit per promo dollar, incremental lift. <strong>Health:</strong> guardrail breaches, data freshness, share of automated versus manual decisions. Keep it to one screen with a clear "so what".</p>`,
+    trap: "A dashboard without a decision attached is decoration." },
+
+  // ---- Communication ----
+  { cluster: "🗣️ Communication", q: "How would you decide whether to cut prices on category X? (Model answer)",
+    a: `<p><strong>Structure — Objective → Segment → Lever → Evidence → Guardrails → Measurement</strong></p>
+<p><strong>Objective:</strong> traffic and price perception, or margin? Assume share without destroying contribution profit. <strong>Segment:</strong> price-sensitive high-traffic items versus the long tail. <strong>Lever:</strong> permanent cut, coupon, member price or bundle. <strong>Evidence:</strong> segment elasticity, competitor gaps, cross-effects, and a test since observational data is biased. <strong>Guardrails:</strong> margin floor, spend cap, auto-rollback. <strong>Measurement:</strong> geo or switchback with holdout, plus the post-period.</p>
+<p>Close: roll out in waves, automate once rules stabilize, name the competitor-price-war risk and its cap.</p>`,
+    trap: "End with a recommendation, not a list of considerations." },
+
+  { cluster: "🗣️ Communication", q: "A category manager asks you for a report. How do you respond before building anything?",
+    a: `<p><strong>Structure — Decision → Audience → Definition → Scope → Check-in</strong></p>
+<p>Ask what decision the report informs and who acts on it. Confirm metric definitions and the cut they need. Propose the smallest first version and a checkpoint. This is the "clarify requirements, challenge assumptions" ask from the JD.</p>`,
+    trap: "Building exactly what was asked, without asking why, is the junior move." },
+
+  { cluster: "🗣️ Communication", q: "Explain price elasticity to a non-technical executive in 30 seconds.",
+    a: `<p><strong>Structure — Plain definition → Example → So what</strong></p>
+<p>"Elasticity is how much sales move when we change price. If a 10% price cut lifts units 20%, customers are price-sensitive and a cut can pay off. If units rise 3%, we just gave away margin. For diapers, we're sensitive; for niche items, we're not, so we treat them differently."</p>`,
+    trap: null },
+
+  // ---- Staff-level ----
+  { cluster: "👔 Staff-level", q: "Walk me through a pricing or promo project you owned end to end.",
+    a: `<p><strong>Structure — Situation → Task → Action → Result → Learnings</strong></p>
+<p>Pick one project where your analysis changed a decision. Lead with the business problem and the decision, then your approach and the tradeoffs you made, then the quantified result and what you'd do differently. Mention stakeholders you aligned and any pushback you handled. Reuse the Wise deep-dive structure.</p>`,
+    trap: "Don't spend most of the time on the method. The interviewers score the decision and the outcome." },
+
+  { cluster: "👔 Staff-level", q: "How do you handle an ambiguous request from leadership: 'Pricing seems off in fresh. Look into it.'",
+    a: `<p><strong>Structure — Clarify → Hypothesise → Investigate → Recommend</strong></p>
+<p><strong>Clarify:</strong> off against what: competitors, margin, last quarter? <strong>Hypothesise:</strong> input problem (cost or feed), logic problem (guardrails, stale rules), or real market shift. <strong>Investigate:</strong> check inputs first, then outputs, then outcomes. <strong>Recommend:</strong> a fix, an owner and a monitor.</p>`,
+    trap: "Don't dive into the data before scoping what 'off' means." },
+
+  { cluster: "👔 Staff-level", q: "How do you mentor other analysts and raise the quality bar on the team?",
+    a: `<p><strong>Structure — Standards → Review → Teach → Scale</strong></p>
+<p>Set standards (metric definitions, templates, documentation). Review code and analyses with a focus on the "why". Teach by pairing on how to challenge a requirement. Scale by turning recurring lessons into shared tools and checklists.</p>`,
+    trap: null },
+];
+
+
+// ---- state ----
+let order = CARDS.map((_, i) => i);
+let pos = 0;
+let revealed = false;
+let activeCluster = "All";
+let reviewOnly = false;
+const marked = new Set(JSON.parse(localStorage.getItem("pricing_marked_cards") || "[]"));
+
+const clusters = ["All", ...Array.from(new Set(CARDS.map(c => c.cluster)))];
+let currentView = "cheatsheet";
+
+function showView(v) {
+  currentView = v;
+  document.getElementById("cheatsheetView").style.display = v === "cheatsheet" ? "block" : "none";
+  document.getElementById("flashcardView").style.display = v === "flashcards" ? "block" : "none";
+  document.getElementById("tabCheat").classList.toggle("active", v === "cheatsheet");
+  document.getElementById("tabCards").classList.toggle("active", v === "flashcards");
+}
+
+function saveMarked() { localStorage.setItem("pricing_marked_cards", JSON.stringify([...marked])); }
+
+function visibleIndices() {
+  return order.filter(i => {
+    if (activeCluster !== "All" && CARDS[i].cluster !== activeCluster) return false;
+    if (reviewOnly && !marked.has(i) && !CARDS[i].review) return false;
+    return true;
+  });
+}
+
+function renderFilters() {
+  const host = document.getElementById("clusterFilters");
+  host.innerHTML = "";
+  clusters.forEach(cl => {
+    const el = document.createElement("span");
+    el.className = "chip" + (cl === activeCluster ? " active" : "");
+    el.textContent = cl;
+    el.onclick = () => { activeCluster = cl; pos = 0; revealed = false; render(); };
+    host.appendChild(el);
+  });
+}
+
+function render() {
+  renderFilters();
+  document.getElementById("reviewFilter").classList.toggle("active", reviewOnly);
+
+  const vis = visibleIndices();
+  const host = document.getElementById("cardHost");
+  const markedCountEl = document.getElementById("markedCount");
+  markedCountEl.textContent = marked.size ? `★ ${marked.size} marked` : "";
+
+  if (vis.length === 0) {
+    host.innerHTML = '<div class="card"><div class="empty">No cards match this filter.<br>Try a different cluster or turn off “Review only.”</div></div>';
+    document.getElementById("counter").textContent = "0 / 0";
+    document.getElementById("progressFill").style.width = "0%";
+    return;
+  }
+  if (pos >= vis.length) pos = vis.length - 1;
+  if (pos < 0) pos = 0;
+
+  const idx = vis[pos];
+  const c = CARDS[idx];
+  const isMarked = marked.has(idx);
+
+  host.innerHTML = `
+    <div class="card">
+      <span class="tag">${c.cluster}</span>${c.review ? '<span class="tag" style="color:#e6b43c;background:rgba(230,180,60,.12);margin-left:6px">🆕 Review</span>' : ""}
+      <div class="q">${c.q}</div>
+      <div class="answer ${revealed ? "" : "hidden"}">
+        ${c.a}
+        ${c.trap ? `<div class="trap"><b>⚠️ Trap:</b> ${c.trap}</div>` : ""}
+      </div>
+      ${revealed ? "" : '<div class="reveal-hint">Answer it out loud, then press Space (or click Reveal).</div>'}
+      <div class="nav">
+        <button class="btn" id="prevBtn">← Prev</button>
+        <button class="star ${isMarked ? "marked" : ""}" id="starBtn" title="Mark for review (M)">${isMarked ? "★" : "☆"}</button>
+        <button class="btn primary" id="revealBtn">${revealed ? "Next →" : "Reveal"}</button>
+      </div>
+    </div>`;
+
+  if (window.renderMathInElement) renderMathInElement(host, { delimiters: [{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}], throwOnError: false });
+  document.getElementById("counter").textContent = `Card ${pos + 1} / ${vis.length}`;
+  document.getElementById("progressFill").style.width = `${((pos + 1) / vis.length) * 100}%`;
+
+  document.getElementById("prevBtn").onclick = prev;
+  document.getElementById("starBtn").onclick = toggleMark;
+  document.getElementById("revealBtn").onclick = () => { revealed ? next() : reveal(); };
+}
+
+function reveal() { revealed = true; render(); }
+function next() { const vis = visibleIndices(); if (pos < vis.length - 1) pos++; else pos = 0; revealed = false; render(); }
+function prev() { const vis = visibleIndices(); if (pos > 0) pos--; else pos = vis.length - 1; revealed = false; render(); }
+function toggleMark() {
+  const vis = visibleIndices(); const idx = vis[pos];
+  if (marked.has(idx)) marked.delete(idx); else marked.add(idx);
+  saveMarked(); render();
+}
+
+document.getElementById("shuffleBtn").onclick = () => {
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  pos = 0; revealed = false; render();
+};
+document.getElementById("orderBtn").onclick = () => { order = CARDS.map((_, i) => i); pos = 0; revealed = false; render(); };
+document.getElementById("reviewFilter").onclick = () => { reviewOnly = !reviewOnly; pos = 0; revealed = false; render(); };
+
+document.addEventListener("keydown", (e) => {
+  if (currentView !== "flashcards") return;
+  if (e.key === " ") { e.preventDefault(); revealed ? next() : reveal(); }
+  else if (e.key === "ArrowRight") { e.preventDefault(); next(); }
+  else if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+  else if (e.key.toLowerCase() === "m") { e.preventDefault(); toggleMark(); }
+});
+
+document.getElementById("tabCheat").onclick = () => showView("cheatsheet");
+document.getElementById("tabCards").onclick = () => showView("flashcards");
+
+/* ---------- collapsible cheatsheet ---------- */
+function buildCollapsible(viewId, key) {
+  const view = document.getElementById(viewId);
+  if (!view || view.dataset.built) return;
+  view.dataset.built = "1";
+
+  const groups = [...view.querySelectorAll(":scope > .cs-group")];
+  if (!groups.length) return;
+
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(key) || "{}"); } catch (e) {}
+
+  const showNav = true;
+  const bar = document.createElement("div");
+  bar.className = "cs-toolbar";
+  bar.innerHTML =
+    '<div class="cs-searchrow">' +
+      '<input class="cs-search" type="search" placeholder="Search\u2026 (e.g. elasticity, KVI, switchback)">' +
+      '<button class="cs-btn" data-act="expand">Expand all</button>' +
+      '<button class="cs-btn" data-act="collapse">Collapse all</button>' +
+    '</div>' +
+    (showNav ? '<div class="cs-nav"></div>' : '') +
+    '<div class="cs-hits" style="display:none"></div>';
+  view.insertBefore(bar, view.firstChild);
+  const nav = bar.querySelector(".cs-nav");
+  const hits = bar.querySelector(".cs-hits");
+
+  groups.forEach((g, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "cs-block";
+    wrap.id = key + "-blk-" + i;
+    const body = document.createElement("div");
+    body.className = "cs-body";
+    g.parentNode.insertBefore(wrap, g);
+    wrap.appendChild(g);
+    let n = wrap.nextSibling;
+    while (n && !(n.nodeType === 1 && n.classList.contains("cs-group"))) {
+      const nxt = n.nextSibling;
+      body.appendChild(n);
+      n = nxt;
+    }
+    wrap.appendChild(body);
+
+    const label = g.textContent.trim();
+    const rows = body.querySelectorAll("tr").length;
+    g.innerHTML = '<span class="lbl">' + label + '</span>' +
+                  '<span class="cnt">' + rows + '</span>' +
+                  '<span class="chev">\u25B6</span>';
+    if (state[i]) wrap.classList.add("open");
+    g.onclick = () => {
+      wrap.classList.toggle("open");
+      state[i] = wrap.classList.contains("open");
+      localStorage.setItem(key, JSON.stringify(state));
+    };
+
+    if (nav) {
+      const chip = document.createElement("button");
+      chip.className = "cs-chip";
+      chip.textContent = label;
+      chip.onclick = () => {
+        wrap.classList.add("open");
+        state[i] = true;
+        localStorage.setItem(key, JSON.stringify(state));
+        wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+      };
+      nav.appendChild(chip);
+    }
+  });
+
+  const blocks = [...view.querySelectorAll(".cs-block")];
+
+  function setAll(open) {
+    blocks.forEach((b, i) => { b.classList.toggle("open", open); state[i] = open; });
+    localStorage.setItem(key, JSON.stringify(state));
+  }
+  bar.querySelector('[data-act="expand"]').onclick = () => setAll(true);
+  bar.querySelector('[data-act="collapse"]').onclick = () => setAll(false);
+
+  function clearSearch() {
+    blocks.forEach((b, i) => {
+      b.style.display = "";
+      b.classList.toggle("open", !!state[i]);
+      b.querySelectorAll("tr").forEach(tr => { tr.style.display = ""; });
+      b.querySelectorAll(".cs-section").forEach(sec => { sec.style.display = ""; });
+    });
+    hits.style.display = "none";
+  }
+
+  const input = bar.querySelector(".cs-search");
+  input.oninput = () => {
+    const q = input.value.trim().toLowerCase();
+    if (!q) { clearSearch(); return; }
+    let total = 0, shown = 0;
+    blocks.forEach(b => {
+      let n = 0;
+      b.querySelectorAll("tr").forEach(tr => {
+        if (tr.closest("thead")) { tr.style.display = ""; return; }
+        const hit = tr.textContent.toLowerCase().includes(q);
+        tr.style.display = hit ? "" : "none";
+        if (hit) n++;
+      });
+      b.querySelectorAll(".cs-section").forEach(sec => {
+        const any = [...sec.querySelectorAll("tr")]
+          .some(tr => !tr.closest("thead") && tr.style.display !== "none");
+        sec.style.display = any ? "" : "none";
+      });
+      b.style.display = n ? "" : "none";
+      b.classList.toggle("open", n > 0);
+      total += n;
+      if (n) shown++;
+    });
+    hits.style.display = "block";
+    hits.textContent = total
+      ? total + " row" + (total === 1 ? "" : "s") + " in " + shown + " section" + (shown === 1 ? "" : "s")
+      : "No matches";
+  };
+}
+
+buildCollapsible("cheatsheetView", "pricing_cs_open");
+
+const toTop = document.createElement("button");
+toTop.className = "to-top";
+toTop.textContent = "\u2191 Top";
+toTop.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+document.body.appendChild(toTop);
+window.addEventListener("scroll", () => {
+  toTop.classList.toggle("show", window.scrollY > 500);
+});
+
+render();
+showView("cheatsheet");
+
+</script>
+</body>
+</html>
