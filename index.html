@@ -758,6 +758,43 @@ Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
 <p><strong>Floor to cap:</strong> if each extra won of promo cost removes about one won of profit, a floor of +₩100 per unit on a ₩300 baseline means promo cost can rise by ₩200, from ₩1,250 to about ₩1,450. <strong>Net against volume:</strong> total profit = units × profit per unit, so a per-unit floor alone does not guarantee a good outcome. <strong>Incrementality:</strong> the right criterion is incremental profit per promo won, measured with a holdout, because an average per-unit margin ignores whether the volume was incremental. Use the floor as a guardrail and the test as the decision rule.</p>`,
     trap: "A per-unit floor assumes one-for-one pass-through and ignores volume response. Say both assumptions out loud." },
 
+  // ---- My experience (Meta Live ads, Partnership Ads) ----
+  { cluster: "🧑‍💼 My experience", q: "Tell me about launching Partnership Ads at Meta: the problem, how you knew it worked, and how it scaled.",
+    a: `<p><strong>Structure — Headline → Problem → Pilot and measurement → Scale and safeguards → Link to Coupang</strong> (about 2.5 minutes)</p>
+<p><strong>Headline:</strong> I launched Partnership Ads, a format that lets an advertiser boost a creator's livestream that promotes their brand. In a pilot it improved cost per purchase by 9% (range 5% to 13%). I then helped scale it, and the safeguards came from a problem we caught: advertisers claiming coupons twice.</p>
+<p><strong>Problem:</strong> top livestream brands go live 4–8 hours a day, which is hard to sustain in-house, so advertisers hit creative fatigue. I found about 100K ready creators in our data. The opportunity was to match creators with brands.</p>
+<p><strong>Pilot and measurement:</strong> one third party representing hundreds of China-based advertisers selling in Thailand. With the PM, engineering lead and PMM I set success metrics (ROAS, cost per purchase) and guardrails (total impressions, total purchases). Randomised at user level: control saw brand live ads, treatment saw brand plus creator live ads, so we measured the bundle. A random-effects meta-analysis over 20–30 lift tests gave +9%, range +5% to +13%. Caveat: one partner's advertisers, so it applies to similar profiles. We traded breadth for speed.</p>
+<p><strong>Scale and safeguards:</strong> see the scale card. <strong>Link:</strong> the double-dipping is the same failure as promo stacking in retail.</p>
+<p><strong>Fill in before the interview:</strong> how many advertisers double-dipped and how far ROI fell; whether the fix shipped; what you monitor now; how the ROI target was anchored.</p>`,
+    trap: "Lead with the number and its range. Answer the unit of randomisation in the first pass. Name one method (random-effects meta-analysis, or Bayesian hierarchical only if that is what it was)." },
+
+  { cluster: "🧑‍💼 My experience", q: "How do you know the +9% came from the format and not from the advertisers who joined the pilot?",
+    a: `<p><strong>Structure — Unit → Control and treatment → What it measures → Limit on generalising</strong></p>
+<p><strong>Unit:</strong> users. <strong>Control:</strong> brand-driven live ads. <strong>Treatment:</strong> brand plus creator-driven live ads. The test measures the bundle (the format including creator choice), not the creator effect alone. <strong>Limit:</strong> the advertisers were recruited from one partner's pool, so the result holds for advertisers like them. We chose that pool for speed and extend the claim as more results arrive. Many tests pooled with a random-effects model also show how much results varied between tests.</p>`,
+    trap: "Say plainly that selection limits generalisation, not the comparison inside the test. Interviewers reward the honesty." },
+
+  { cluster: "🧑‍💼 My experience", q: "How did you keep the Partnership Ads programme healthy as it scaled?",
+    a: `<p><strong>Structure — What broke by hand → Four steps: Set up → Detect → Protect → Fix</strong>. Say the count first: "four things".</p>
+<p><strong>Set up:</strong> because new and existing advertisers behave differently, two tiers. Existing advertisers had a target ROI of 4 [define the unit, for example revenue per $1 of coupon]. New advertisers got a 1:1 coupon match on their spend.</p>
+<p><strong>Detect:</strong> because I couldn't review every advertiser, a daily report flagged anyone below their tier's ROI target.</p>
+<p><strong>Protect:</strong> advertisers were spending coupons on other Meta ad products, so the reward unlocks only after a minimum Live ads spend.</p>
+<p><strong>Fix:</strong> double-dipping across campaigns, so single-use codes (stop duplicate claims) and shorter expiry (reduces overlap). Monitor: [duplicate claims per unit of spend].</p>
+<p><strong>Principle:</strong> rules for the bulk, people for exceptions, and every exception improves the rules.</p>`,
+    trap: "Confirm the true order: if the daily report revealed the coupon leak, Detect comes before Protect. Do not list single-use codes and expiry as equivalent: codes close the gap, expiry only narrows it." },
+
+  { cluster: "🧑‍💼 My experience", q: "Suppose the programme grows 10x in advertisers, budget and programme types. What breaks first, and what do you change?",
+    a: `<p><strong>Structure — What breaks first → What changes → What I keep</strong></p>
+<p><strong>Breaks first:</strong> interpretation, not volume. One ROI threshold worked when every advertiser had the same goal. Across dozens of programmes it misleads: a programme built to win new advertisers can tolerate below $2 of ad revenue per $1 coupon, and an existing-advertiser programme cannot.</p>
+<p><strong>Changes:</strong> set an objective and a tolerance for each programme, report each against its own target, and roll up to one overview showing which programmes are inside their own tolerance, weighted by coupon dollars. Rank daily flags by dollars at risk so the list stays readable at ten times the budget.</p>
+<p><strong>Keep:</strong> the spend gate, single-use codes and the daily refresh.</p>
+<p><strong>Coupang bridge:</strong> same as pricing across categories: KVIs, margin categories and the long tail have different objectives, so one margin or index target would mislead.</p>`,
+    trap: "Ask once whether 10x means participants, budget or complexity, then commit to an assumption and answer. Anchor the tolerance (for example payback on acquiring a new advertiser) so 'below $2 is fine' is not a guess." },
+
+  { cluster: "🧑‍💼 My experience", q: "How do you explain a scaling story step by step without drifting or running long?",
+    a: `<p><strong>Structure — Fix the spine → Announce the count → One step, one sentence → Park detail</strong></p>
+<p><strong>Spine:</strong> choose the order before speaking (for scaling: Set up → Detect → Protect → Fix) and keep it. <strong>Count:</strong> say "four things" and name them in one word each. <strong>One sentence per step:</strong> "Because [risk], I [action]." No counterfactuals. If a sentence needs a second "which" or "where", split it. <strong>Budget:</strong> about 15 seconds a step. <strong>Park:</strong> "happy to go deeper on that" and move on.</p>
+<p><strong>Before:</strong> "We applied a dependency where advertisers are awarded ad coupons after they had spent a minimum amount on live ads to unlock the coupons. This prevented a scenario where we incurred poor ROI when advertisers shifted budgets elsewhere."<br><strong>After:</strong> "Because advertisers could take a coupon and move budget elsewhere, coupons unlock only after a minimum spend on Live ads."</p>`,
+    trap: "Rehearse from a card with only the four step words, not a script, and time it. Over 75 seconds means detail that belongs in a follow-up." },
 
 ];
 
