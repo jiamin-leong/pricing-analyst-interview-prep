@@ -820,6 +820,84 @@ Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
 <p><strong>Flag the limit honestly:</strong> "I haven't set prices directly, so I'd want to learn how your elasticity inputs and constraints work. The measurement and guardrail approach is what I'd bring."</p>`,
     trap: "Bridge in one sentence, then return to the question. Don't claim Coupang-specific facts you only inferred; say 'I'd expect' or 'I'd check'." },
 
+  // ---- Unexpected-question mock (my answers, weak points, tightened versions) ----
+  { cluster: "🧑‍💼 My experience", q: "Unexpected Q1: Tell me about a time a PM or business partner pushed back on your analysis. What did you do?",
+    a: `<p><strong>Structure — Headline (the resolution) → Because (the disagreement, named) → So (what I did) → Result (a fact)</strong></p>
+<p><strong>Your answer:</strong> <em>My lead PM questioned my assumptions for being too conservative in front of DS and Eng directors. The situation was a 4-year projection of daily run rate for our ad product. I simplified my framework to three inputs: TAM, % adoption rate and average spend. For adoption I benchmarked against other early-stage products, close to the team's line of sight from projects on hand. The PM lead was convinced we needed a number closer to the fair share Meta can capture in four years. I aligned with him in the meeting that the new assumption would be set up as a milestone check-in and a team-level goal. He agreed to drive ownership with my PM counterpart, and we adjusted the model. My objective was to drive the leads' ownership of the key outputs, and the leads were confident to bring the numbers into resource budget conversations. A positive outcome.</em></p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>The disagreement was never named</td><td>One phrase: your bottom-up view (what current projects deliver) against his top-down view (Meta's fair share over four years).</td></tr>
+<tr><td>Opened with setup, not the point</td><td>Open with the resolution: "I raised the assumption on one condition: it became a team milestone with an owner."</td></tr>
+<tr><td>Sounds like you gave in</td><td>State your judgement and the risk (committing to a target current projects don't support) and how the milestone covers it. Expect: "Did you think the higher number was right?"</td></tr>
+<tr><td>No numbers</td><td>The projection from [X] to [Y], and the budget outcome.</td></tr>
+<tr><td>Vague close: "drive ownership", "positive outcome"</td><td>A fact: the leads took the numbers into the resource budget conversation [outcome].</td></tr>
+<tr><td>About 230 words</td><td>Aim for 150.</td></tr>
+</table></div>
+<div class="wex"><span class="wex-title">Tightened version</span>
+<span class="step">My lead PM challenged my four-year daily run-rate projection as too conservative, in front of DS and Eng directors. I agreed to raise the adoption assumption on one condition: it became a team milestone with an owner.</span>
+<span class="step"><b>Because:</b> my model had three inputs, TAM, adoption and average spend, and I'd set adoption by benchmarking early-stage products, close to what our projects could deliver. He wanted a number reflecting Meta's fair share over four years. The disagreement was bottom-up against top-down.</span>
+<span class="step"><b>So:</b> I proposed the higher adoption rate as a milestone check-in goal, owned by him and my PM counterpart. We updated the model [from X to Y].</span>
+<span class="step"><b>Result:</b> the leads were confident taking the numbers into the resource budget conversation [outcome]. If adoption lags, the milestone tells us early. (Say that last line only if the check-in really reviews progress.)</span></div>`,
+    trap: "The follow-up is 'did you think the higher number was right?' Have a one-sentence view and the risk it carries." },
+
+  { cluster: "🧑‍💼 My experience", q: "Unexpected Q2: Tell me about a decision you made with incomplete data. How did you limit the risk of being wrong?",
+    a: `<p><strong>Structure — Decision → What I didn't know → Risk and safeguards → Early signal → Result</strong></p>
+<p><strong>Your answer:</strong> <em>I made a decision to drastically increase live video ads budget recommendations with incomplete data. Larger advertisers were willing to put in five-figure sums to be spent within a 4–8 hour window. That was hard for DS to recommend because the Meta ads ecosystem is rarely required to spend so much in such a compressed period, and there was no precedent. When I proposed the higher budget range I gave two recommendations: split the budget across a few campaign ad sets to run in parallel, and schedule ahead of time so ad reviews start earlier and don't block at the expected time. The result was positive: we saw strong ad reliability and clients shared positive sentiments.</em></p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"Incomplete" never defined</td><td>What data was missing and what you used instead (proxy campaigns, advertiser commitments). This is the centre of the question.</td></tr>
+<tr><td>Safeguards without the risk they address</td><td>Name the risk first (under-delivery, pacing, start-time blocker), then "because [risk], I [safeguard]".</td></tr>
+<tr><td>"Drastically increase" has no number</td><td>The range, from [X] to [Y].</td></tr>
+<tr><td>No feedback loop</td><td>What you watched live to know early if it was working. Say it only if you had it.</td></tr>
+<tr><td>Soft result: "strong reliability", "positive sentiment"</td><td>A delivery figure or number of events run.</td></tr>
+</table></div>
+<div class="wex"><span class="wex-title">Tightened version</span>
+<span class="step">I recommended a much higher budget range for live video ads [from X to Y], with no precedent in Meta ads: large advertisers wanted five-figure sums spent in 4–8 hours.</span>
+<span class="step"><b>Unknown:</b> we had no history for spend that concentrated, so I [used Z as the benchmark].</span>
+<span class="step"><b>Risk and safeguards:</b> the risk was [under-delivery or a start-time blocker]. So I recommended splitting the budget across parallel ad sets, so no single ad set had to absorb it, and scheduling ahead so ad review couldn't block the start.</span>
+<span class="step"><b>Early signal:</b> [what you watched live].</span>
+<span class="step"><b>Result:</b> [delivery figure], and clients gave positive feedback.</span></div>`,
+    trap: "Don't list mitigations without the risk. A safeguard only sounds smart next to the thing it guards against." },
+
+  { cluster: "🧑‍💼 My experience", q: "Unexpected Q3: Tell me about a time you were wrong about something at work. What changed afterwards?",
+    a: `<p><strong>Structure — What I was wrong about → Why → What it cost → What I did → What I changed in the system</strong></p>
+<p><strong>Your answer:</strong> <em>I was wrong about whether our stagnant growth mid-half would persist, which led to a gap to goal by end of half. It was challenging because by not recognising earlier that the revenue growth trajectory had slowed, the team stayed complacent. We assumed growth would accelerate because we saw the same pattern the previous year. The growth stayed slow and translated into a 10% gap to goal with very little time to reverse. After I reacted, the team went into a war room where I was in charge of diagnosing the slowdown and prioritising team efforts. By end of half we ran double-digit live ad coupon activations, which reduced the gap from 10% to 5%. My learning is to communicate a detected slowdown much earlier to allow more turnaround time.</em></p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Root cause not named</td><td>One phrase: "I anchored on last year's second-half acceleration."</td></tr>
+<tr><td>Lesson is a behaviour ("communicate earlier")</td><td>A mechanism: for example a no-acceleration scenario beside the seasonal one, or a rule that [N] weeks below trend triggers escalation. If you changed nothing, say what you would change now. Never claim a change you didn't make.</td></tr>
+<tr><td>No answer for the obvious probe</td><td>Expect: "You owned the traffic-light forecast, so why didn't it catch this?" Likely honest answer: it carried last year's seasonal assumption, so the light stayed green.</td></tr>
+<tr><td>No timing</td><td>How many weeks between the first sign and when you called it. That is the cost of the delay.</td></tr>
+<tr><td>"It was challenging because…" blurs the point</td><td>State the cause directly.</td></tr>
+<tr><td>Stories feel separate</td><td>If the coupon activations were the response to this gap, say so, and tie it to the Partnership Ads programme. Only if true.</td></tr>
+</table></div>
+<div class="wex"><span class="wex-title">Tightened version</span>
+<span class="step">I was wrong that our mid-half stagnant growth would reverse. I assumed the acceleration we saw last year would repeat, so we stayed on plan, and [N weeks] later we had a 10% gap to goal with little time left.</span>
+<span class="step">Once I called it, I led a war room: I diagnosed the slowdown and prioritised the team's efforts. We ran double-digit live ad coupon activations, which narrowed the gap from 10% to 5%.</span>
+<span class="step"><b>What I changed:</b> [for example, the forecast now carries a no-acceleration scenario, and a set number of weeks below trend triggers escalation]. The lesson wasn't just to speak up sooner but to build the check that makes speaking up automatic.</span></div>`,
+    trap: "'Communicate earlier' is a good intention, not a system. Coupang's principle is to fix the defect and prevent it recurring." },
+
+  { cluster: "🗣️ Communication", q: "Unexpected Q4: Daily orders in one major category dropped 5% yesterday versus the previous week. How do you figure out what happened?",
+    a: `<p><strong>Structure — Clarify → Is it real → Where is it → Why → Act and prevent</strong></p>
+<p><strong>Your answer:</strong> <em>Three buckets: artifact versus real drop, external, and internal root causes. First, whether loggers or order and category definitions changed week on week. If nothing changed, I check whether the trend is unique to the major category, and whether a promotion or price change last week drove a weekly high and this is a post-sale dip. I check whether competitors ran a promotion that cannibalises our sales. If there are no marketing or competitor effects, I move to internal factors: shifts in how we rank the category on the home page so it became less visible, and whether this level of fluctuation is within tolerable range of historical weekly trends. The sequence strikes out the most likely hypothesis.</em></p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>No clarifying question</td><td>Ask first: whole category or part, orders only or GMV too, did anything ship.</td></tr>
+<tr><td>Noise check came last</td><td>Is 5% outside normal week-to-week variation? It is the cheapest test, so do it first.</td></tr>
+<tr><td>Buckets blurred: your own promo sat under "external"</td><td>External is competitors, seasonality, holidays. Your own promo, marketing and ranking are internal.</td></tr>
+<tr><td>Hypotheses before locating the drop</td><td>Split orders into traffic and conversion, then cut by region, device, new versus existing and top SKUs, to see whether the drop is broad or concentrated.</td></tr>
+<tr><td>Missing stockouts and availability</td><td>One of the most common causes of a sudden drop. Add price changes and delivery speed too; for a pricing role, price and competitor price index belong early.</td></tr>
+<tr><td>Ended on "strike out hypotheses"</td><td>End with an action and a prevention: fix the cause, then add an alert so the drop surfaces sooner.</td></tr>
+<tr><td>Order not justified</td><td>One phrase: "cheapest and most likely first."</td></tr>
+</table></div>
+<div class="wex"><span class="wex-title">Tightened version</span>
+<span class="step">First I'd ask whether it's the whole category, whether GMV dropped too, and whether anything shipped. Then four steps, cheapest first.</span>
+<span class="step"><b>Is it real:</b> did logging or definitions change, and is 5% outside normal week-to-week variation?</span>
+<span class="step"><b>Where:</b> split orders into traffic and conversion, then cut by region, device, new versus existing and top SKUs, to see whether it's broad or concentrated.</span>
+<span class="step"><b>Why:</b> external, meaning a competitor's promo or price, holidays, or a high base from our own promo last week. Internal, meaning stockouts, price changes, ranking or placement, or delivery speed.</span>
+<span class="step"><b>Next:</b> fix the cause and add an alert on this metric so the same drop surfaces sooner.</span></div>`,
+    trap: "Ask one scoping question before diving in, and finish with a prevention, not just a diagnosis." },
+
 ];
 
 
