@@ -85,6 +85,10 @@
   .answer { margin-top: 18px; padding-top: 18px; border-top: 1px dashed var(--border); }
   .answer.hidden { display: none; }
   .answer p { margin: 0 0 10px; }
+  .answer .vp { background: var(--vp-bg, #eef4ff); border-left: 4px solid #3b6fd8; border-radius: 8px; padding: 10px 14px; margin: 0 0 14px; }
+  .answer .vp b { display: block; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #3b6fd8; margin-bottom: 4px; }
+  .answer ul.pts { margin: 0 0 12px; padding-left: 20px; }
+  .answer ul.pts li { margin: 0 0 6px; }
   .answer code {
     background: var(--panel-2); padding: 1px 6px; border-radius: 5px;
     font-family: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace; font-size: 13px; color: var(--code-text);
@@ -481,28 +485,63 @@ const CARDS = [
   // ---- System design ----
   { cluster: "🏗️ System design", q: "How would you set up a system to price 10M SKUs?",
     a: `<p><strong>Structure — Objective → Tiers → Logic → Guardrails → Measurement → Monitoring</strong></p>
-<p><strong>Objective:</strong> maximize contribution profit subject to a price-index target on price-image items and a GMV floor. <strong>Tiers:</strong> a few thousand KVIs get competitor-anchored control; the mid-tail gets an algorithm; the long tail and new items get rules or pooled priors. <strong>Logic:</strong> hybrid, explainable. <strong>Guardrails:</strong> margin floors, daily change caps, circuit breakers. <strong>Measurement:</strong> switchback or geo tests with a permanent holdout. <strong>Monitoring:</strong> anomaly alerts and exception ownership.</p>
+<div class="steps">
+<div class="st"><b>Objective</b><span>maximize contribution profit subject to a price-index target on price-image items and a GMV floor.</span></div>
+<div class="st"><b>Tiers</b><span>a few thousand KVIs get competitor-anchored control; the mid-tail gets an algorithm; the long tail and new items get rules or pooled priors.</span></div>
+<div class="st"><b>Logic</b><span>hybrid, explainable.</span></div>
+<div class="st"><b>Guardrails</b><span>margin floors, daily change caps, circuit breakers.</span></div>
+<div class="st"><b>Measurement</b><span>switchback or geo tests with a permanent holdout.</span></div>
+<div class="st"><b>Monitoring</b><span>anomaly alerts and exception ownership.</span></div>
+</div>
 <p>Close: roll out by tier, starting where the evidence is strongest.</p>`,
     trap: "Don't start with the model. Start with the objective and the triage. The model is one box in the system." },
 
   { cluster: "🏗️ System design", q: "Walk me through how algorithmic pricing works, step by step, for one item.",
     a: `<p><strong>Structure — Objective → Inputs → Demand model → Optimize → Guardrails → Publish → Learn</strong></p>
 <p><strong>Example:</strong> full cost ₩7,000 (₩6,000 product + ₩1,000 delivery), current price ₩10,000, 100 units/day, competitor at ₩10,500.</p>
-<p><strong>1. Objective:</strong> maximize contribution profit = (price − ₩7,000) × units. <strong>2. Inputs:</strong> cost, competitor price, recent sales, stock, promo calendar. <strong>3. Demand model:</strong> with elasticity ε = −2, units = 100 × (price ÷ 10,000)<sup>−2</sup>. <strong>4. Optimize:</strong> try candidate prices; ₩10,000 → ₩300K, ₩11,000 → ₩331K, ₩14,000 → ₩357K, so the raw optimum is ₩14,000 (cost × ε ÷ (1 + ε)). <strong>5. Guardrails:</strong> ₩14,000 is 33% above the competitor, and rules say price index ≤ 105 and max +5% per day, so ₩11,000 is published. <strong>6. Publish</strong> with a log of why. <strong>7. Learn:</strong> new sales update the demand estimate; periodic tests check it.</p>
+<div class="steps">
+<div class="st"><b>1. Objective</b><span>maximize contribution profit = (price − ₩7,000) × units.</span></div>
+<div class="st"><b>2. Inputs</b><span>cost, competitor price, recent sales, stock, promo calendar.</span></div>
+<div class="st"><b>3. Demand model</b><span>with elasticity ε = −2, units = 100 × (price ÷ 10,000)<sup>−2</sup>.</span></div>
+<div class="st"><b>4. Optimize</b><span>try candidate prices; ₩10,000 → ₩300K, ₩11,000 → ₩331K, ₩14,000 → ₩357K, so the raw optimum is ₩14,000 (cost × ε ÷ (1 + ε)).</span></div>
+<div class="st"><b>5. Guardrails</b><span>₩14,000 is 33% above the competitor, and rules say price index ≤ 105 and max +5% per day, so ₩11,000 is published.</span></div>
+<div class="st"><b>6. Publish</b><span>with a log of why.</span></div>
+<div class="st"><b>7. Learn</b><span>new sales update the demand estimate; periodic tests check it.</span></div>
+</div>
 <p><strong>Why it matters:</strong> the elasticity drives everything. If the true ε is −3, the optimum is ₩10,500; charging ₩14,000 earns about ₩255K versus about ₩302K. A wrong elasticity gives a confident wrong price.</p>`,
     trap: "Don't present the optimizer as the system. Inputs, guardrails and the learning loop decide whether it's safe." },
 
   { cluster: "🏗️ System design", q: "How is an optimization model designed and implemented?",
     a: `<p><strong>Structure — Formulate → Estimate → Solve → Constrain → Validate → Deploy → Monitor</strong></p>
-<p><strong>Formulate:</strong> decision variables (the price of each item), an objective (total contribution profit) and constraints (margin floor, ±5% daily change, competitor cap, category price index). <strong>Estimate:</strong> a separate demand model gives units as a function of price; its quality caps the whole system. <strong>Solve:</strong> closed form for one simple item; per-item grid search for any demand model; joint optimization when items share a constraint. <strong>Constrain:</strong> hard rules become constraints or filters on the candidate prices; preferences become penalties. <strong>Validate:</strong> unit tests, backtest, shadow mode, then a controlled test with a holdout. <strong>Deploy:</strong> data checks → demand scoring → parallel optimizer → guardrail checks → publish plus decision log, orchestrated with retries and SLAs. <strong>Monitor:</strong> input drift, share of items stuck on a constraint, predicted versus actual demand, profit versus holdout, a kill switch and an owner.</p>
+<div class="steps">
+<div class="st"><b>Formulate</b><span>decision variables (the price of each item), an objective (total contribution profit) and constraints (margin floor, ±5% daily change, competitor cap, category price index).</span></div>
+<div class="st"><b>Estimate</b><span>a separate demand model gives units as a function of price; its quality caps the whole system.</span></div>
+<div class="st"><b>Solve</b><span>closed form for one simple item; per-item grid search for any demand model; joint optimization when items share a constraint.</span></div>
+<div class="st"><b>Constrain</b><span>hard rules become constraints or filters on the candidate prices; preferences become penalties.</span></div>
+<div class="st"><b>Validate</b><span>unit tests, backtest, shadow mode, then a controlled test with a holdout.</span></div>
+<div class="st"><b>Deploy</b><span>data checks → demand scoring → parallel optimizer → guardrail checks → publish plus decision log, orchestrated with retries and SLAs.</span></div>
+<div class="st"><b>Monitor</b><span>input drift, share of items stuck on a constraint, predicted versus actual demand, profit versus holdout, a kill switch and an owner.</span></div>
+</div>
 <p><strong>Terms:</strong></p>
-<p><strong>Per-item grid search:</strong> list candidate prices for one item, predict profit at each, keep the best. <strong>Price ladder:</strong> the short list of allowed prices per item (e.g. ₩9,900 / ₩10,500 / ₩11,000); also used to mean larger packs must have a lower unit price. <strong>Joint optimization:</strong> solving all items together because a shared constraint (category price index, budget) couples them. <strong>Mixed-integer problem:</strong> some variables must be whole choices (pick exactly one price option: 0 or 1) while others are continuous. <strong>Knapsack-style problem:</strong> pick the best set of options under a limited budget; here each item picks one price, profit is the value, and price-index headroom is the budget. <strong>Price elasticity input:</strong> estimated from price experiments, or from a log-log regression with controls and instruments, pooled across category, brand and SKU.</p>
+<div class="steps">
+<div class="st"><b>Per-item grid search</b><span>list candidate prices for one item, predict profit at each, keep the best.</span></div>
+<div class="st"><b>Price ladder</b><span>the short list of allowed prices per item (e.g. ₩9,900 / ₩10,500 / ₩11,000); also used to mean larger packs must have a lower unit price.</span></div>
+<div class="st"><b>Joint optimization</b><span>solving all items together because a shared constraint (category price index, budget) couples them.</span></div>
+<div class="st"><b>Mixed-integer problem</b><span>some variables must be whole choices (pick exactly one price option: 0 or 1) while others are continuous.</span></div>
+<div class="st"><b>Knapsack-style problem</b><span>pick the best set of options under a limited budget; here each item picks one price, profit is the value, and price-index headroom is the budget.</span></div>
+<div class="st"><b>Price elasticity input</b><span>estimated from price experiments, or from a log-log regression with controls and instruments, pooled across category, brand and SKU.</span></div>
+</div>
 <p>Close: the demand estimate and the constraints matter more than the solver.</p>`,
     trap: "Don't spend the answer on solver names. Interviewers score the formulation, the demand input, and how you validate before launch." },
 
   { cluster: "🏗️ System design", q: "What goes into a good pricing guardrail, and why do you need them at all?",
     a: `<p><strong>Structure — Failure mode → Guardrail → Trigger → Owner</strong></p>
-<p>Algorithms optimize what you tell them to, on the data they see. Failure modes: a bad competitor feed, a stale cost, a feedback loop with a competitor's algorithm. Guardrails: margin floor, max daily change, parity bounds, spend caps. Each needs a trigger (alert or auto-rollback) and a named owner who can override.</p>`,
+<ul class="pts">
+<li>Algorithms optimize what you tell them to, on the data they see.</li>
+<li>Failure modes: a bad competitor feed, a stale cost, a feedback loop with a competitor's algorithm.</li>
+<li>Guardrails: margin floor, max daily change, parity bounds, spend caps.</li>
+<li>Each needs a trigger (alert or auto-rollback) and a named owner who can override.</li>
+</ul>`,
     trap: "A guardrail with no owner is just a log line." },
 
   { cluster: "🏗️ System design", q: "When do you automate a price decision versus keep a human in the loop?",
@@ -512,18 +551,31 @@ const CARDS = [
 
   { cluster: "🏗️ System design", q: "How do you price a brand-new item with no history?",
     a: `<p><strong>Structure — Prior → Rule → Learn → Graduate</strong></p>
-<p><strong>Prior:</strong> start from the category, brand and comparable items. <strong>Rule:</strong> cost-plus or competitor benchmark with margin floor. <strong>Learn:</strong> modest price variation to learn elasticity quickly. <strong>Graduate:</strong> move to the algorithmic tier once data volume passes a threshold.</p>`,
+<div class="steps">
+<div class="st"><b>Prior</b><span>start from the category, brand and comparable items.</span></div>
+<div class="st"><b>Rule</b><span>cost-plus or competitor benchmark with margin floor.</span></div>
+<div class="st"><b>Learn</b><span>modest price variation to learn elasticity quickly.</span></div>
+<div class="st"><b>Graduate</b><span>move to the algorithmic tier once data volume passes a threshold.</span></div>
+</div>`,
     trap: "Don't regress on a handful of points. Borrow strength from the category." },
 
   // ---- Coupang context ----
   { cluster: "🛒 Coupang context", q: "How does pricing differ between Rocket (1P) and Marketplace (3P)?",
     a: `<p><strong>Structure — Who sets price → Levers → Objective → Measurement</strong></p>
-<p>1P: Coupang sets the price and owns margin, so you can optimize contribution profit directly. 3P: sellers set prices; Coupang influences with fees, promotions, ranking and fulfillment incentives, so the objective shifts toward price competitiveness, conversion and seller health. Measurement needs to account for seller reaction.</p>`,
+<ul class="pts">
+<li>1P: Coupang sets the price and owns margin, so you can optimize contribution profit directly.</li>
+<li>3P: sellers set prices; Coupang influences with fees, promotions, ranking and fulfillment incentives, so the objective shifts toward price competitiveness, conversion and seller health.</li>
+<li>Measurement needs to account for seller reaction.</li>
+</ul>`,
     trap: "Don't describe 3P pricing as if Coupang controls it." },
 
   { cluster: "🛒 Coupang context", q: "Which pricing constraints apply to 1P versus 3P, and what exactly does Coupang change in each?",
     a: `<p><strong>Structure — Who sets price → Whose money is at risk → What Coupang controls → Resulting constraint</strong></p>
-<p>Ask three ownership questions per constraint: who sets the price, whose margin and inventory are exposed, and which levers Coupang actually holds. In <strong>1P</strong>, constraints bind Coupang's own algorithm. In <strong>3P</strong>, they become rules and incentives that shape the seller's decision.</p>
+<ul class="pts">
+<li>Ask three ownership questions per constraint: who sets the price, whose margin and inventory are exposed, and which levers Coupang actually holds.</li>
+<li>In <strong>1P</strong>, constraints bind Coupang's own algorithm.</li>
+<li>In <strong>3P</strong>, they become rules and incentives that shape the seller's decision.</li>
+</ul>
 <div class="cmp-wrap"><table class="cmp">
 <tr><th></th><th>1P (Rocket)</th><th>3P (Marketplace)</th></tr>
 <tr><td>Who sets the price</td><td>Coupang</td><td>The seller</td></tr>
@@ -543,65 +595,155 @@ const CARDS = [
 
   { cluster: "🛒 Coupang context", q: "A competitor undercuts us on 500 KVIs. What do you do in the first hour, first week, and first quarter?",
     a: `<p><strong>Structure — Hour → Week → Quarter</strong></p>
-<p><strong>First hour:</strong> verify it's real (matching, stock, shipping, price feed) and size exposure by traffic. <strong>First week:</strong> decide per item: match, partially match, or hold on delivery value; estimate margin cost versus traffic loss; test where uncertain. <strong>First quarter:</strong> build a repeatable response: automated detection, tiered response rules, a price-war circuit breaker, and a review of why we were exposed.</p>`,
+<div class="steps">
+<div class="st"><b>First hour</b><span>verify it's real (matching, stock, shipping, price feed) and size exposure by traffic.</span></div>
+<div class="st"><b>First week</b><span>decide per item: match, partially match, or hold on delivery value; estimate margin cost versus traffic loss; test where uncertain.</span></div>
+<div class="st"><b>First quarter</b><span>build a repeatable response: automated detection, tiered response rules, a price-war circuit breaker, and a review of why we were exposed.</span></div>
+</div>
+<p class="sec">"Hold on delivery value"</p>
+<p>Don't match; keep our price and rely on the rest of the offer (Rocket next-day or dawn delivery, WOW free shipping and returns, reliability). Customers compare the whole offer, so for some items the right response to an undercut is to do nothing.</p>
+<p class="sec">Traffic loss versus margin cost</p>
+<div class="steps">
+<div class="st"><b>Pattern<small>remember this</small></b><span><b>1.</b> Margin cost = gap × baseline units, less the margin on any extra units.<br><b>2.</b> Break-even switching rate = margin cost ÷ (baseline units × margin lost per switcher).<br><b>3.</b> Decide: match if your estimated switching rate is above break-even; hold if below.</span></div>
+</div>
+<div class="steps keys">
+<div class="st"><b>Answer<small>per item</small></b><span>Match only when holding loses more than matching costs.</span></div>
+<div class="st"><b>Because<small>two costs</small></b><span><b>Match</b> = price gap × units we'd sell anyway (the discount goes on every unit).<br><b>Hold</b> = units that switch × (item margin + basket margin they take with them), plus price-perception damage.</span></div>
+<div class="st"><b>So<small>diapers example</small></b><span>Ours ₩30,000, competitor ₩28,500; 10,000 units a week; ₩4,500 item margin; ₩4,000 basket margin per switcher (assumption).<br>Match: 10,000 × ₩1,500 = <b>₩15.0M a week</b>.<br>Hold, 8% switch: 800 × ₩8,500 = <b>₩6.8M a week</b>.<br>Break-even switching rate: ₩15.0M ÷ (10,000 × ₩8,500) ≈ <b>18%</b>.<br>Partial match (cut ₩750): ₩7.5M, may win back most switchers.</span></div>
+<div class="st"><b>Next<small>estimate the switch rate</small></b><span><b>1.</b> Past competitor cuts on similar items vs items they didn't cut (difference-in-differences).<br><b>2.</b> Elasticity from our own price tests.<br><b>3.</b> Early signals: view-to-purchase drop, price-comparison traffic.<br><b>4.</b> Test: match on a random half of the 500 items for two weeks; keep substitutes in the same arm.<br>Segment: WOW members switch less than non-members. On the most visible KVIs, lean toward matching when it's close.</span></div>
+</div>
+<p class="sec">Second example: bottled water (2L, 6-pack)</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Our price</th><th>Competitor</th><th>Unit cost</th><th>Weekly units</th></tr>
+<tr><td>₩6,900</td><td>₩6,300</td><td>₩5,200</td><td>50,000</td></tr>
+</table></div>
+<div class="steps">
+<div class="st"><b>1. Margin per unit</b><span>Now ₩1,700 (24.6%).<br>Matched ₩1,100 (17.5%).</span></div>
+<div class="st"><b>2. Margin cost</b><span>₩600 × 50,000 = <b>₩30.0M a week</b> (35% of item margin given away).</span></div>
+<div class="st"><b>3. Less extra units</b><span>+5% units: 2,500 × ₩1,100 = ₩2.75M back.<br>Net ₩27.25M a week.</span></div>
+<div class="st"><b>4. Self-funding?</b><span>Needs ₩30.0M ÷ ₩1,100 ≈ 27,300 extra units = <b>+55%</b>.<br>Same as discount ÷ (margin − discount) = 8.7% ÷ 15.9%.<br>Won't happen, so matching only makes sense to prevent switching.</span></div>
+<div class="st"><b>5. Vs holding</b><span>Each switcher costs ₩1,700 + about ₩3,000 basket (assumption) = ₩4,700.<br>Break-even: ₩30.0M ÷ ₩4,700 ≈ 6,400 units ≈ <b>13%</b>.<br>Match above 13%, hold below.</span></div>
+</div>
+<p><b>One-liner:</b> "Matching costs the gap on every unit; holding costs only the switchers and their baskets. Match above the break-even switching rate; hold on delivery value below it."</p>`,
     trap: "Don't auto-match everything. Some items should hold on delivery speed and membership value." },
 
   { cluster: "🛒 Coupang context", q: "Why does WOW membership complicate pricing analysis?",
     a: `<p><strong>Structure — Effective price → Cannibalization → Retention</strong></p>
-<p>Members see different effective prices, and free fast delivery is bundled value. Member-only discounts may pull demand that would have bought anyway, or may drive retention. Measure effective price by segment, incrementality of member offers, and downstream retention, not just promo-week sales.</p>`,
+<ul class="pts">
+<li>Members see different effective prices, and free fast delivery is bundled value.</li>
+<li>Member-only discounts may pull demand that would have bought anyway, or may drive retention.</li>
+<li>Measure effective price by segment, incrementality of member offers, and downstream retention, not just promo-week sales.</li>
+</ul>`,
     trap: "List price is not what the member pays." },
 
   { cluster: "🛒 Coupang context", q: "How would you handle promotion stacking when evaluating price changes?",
     a: `<p><strong>Structure — Effective price → Funding → Overlap → Incrementality</strong></p>
-<p>Compute the effective price after coupons, instant discounts and card offers. Track who funds each (Coupang, seller, issuer). Identify overlapping promos on the same item and attribute lift carefully, ideally with a test that varies one lever. Report contribution profit net of Coupang-funded promo cost.</p>`,
+<ul class="pts">
+<li>Compute the effective price after coupons, instant discounts and card offers.</li>
+<li>Track who funds each (Coupang, seller, issuer).</li>
+<li>Identify overlapping promos on the same item and attribute lift carefully, ideally with a test that varies one lever.</li>
+<li>Report contribution profit net of Coupang-funded promo cost.</li>
+</ul>`,
     trap: null },
 
   // ---- Causal & experiments ----
   { cluster: "🔬 Causal & experiments", q: "How would you estimate price elasticity for a mid-tail category?",
     a: `<p><strong>Structure — Problem → Identification → Estimation → Validation</strong></p>
-<p><strong>Problem:</strong> price is endogenous; promos and competitor moves correlate with demand. <strong>Identification:</strong> randomized price tests where possible; otherwise instruments (supplier cost shocks) or event-based variation. <strong>Estimation:</strong> log-log with item and time fixed effects, hierarchical pooling across category/brand/SKU, handle stockouts. <strong>Validation:</strong> compare to experiment results on a subset and check holdout predictions.</p>`,
+<div class="steps">
+<div class="st"><b>Problem</b><span>price is endogenous; promos and competitor moves correlate with demand.</span></div>
+<div class="st"><b>Identification</b><span>randomized price tests where possible; otherwise instruments (supplier cost shocks) or event-based variation.</span></div>
+<div class="st"><b>Estimation</b><span>log-log with item and time fixed effects, hierarchical pooling across category/brand/SKU, handle stockouts.</span></div>
+<div class="st"><b>Validation</b><span>compare to experiment results on a subset and check holdout predictions.</span></div>
+</div>
+<p class="sec">Experiment or estimate? Both</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>combine</small></b><span>Most estimates come from historical data; a small number of experiments check and calibrate them.</span></div>
+<div class="st"><b>Because<small>bias example</small></b><span>Experiments are clean but expensive, so they can't cover thousands of SKUs. Historical data covers everything but is biased: we cut a price 20% during a holiday sale and units rise 60%, so a naive estimate says −3. The holiday would have lifted demand anyway; an experiment might show −1.5. The naive number leads to over-discounting.</span></div>
+<div class="st"><b>So<small>the approach</small></b><span><b>1. Experiments on a sample:</b> randomise prices on 50–100 SKUs (or by time slot or region) for a few weeks.<br><b>2. Historical, non-demand-driven changes:</b> cost-driven changes (a supplier raised cost); rule-triggered repricing, compared with similar unchanged SKUs (difference-in-differences). Avoid or control for promo weeks.<br><b>3. Model:</b> log(units) on log(price), item fixed effects (each item vs itself), week fixed effects (shared seasonality), controls for promos and stock-outs. The coefficient is the elasticity.<br><b>4. Pooling:</b> sparse SKUs are noisy, so pull each toward its brand or category average, more strongly when it has less data.</span></div>
+<div class="st"><b>Next<small>validate</small></b><span>Compare historical estimates with experiment results on the sampled SKUs; if historical overstates sensitivity (−3 vs −1.5), calibrate the rest. Check predictions on held-out weeks.</span></div>
+</div>
+<p><b>One-liner:</b> "Experiments give clean elasticities but only for a sample, so I'd estimate the rest from price changes not driven by demand, pool sparse SKUs toward their category, and use the experiments to check and calibrate."</p>`,
     trap: "A naive log-log on historical data is the textbook wrong answer. Name the bias before you're asked." },
 
   { cluster: "🔬 Causal & experiments", q: "Why can't you randomize price tests at the SKU level, and what do you do instead?",
     a: `<p><strong>Structure — Interference → Design options → Tradeoffs</strong></p>
-<p>Substitutes share demand and shared inventory, so a price cut on treated SKUs pulls from control SKUs, biasing the estimate. Alternatives: <strong>switchback</strong> (alternate by time block), <strong>geo</strong> (randomize regions), or <strong>cluster</strong> (randomize whole category groups). Tradeoffs: switchback risks carryover; geo needs enough regions and has more variance; cluster reduces effective sample size.</p>`,
+<ul class="pts">
+<li>Substitutes share demand and shared inventory, so a price cut on treated SKUs pulls from control SKUs, biasing the estimate.</li>
+<li>Alternatives: <strong>switchback</strong> (alternate by time block), <strong>geo</strong> (randomize regions), or <strong>cluster</strong> (randomize whole category groups).</li>
+<li>Tradeoffs: switchback risks carryover; geo needs enough regions and has more variance; cluster reduces effective sample size.</li>
+</ul>`,
     trap: null },
 
   { cluster: "🔬 Causal & experiments", q: "How do you measure the true incremental impact of a coupon program?",
     a: `<p><strong>Structure — Question → Control → Metric → Read-out</strong></p>
-<p><strong>Question:</strong> is it incremental demand or subsidizing purchases that would have happened? <strong>Control:</strong> randomized holdout of eligible customers. <strong>Metric:</strong> incremental contribution profit per eligible customer, net of coupon cost, plus the post-period for pull-forward. <strong>Read-out:</strong> incremental profit per coupon dollar, by segment, with a recommendation on who to target.</p>`,
+<div class="steps">
+<div class="st"><b>Question</b><span>is it incremental demand or subsidizing purchases that would have happened?</span></div>
+<div class="st"><b>Control</b><span>randomized holdout of eligible customers.</span></div>
+<div class="st"><b>Metric</b><span>incremental contribution profit per eligible customer, net of coupon cost, plus the post-period for pull-forward.</span></div>
+<div class="st"><b>Read-out</b><span>incremental profit per coupon dollar, by segment, with a recommendation on who to target.</span></div>
+</div>`,
     trap: "Redemption rate is not incrementality." },
 
   { cluster: "🔬 Causal & experiments", q: "The algorithm raised margin 2% but GMV dropped 1%. Is it a success?",
     a: `<p><strong>Structure — Objective → Net effect → Source → Decision</strong></p>
-<p><strong>Objective:</strong> what was the algorithm meant to optimize? <strong>Net effect:</strong> contribution profit dollars, not margin %. <strong>Source:</strong> did GMV fall in KVIs (price perception risk) or the long tail (fine)? <strong>Decision:</strong> keep if profit up and KVI traffic held; watch the long-run effect on repeat rate and price perception.</p>`,
+<div class="steps">
+<div class="st"><b>Objective</b><span>what was the algorithm meant to optimize?</span></div>
+<div class="st"><b>Net effect</b><span>contribution profit dollars, not margin %.</span></div>
+<div class="st"><b>Source</b><span>did GMV fall in KVIs (price perception risk) or the long tail (fine)?</span></div>
+<div class="st"><b>Decision</b><span>keep if profit up and KVI traffic held; watch the long-run effect on repeat rate and price perception.</span></div>
+</div>`,
     trap: "Margin % up with volume down can still mean profit dollars fell." },
 
   { cluster: "🔬 Causal & experiments", q: "Our test shows a lift during the promo week. What else do you check before calling it a win?",
     a: `<p><strong>Structure — Baseline → Pull-forward → Cannibalization → Cost</strong></p>
-<p>Check the baseline (stockouts, seasonality), the post-period dip (pull-forward), cannibalization of substitutes and other channels, and the full cost (promo funding, delivery). Net lift = promo lift − post-dip − cannibalized volume, valued at contribution profit.</p>`,
+<ul class="pts">
+<li>Check the baseline (stockouts, seasonality), the post-period dip (pull-forward), cannibalization of substitutes and other channels, and the full cost (promo funding, delivery).</li>
+<li>Net lift = promo lift − post-dip − cannibalized volume, valued at contribution profit.</li>
+</ul>`,
     trap: null },
 
   // ---- Metrics & reporting ----
   { cluster: "📊 Metrics & reporting", q: "How would you detect that the pricing algorithm is behaving badly before it costs real money?",
     a: `<p><strong>Structure — Input checks → Output checks → Outcome checks → Response</strong></p>
-<p><strong>Input:</strong> freshness and sanity on competitor and cost feeds. <strong>Output:</strong> distribution of price changes, share of items hitting margin floor or change cap, outlier alerts. <strong>Outcome:</strong> leading indicators (conversion, price index, margin) versus a holdout. <strong>Response:</strong> auto-pause rules, a named owner, and a post-mortem template.</p>`,
+<div class="steps">
+<div class="st"><b>Input</b><span>freshness and sanity on competitor and cost feeds.</span></div>
+<div class="st"><b>Output</b><span>distribution of price changes, share of items hitting margin floor or change cap, outlier alerts.</span></div>
+<div class="st"><b>Outcome</b><span>leading indicators (conversion, price index, margin) versus a holdout.</span></div>
+<div class="st"><b>Response</b><span>auto-pause rules, a named owner, and a post-mortem template.</span></div>
+</div>`,
     trap: "Most failures are input failures, not model failures." },
 
   { cluster: "📊 Metrics & reporting", q: "How do you ensure the quality of regular pricing reports?",
     a: `<p><strong>Structure — Definition → Pipeline → Validation → Ownership</strong></p>
-<p><strong>Definition:</strong> one documented, versioned definition per metric. <strong>Pipeline:</strong> orchestrated with dependency and SLA checks. <strong>Validation:</strong> freshness, row-count, null checks, reconciliation against finance, and week-over-week anomaly flags. <strong>Ownership:</strong> a named owner per report and a change log.</p>`,
+<div class="steps">
+<div class="st"><b>Definition</b><span>one documented, versioned definition per metric.</span></div>
+<div class="st"><b>Pipeline</b><span>orchestrated with dependency and SLA checks.</span></div>
+<div class="st"><b>Validation</b><span>freshness, row-count, null checks, reconciliation against finance, and week-over-week anomaly flags.</span></div>
+<div class="st"><b>Ownership</b><span>a named owner per report and a change log.</span></div>
+</div>`,
     trap: null },
 
   { cluster: "📊 Metrics & reporting", q: "What metrics would you put on a pricing dashboard for leadership?",
     a: `<p><strong>Structure — Outcome → Perception → Efficiency → Health</strong></p>
-<p><strong>Outcome:</strong> GMV and contribution profit. <strong>Perception:</strong> price index versus competitors (KVI and overall). <strong>Efficiency:</strong> profit per promo dollar, incremental lift. <strong>Health:</strong> guardrail breaches, data freshness, share of automated versus manual decisions. Keep it to one screen with a clear "so what".</p>`,
+<div class="steps">
+<div class="st"><b>Outcome</b><span>GMV and contribution profit.</span></div>
+<div class="st"><b>Perception</b><span>price index versus competitors (KVI and overall).</span></div>
+<div class="st"><b>Efficiency</b><span>profit per promo dollar, incremental lift.</span></div>
+<div class="st"><b>Health</b><span>guardrail breaches, data freshness, share of automated versus manual decisions. Keep it to one screen with a clear "so what".</span></div>
+</div>`,
     trap: "A dashboard without a decision attached is decoration." },
 
   // ---- Communication ----
   { cluster: "🗣️ Communication", q: "How would you decide whether to cut prices on category X? (Model answer)",
     a: `<p><strong>Structure — Objective → Segment → Lever → Evidence → Guardrails → Measurement</strong></p>
-<p><strong>Objective:</strong> traffic and price perception, or margin? Assume share without destroying contribution profit. <strong>Segment:</strong> price-sensitive high-traffic items versus the long tail. <strong>Lever:</strong> permanent cut, coupon, member price or bundle. <strong>Evidence:</strong> segment elasticity, competitor gaps, cross-effects, and a test since observational data is biased. <strong>Guardrails:</strong> margin floor, spend cap, auto-rollback. <strong>Measurement:</strong> geo or switchback with holdout, plus the post-period.</p>
+<div class="steps">
+<div class="st"><b>Objective</b><span>traffic and price perception, or margin? Assume share without destroying contribution profit.</span></div>
+<div class="st"><b>Segment</b><span>price-sensitive high-traffic items versus the long tail.</span></div>
+<div class="st"><b>Lever</b><span>permanent cut, coupon, member price or bundle.</span></div>
+<div class="st"><b>Evidence</b><span>segment elasticity, competitor gaps, cross-effects, and a test since observational data is biased.</span></div>
+<div class="st"><b>Guardrails</b><span>margin floor, spend cap, auto-rollback.</span></div>
+<div class="st"><b>Measurement</b><span>geo or switchback with holdout, plus the post-period.</span></div>
+</div>
 <p>Close: roll out in waves, automate once rules stabilize, name the competitor-price-war risk and its cap.</p>`,
     trap: "End with a recommendation, not a list of considerations." },
 
@@ -612,18 +754,33 @@ const CARDS = [
 
   { cluster: "🗣️ Communication", q: "Explain price elasticity to a non-technical executive in 30 seconds.",
     a: `<p><strong>Structure — Plain definition → Example → So what</strong></p>
-<p>"Elasticity is how much sales move when we change price. If a 10% price cut lifts units 20%, customers are price-sensitive and a cut can pay off. If units rise 3%, we just gave away margin. For diapers, we're sensitive; for niche items, we're not, so we treat them differently."</p>`,
+<ul class="pts">
+<li>Elasticity is how much sales move when we change price.</li>
+<li>If a 10% price cut lifts units 20%, customers are price-sensitive and a cut can pay off.</li>
+<li>If units rise 3%, we just gave away margin.</li>
+<li>For diapers, we're sensitive; for niche items, we're not, so we treat them differently.</li>
+</ul>`,
     trap: null },
 
   // ---- Staff-level ----
   { cluster: "👔 Staff-level", q: "Walk me through a pricing or promo project you owned end to end.",
     a: `<p><strong>Structure — Situation → Task → Action → Result → Learnings</strong></p>
-<p>Pick one project where your analysis changed a decision. Lead with the business problem and the decision, then your approach and the tradeoffs you made, then the quantified result and what you'd do differently. Mention stakeholders you aligned and any pushback you handled. Reuse the Wise deep-dive structure.</p>`,
+<ul class="pts">
+<li>Pick one project where your analysis changed a decision.</li>
+<li>Lead with the business problem and the decision, then your approach and the tradeoffs you made, then the quantified result and what you'd do differently.</li>
+<li>Mention stakeholders you aligned and any pushback you handled.</li>
+<li>Reuse the Wise deep-dive structure.</li>
+</ul>`,
     trap: "Don't spend most of the time on the method. The interviewers score the decision and the outcome." },
 
   { cluster: "👔 Staff-level", q: "How do you handle an ambiguous request from leadership: 'Pricing seems off in fresh. Look into it.'",
     a: `<p><strong>Structure — Clarify → Hypothesise → Investigate → Recommend</strong></p>
-<p><strong>Clarify:</strong> off against what: competitors, margin, last quarter? <strong>Hypothesise:</strong> input problem (cost or feed), logic problem (guardrails, stale rules), or real market shift. <strong>Investigate:</strong> check inputs first, then outputs, then outcomes. <strong>Recommend:</strong> a fix, an owner and a monitor.</p>`,
+<div class="steps">
+<div class="st"><b>Clarify</b><span>off against what: competitors, margin, last quarter?</span></div>
+<div class="st"><b>Hypothesise</b><span>input problem (cost or feed), logic problem (guardrails, stale rules), or real market shift.</span></div>
+<div class="st"><b>Investigate</b><span>check inputs first, then outputs, then outcomes.</span></div>
+<div class="st"><b>Recommend</b><span>a fix, an owner and a monitor.</span></div>
+</div>`,
     trap: "Don't dive into the data before scoping what 'off' means." },
 
   { cluster: "👔 Staff-level", q: "How do you mentor other analysts and raise the quality bar on the team?",
@@ -634,7 +791,11 @@ const CARDS = [
   // ---- SQL (from mock interview) ----
   { cluster: "💻 SQL", q: "SQL: for each category, find 1P KVI categories whose 7-day average price index on the latest date is above 105 (index = sales-weighted average of our_price ÷ comp_price × 100).",
     a: `<p><strong>Structure — Grain → Filter → Weight → Aggregate per day → Average the days → Threshold</strong></p>
-<p><strong>Grain:</strong> one index per category per day, then average the 7 daily values (not one pooled index, which would overweight busy days). <strong>Filter:</strong> 1P, KVI, in stock, valid competitor price. <strong>Weight:</strong> units (everyday high-volume items; revenue would skew toward mid-value items). The denominator is units of <em>qualifying</em> rows only.</p>
+<div class="steps">
+<div class="st"><b>Grain</b><span>one index per category per day, then average the 7 daily values (not one pooled index, which would overweight busy days).</span></div>
+<div class="st"><b>Filter</b><span>1P, KVI, in stock, valid competitor price.</span></div>
+<div class="st"><b>Weight</b><span>units (everyday high-volume items; revenue would skew toward mid-value items). The denominator is units of <em>qualifying</em> rows only.</span></div>
+</div>
 <pre><code>WITH latest AS (SELECT MAX(dt) AS max_dt FROM sales_daily),
 daily AS (
   SELECT s.dt, d.category_id,
@@ -656,7 +817,11 @@ HAVING AVG(idx) &gt; 105.0;</code></pre>
 
   { cluster: "💻 SQL", q: "SQL: list 1P price changes larger than 5% in the last 14 days of data, with units that day and the average units over the 7 in-stock days before the change.",
     a: `<p><strong>Structure — Grain → Windows partitioned by SKU → Detect the change → Baseline that excludes stockouts → Filter to the report window last</strong></p>
-<p>Grain is one row per SKU per day. Compute windows over extra history, then filter to the last 14 days in the outer query, so the first days of the window still have a previous price and a full baseline. Stock filtering applies only to the baseline, never to price-change detection.</p>
+<ul class="pts">
+<li>Grain is one row per SKU per day.</li>
+<li>Compute windows over extra history, then filter to the last 14 days in the outer query, so the first days of the window still have a previous price and a full baseline.</li>
+<li>Stock filtering applies only to the baseline, never to price-change detection.</li>
+</ul>
 <pre><code>WITH latest AS (SELECT MAX(dt) AS max_dt FROM price_daily),
 daily AS (
   SELECT p.sku_id, p.dt, p.our_price,
@@ -685,19 +850,30 @@ ORDER BY avg_units_prior_7d DESC NULLS LAST, sku_id, dt;</code></pre>`,
 
   { cluster: "💻 SQL", q: "What habits stop you making mistakes in window-function SQL during a live interview?",
     a: `<p><strong>Structure — State the grain → Partition → Frame → Filter order → Reread the spec</strong></p>
-<p><strong>State the grain</strong> before typing ("one row per SKU per day"). <strong>Partition</strong> every window by the entity (SKU). <strong>Frame</strong> explicitly: 7 PRECEDING AND 1 PRECEDING means the 7 days before, excluding today. <strong>Filter order:</strong> filters on window outputs go in an outer query, and the date filter that feeds a window must include extra history. <strong>Reread the spec</strong> line by line against the query (1P only? more than 5%? in-stock only for the baseline?). Qualify columns, use INNER JOIN when a WHERE filters the right-hand table, and say your assumptions out loud.</p>`,
+<ul class="pts">
+<li><strong>State the grain</strong> before typing ("one row per SKU per day"). <strong>Partition</strong> every window by the entity (SKU). <strong>Frame</strong> explicitly: 7 PRECEDING AND 1 PRECEDING means the 7 days before, excluding today. <strong>Filter order:</strong> filters on window outputs go in an outer query, and the date filter that feeds a window must include extra history. <strong>Reread the spec</strong> line by line against the query (1P only? more than 5%? in-stock only for the baseline?).</li>
+<li>Qualify columns, use INNER JOIN when a WHERE filters the right-hand table, and say your assumptions out loud.</li>
+</ul>`,
     trap: "Aggregates are not allowed in WHERE. Use HAVING, or a window COUNT." },
 
   { cluster: "💻 SQL", q: "In a randomized coupon test with a 14-day outcome window, how do you handle customers whose window isn't complete yet?",
     a: `<p><strong>Structure — Define maturity → Filter on assignment date only → Apply to both groups → Check the split</strong></p>
-<p>A customer assigned in the last 13 days of data has an incomplete 14-day window, so their orders are undercounted. <strong>Define maturity:</strong> the assignment date must be at least 13 days before the latest data date. <strong>Filter on assignment date only:</strong> it is set before the outcome is known, so it keeps randomization intact. <strong>Apply to both groups</strong> identically. <strong>Check the split:</strong> confirm the treatment/holdout ratio still matches the design after the filter (sample-ratio check).</p>
+<p>A customer assigned in the last 13 days of data has an incomplete 14-day window, so their orders are undercounted.</p>
+<div class="steps">
+<div class="st"><b>Define maturity</b><span>the assignment date must be at least 13 days before the latest data date.</span></div>
+<div class="st"><b>Filter on assignment date only</b><span>it is set before the outcome is known, so it keeps randomization intact. <strong>Apply to both groups</strong> identically.</span></div>
+<div class="st"><b>Check the split</b><span>confirm the treatment/holdout ratio still matches the design after the filter (sample-ratio check).</span></div>
+</div>
 <pre><code>WHERE p.assigned_dt &lt;= DATE_ADD('day', -13,
         (SELECT MAX(order_dt) FROM orders))</code></pre>`,
     trap: "Never filter customers on anything observed after assignment (for example 'ordered at least once'). That conditions on the outcome and breaks the comparison. Keep zero-order customers at 0." },
 
   { cluster: "💻 SQL", q: "How do you get a confidence interval for the treatment-minus-holdout difference in SQL?",
     a: `<p><strong>Structure — One row per customer → Per-group n, mean, variance → Standard error → Mean difference ± 1.96 × standard error</strong></p>
-<p>Build one row per assigned customer (including zero-order customers), then use the two-sample (Welch) interval: difference in means ± 1.96 × √(s₁²/n₁ + s₂²/n₂). The normal approximation is fine at large n even for skewed data, because of the central limit theorem.</p>
+<ul class="pts">
+<li>Build one row per assigned customer (including zero-order customers), then use the two-sample (Welch) interval: difference in means ± 1.96 × √(s₁²/n₁ + s₂²/n₂).</li>
+<li>The normal approximation is fine at large n even for skewed data, because of the central limit theorem.</li>
+</ul>
 <pre><code>stats AS (
   SELECT assignment,
          COUNT(*) AS n,
@@ -713,12 +889,20 @@ SELECT t.mean_x - c.mean_x AS diff,
 FROM stats t
 JOIN stats c ON t.assignment = 'treatment'
             AND c.assignment = 'holdout';</code></pre>
-<p>Repeat for orders per customer. If the interval includes 0, you cannot claim the coupon moved the metric. For the <strong>percentage lift</strong>, dividing the interval by the holdout mean is an approximation; a proper interval uses the delta method or a bootstrap. A Staff-level extra: CUPED (adjust each customer's outcome by their pre-period value) to shrink variance.</p>`,
+<ul class="pts">
+<li>Repeat for orders per customer.</li>
+<li>If the interval includes 0, you cannot claim the coupon moved the metric.</li>
+<li>For the <strong>percentage lift</strong>, dividing the interval by the holdout mean is an approximation; a proper interval uses the delta method or a bootstrap.</li>
+<li>A Staff-level extra: CUPED (adjust each customer's outcome by their pre-period value) to shrink variance.</li>
+</ul>`,
     trap: "Heavy-tail customers do not bias a randomized difference in means; they add variance, so the estimate is noisy in either direction. Report the interval instead of a point estimate alone." },
 
   { cluster: "💻 SQL", q: "If you winsorize customer-level outcomes in a randomized test, how do you define the cap threshold?",
     a: `<p><strong>Structure — One pooled threshold → Fix the percentile in advance → Consider both tails → Report raw and capped side by side</strong></p>
-<p><strong>One pooled threshold:</strong> compute the percentile across all customers combined and apply the same cap to both groups. A group-specific cap trims the treatment tail by a different amount than the holdout tail and biases the difference toward zero. <strong>Fix the percentile in advance</strong> (for example the 99th) before looking at results, then show 99.5th as a sensitivity check. <strong>Both tails:</strong> contribution profit can be negative (coupon cost on low-margin orders), so consider 1st and 99th. <strong>Report raw and capped</strong> estimates: if they agree, the heavy tail is not driving the result.</p>
+<div class="steps">
+<div class="st"><b>One pooled threshold</b><span>compute the percentile across all customers combined and apply the same cap to both groups. A group-specific cap trims the treatment tail by a different amount than the holdout tail and biases the difference toward zero. <strong>Fix the percentile in advance</strong> (for example the 99th) before looking at results, then show 99.5th as a sensitivity check.</span></div>
+<div class="st"><b>Both tails</b><span>contribution profit can be negative (coupon cost on low-margin orders), so consider 1st and 99th. <strong>Report raw and capped</strong> estimates: if they agree, the heavy tail is not driving the result.</span></div>
+</div>
 <pre><code>caps AS (
   SELECT approx_percentile(contribution_profit_per_customer, 0.99)
            AS cap_hi
@@ -730,24 +914,69 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
 
   // ---- Mock case ----
   { cluster: "🎯 Mock case", q: "Difference-in-differences: how do you isolate the effect of a pricing launch with no holdout?",
-    a: `<p><strong>Structure — Choose the comparison → Check pre-trends → Subtract → Net the metrics → State the caveats</strong></p>
-<p><strong>Choose:</strong> a comparable category on the same weeks that did not get the change (same seller type, similar volume). <strong>Check pre-trends:</strong> were the two moving together over the prior weeks? <strong>Subtract:</strong> effect = (treated change) − (comparison change), for every metric, including side metrics such as WOW conversion. <strong>Net:</strong> combine effects into one number before deciding. <strong>Caveats:</strong> parallel trends may not hold if a shock hit categories unequally; spillover between substitute categories; short window and novelty effects; no randomization, so propose a holdout next.</p>`,
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>We didn't have a holdout, so I compared against Kitchen &amp; Dining over the same weeks. About 0.7pt of the 1.7pt WOW drop is due to the launch; the rest hit both categories. For the next launch we'll hold out 15% of SKUs so we don't need this workaround.</div>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>compare to a control category</small></b><span>Compare the launched category's change with a similar category that didn't get the change over the same weeks. The difference is the effect.</span></div>
+<div class="st"><b>Because<small>raw before/after is polluted</small></b><span>With no holdout, a raw before/after mixes the launch with everything else that week (e.g. the competitor promo). The comparison category absorbs shared shocks.</span></div>
+<div class="st"><b>So<small>the steps</small></b><span>Pick a comparison (Kitchen &amp; Dining: 1P, non-KVI, no algorithm).<br>Check the two moved together in prior weeks.<br>Subtract for every metric: WOW raw −1.7pt, comparison −1.0pt → <b>−0.7pt</b> attributable.<br>Net the metrics into one number.</span></div>
+<div class="st"><b>Next<small>caveats</small></b><span>Parallel trends can break if a shock hit unequally; spillover between substitute categories; short window. Propose a randomized holdout next.</span></div>
+</div>
+<p class="sec">Detail</p>
+<p><strong>Detail structure — Choose the comparison → Check pre-trends → Subtract → Net the metrics → State the caveats</strong></p>
+<div class="steps">
+<div class="st"><b>Choose</b><span>a comparable category on the same weeks that did not get the change (same seller type, similar volume).</span></div>
+<div class="st"><b>Check pre-trends</b><span>were the two moving together over the prior weeks?</span></div>
+<div class="st"><b>Subtract</b><span>effect = (treated change) − (comparison change), for every metric, including side metrics such as WOW conversion.</span></div>
+<div class="st"><b>Net</b><span>combine effects into one number before deciding.</span></div>
+<div class="st"><b>Caveats</b><span>parallel trends may not hold if a shock hit categories unequally; spillover between substitute categories; short window and novelty effects; no randomization, so propose a holdout next.</span></div>
+</div>`,
     trap: "Apply the same subtraction to every metric. Attributing the raw WOW drop (−1.7pt) to the algorithm, when the comparison category also fell −1.0pt, leaves only −0.7pt attributable." },
 
   { cluster: "🎯 Mock case", q: "Profit per order is up and units are down after a pricing launch. How do you decide whether it worked?",
-    a: `<p><strong>Structure — Convert to one number → Look at the trend → Check guardrails → Decide</strong></p>
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>The launch isn't working yet. Higher profit per order was offset by lower volume: net +3% in week 1, flat in week 2, while our price gap to competitors widened. I'd treat it as a warning, not a win.</div>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>net it</small></b><span>Total profit ≈ orders × profit per order, so net the two. The gain faded from about +3pp to 0pp: not a win.</span></div>
+<div class="st"><b>Because<small>the numbers</small></b><span>Week 1: profit per order +5pp, units −2pp → <b>+3pp</b>.<br>Week 2: +4pp, −4pp → <b>0pp</b>.<br>Meanwhile the index gap widened (+2 → +3) and the WOW gap widened (−0.2 → −0.7pt).</span></div>
+<div class="st"><b>So<small>guardrails, interpreted</small></b><span>Raw week 2 breached both (units −9%, index 109). On a difference-in-differences basis units were −4pp, but the index was 106 even in the comparison category because of the competitor promo.</span></div>
+<div class="st"><b>Next<small>fix the system</small></b><span>Guardrails should trigger on an absolute breach regardless of cause, and the algorithm should respond to competitor price drops.</span></div>
+</div>
+<p class="sec">Detail</p>
+<p><strong>Detail structure — Convert to one number → Look at the trend → Check guardrails → Decide</strong></p>
 <p>Total profit ≈ orders × profit per order, so net the two. From the mock case (difference-in-differences vs. Kitchen &amp; Dining):</p>
 <p>Week 1: profit per order +5pp, units −2pp, net about <strong>+3pp</strong>. Week 2: +4pp and −4pp, net about <strong>0pp</strong>. The gain faded while the price-index gap widened (+2 to +3) and the attributable WOW gap widened (−0.2 to −0.7pt). That is a worsening trend, not a stable win.</p>
-<p><strong>Guardrails:</strong> state the interpretation. Raw week 2 breached both (units −9%, index 109); on a difference-in-differences basis units were −4pp, but the index was 106 even in the comparison category because of the competitor promotion. A guardrail should trigger on an absolute breach regardless of cause, and the algorithm should respond to competitor price drops.</p>`,
+<p><b>Guardrails</b></p>
+<ul class="pts">
+<li>state the interpretation.</li>
+<li>Raw week 2 breached both (units −9%, index 109); on a difference-in-differences basis units were −4pp, but the index was 106 even in the comparison category because of the competitor promotion.</li>
+<li>A guardrail should trigger on an absolute breach regardless of cause, and the algorithm should respond to competitor price drops.</li>
+</ul>`,
     trap: "Saying 'gains outweigh the units loss' without computing the net is the most common miss." },
 
   { cluster: "🎯 Mock case", q: "Mock case: an algorithm launched on all 1P non-KVI Household Staples with no holdout. Profit per order +4%, units −6%, price index 101 → 106, WOW conversion −1pt; a competitor ran a site-wide promo in week 2. Keep, roll back, or expand?",
-    a: `<p><strong>Structure — Clarify → Isolate → Net → Decide → Derisk</strong></p>
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>My recommendation: don't expand and don't roll back yet. Net profit has faded to zero and customer metrics are slipping, but a competitor promo explains most of the drop. We'll run a two-week holdout with hard guardrails and roll back if net profit stays flat.</div>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>middle path</small></b><span>Don't expand, and don't fully roll back yet: run a holdout with hard guardrails and a checkpoint.</span></div>
+<div class="st"><b>Because<small>faded, risks rising</small></b><span>Against Kitchen &amp; Dining, net profit faded from about +3pp (week 1) to about 0pp (week 2), while the attributable index (+3) and WOW (−0.7pt) gaps widened. The competitor promo explains most of the raw drop.</span></div>
+<div class="st"><b>So<small>derisk</small></b><span>Make the index and WOW hard guardrails.<br>Make prices fall when competitors cut and the index rises.<br>Randomized holdout of about 15% of SKUs for two weeks.</span></div>
+<div class="st"><b>Next<small>checkpoint + principle</small></b><span>Roll back if net profit stays near zero or the attributable WOW loss grows. The customer experience isn't traded for short-term profit; the guardrails make that explicit.</span></div>
+</div>
+<p class="sec">Detail</p>
+<p><strong>Detail structure — Clarify → Isolate → Net → Decide → Derisk</strong></p>
 <p><strong>Clarify:</strong> the objective was contribution profit with guardrails of index ≤ 105 and units no worse than −5%; WOW is monitored. Ask for the weekly split (week 1 / week 2) and a comparison category.</p>
 <p><strong>Isolate:</strong> use Kitchen &amp; Dining (1P, non-KVI, no algorithm) as the comparison. Week 2 effects: profit per order +4pp, units −4pp, index +3, WOW −0.7pt.</p>
 <p><strong>Net:</strong> profit gain is offset by volume loss; net about +3pp in week 1 and about 0pp in week 2, with the index and WOW gaps widening.</p>
 <p><strong>Decide:</strong> do not expand, and do not fully roll back yet. Net profit is fading, and perception and member risk are rising, but the competitor promo explains most of the raw drop.</p>
-<p><strong>Derisk:</strong> make the index and WOW hard guardrails, fix competitor reaction so prices fall when the index rises, run a randomized holdout (for example 15% of SKUs) for two weeks, and set a checkpoint: roll back if net profit stays near zero or the attributable WOW loss grows. Then name the company principle: the customer experience is not traded for short-term profit, and the guardrails make that explicit.</p>`,
+<p><b>Derisk</b></p>
+<ul class="pts">
+<li>make the index and WOW hard guardrails, fix competitor reaction so prices fall when the index rises, run a randomized holdout (for example 15% of SKUs) for two weeks, and set a checkpoint: roll back if net profit stays near zero or the attributable WOW loss grows.</li>
+<li>Then name the company principle: the customer experience is not traded for short-term profit, and the guardrails make that explicit.</li>
+</ul>`,
     trap: "A binary 'roll it back because of a principle' answer skips the quantified tradeoff. Lead with the numbers, then the principle, and offer a middle path." },
 
 
@@ -774,17 +1003,46 @@ Exhibit 3 — same 120 leak SKUs, WOW, Q3
 Normal day, discount only   100    ₩1,150       +₩480
 Event day, discount only    118    ₩1,250       +₩300
 Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
-    a: `<p><strong>Structure — Clarify → Decompose → Locate → Test → Recommend → Derisk</strong> (about 3 / 5 / 5 / 5 / 7 / 3 minutes)</p>
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>Profit per order fell because of WOW promo costs, not weaker demand. Most of it sits in 120 products where coupons stack on discounts and lose ₩300 a unit. Stopping default stacking on 85 of them recovers roughly a sixth to a third of the decline; I'll confirm with a holdout and come back with a phase 2 for the rest.</div>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>cost, not demand</small></b><span>The decline is a WOW promo-cost problem, concentrated in 120 SKUs and coupon stacking. Stop default stacking on non-KVI leak SKUs, and say it fixes part, not all.</span></div>
+<div class="st"><b>Because<small>decompose + locate</small></b><span>The ₩290 decline is about 96% WOW (−₩430 per WOW order). WOW promo cost rose ₩488 per order, more than the decline. Orders grew 10% in both segments, so it's cost, not demand.<br>120 SKUs hold 58% of the increase; stacked lines (12% of lines) hold 55%.<br>Stacking adds about 15% units but turns per-unit profit from +₩300 to −₩300.</span></div>
+<div class="st"><b>So<small>recommend</small></b><span>Stop default stacking on the 85 non-KVI leak SKUs.<br>Keep the 35 KVIs on instant discount only.<br>Cap promo cost per unit (a +₩100 floor allows about ₩1,450).<br>Size: recovers an estimated 15–31% of the decline.</span></div>
+<div class="st"><b>Next<small>derisk + phase 2</small></b><span>Randomized holdout on stacking for 2–3 weeks; roll back if profit doesn't improve or conversion falls below discount-only. Phase 2: discount depth on the remaining discounted SKUs (33% of the increase).</span></div>
+</div>
+<p class="sec">Detail</p>
+<p><strong>Detail structure — Clarify → Decompose → Locate → Test → Recommend → Derisk</strong> (about 3 / 5 / 5 / 5 / 7 / 3 minutes)</p>
 <p><strong>Clarify (3 questions):</strong> the objective (total contribution profit while keeping WOW healthy; per-order profit is the KPI), who can use the discounts (coupons about 85% to WOW; no rule against stacking), and a comparison or baseline.</p>
 <p><strong>Decompose (Exhibit 1):</strong> the ₩290 decline is about 96% WOW (−₩430 per WOW order). Promo cost per WOW order rose ₩488, more than the decline, so promotions are the driver. Orders grew +10% in both segments but WOW basket value fell, so this is cost, not demand.</p>
 <p><strong>Locate (Exhibit 2):</strong> concentrated, not broad. 120 SKUs hold 58% of the increase, and stacked lines (12% of lines) hold 55%. 35 of the 120 are KVIs, so KVI and non-KVI need different treatment.</p>
-<p><strong>Test (Exhibit 3):</strong> stacking adds about 15% units versus discount only (118 → 136) but takes profit per unit from +₩300 to −₩300, so total profit on those SKU-days turns negative. Caveats: event traffic inflates the volume lift, stacked SKUs are not randomly chosen, and basket and WOW retention effects are unmeasured.</p>
-<p><strong>Recommend:</strong> stop default stacking on the 85 non-KVI leak SKUs, keep KVIs on instant discount only to protect price image, and cap promo cost per unit (a +₩100 profit floor allows about ₩1,450). Be honest about size: this recovers an estimated 15–31% of the decline (an upper bound of about ₩89 per order blended; stopping stacking removes the coupon, not the instant discount). Name phase 2 for the rest: discount depth on non-stacked leak SKUs and the other discounted SKUs (33% of the increase).</p>
+<p><b>Test (Exhibit 3)</b></p>
+<ul class="pts">
+<li>stacking adds about 15% units versus discount only (118 → 136) but takes profit per unit from +₩300 to −₩300, so total profit on those SKU-days turns negative.</li>
+<li>Caveats: event traffic inflates the volume lift, stacked SKUs are not randomly chosen, and basket and WOW retention effects are unmeasured.</li>
+</ul>
+<p><b>Recommend</b></p>
+<ul class="pts">
+<li>stop default stacking on the 85 non-KVI leak SKUs, keep KVIs on instant discount only to protect price image, and cap promo cost per unit (a +₩100 profit floor allows about ₩1,450).</li>
+<li>Be honest about size: this recovers an estimated 15–31% of the decline (an upper bound of about ₩89 per order blended; stopping stacking removes the coupon, not the instant discount).</li>
+<li>Name phase 2 for the rest: discount depth on non-stacked leak SKUs and the other discounted SKUs (33% of the increase).</li>
+</ul>
 <p><strong>Derisk:</strong> randomized holdout on stacking for 2–3 weeks; track units, profit per order, WOW conversion and basket; roll back if profit does not improve or conversion falls below the discount-only level.</p>`,
     trap: "Don't present the stacking fix as the whole answer: it closes 15–31% of the decline. Say what it covers, what it doesn't, and what comes next." },
 
   { cluster: "🎯 Mock case", q: "How do you test whether stacking a coupon on an instant discount is worth it, using the same SKUs?",
-    a: `<p><strong>Structure — Hold the SKU fixed → Separate event days from normal days → Compare three conditions → Net volume against per-unit profit → State the confounds</strong></p>
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>Stacking the coupon isn't paying off. It adds 15% more units, but each unit goes from +₩300 profit to −₩300, so we lose about ₩4,200 for every extra unit sold. I'd stop it by default and confirm with a short holdout.</div>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>not worth it here</small></b><span>Hold the SKUs fixed and compare three conditions. Stacking buys about 15% more units but flips per-unit profit from +₩300 to −₩300.</span></div>
+<div class="st"><b>Because<small>total profit</small></b><span>Event day, discount only: 118 × ₩300 = <b>35,400</b>.<br>Event day, + coupon: 136 × −₩300 = <b>−40,800</b>.<br>The coupon subsidises all 136 buyers, so each extra unit costs about ₩4,200 of profit.</span></div>
+<div class="st"><b>So<small>quote it precisely</small></b><span>+15% units (136 vs 118), +48% promo cost (₩1,850 vs ₩1,250). Say "index points" when you mean points.</span></div>
+<div class="st"><b>Next<small>confounds → test</small></b><span>Event traffic inflates volume; stacked SKUs aren't random; basket, halo and WOW retention are unmeasured; KVIs may justify the cost. So confirm with a randomized holdout.</span></div>
+</div>
+<p class="sec">Detail</p>
+<p><strong>Detail structure — Hold the SKU fixed → Separate event days from normal days → Compare three conditions → Net volume against per-unit profit → State the confounds</strong></p>
 <p>Same 120 leak SKUs, WOW orders, Q3:</p>
 <div class="cmp-wrap"><table class="cmp">
 <tr><th>Condition</th><th>Units per SKU-day (index)</th><th>Coupang promo cost per unit</th><th>Profit per unit</th><th>Profit per SKU-day (index)</th></tr>
@@ -792,14 +1050,33 @@ Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
 <tr><td>Event day, instant discount only</td><td>118</td><td>₩1,250</td><td>+₩300</td><td>35,400</td></tr>
 <tr><td>Event day, instant discount + coupon</td><td>136</td><td>₩1,850</td><td>−₩300</td><td>−40,800</td></tr>
 </table></div>
-<p><strong>Read:</strong> event-day instant discount gives +18% units for −37% per-unit profit. Adding the coupon gives +15% units versus instant-discount-only (+18 index points), +48% promo cost, and flips per-unit profit from +₩300 to −₩300. The coupon subsidizes all 136 buyers, including those who would have bought anyway: about ₩4,200 of profit lost per extra unit.</p>
-<p><strong>Confounds:</strong> event traffic drives much of the volume lift (even instant discount alone earns less total profit than a normal day, so this data does not show it is incremental); which SKUs get stacked is not random; basket and halo effects and WOW retention are unmeasured; KVIs may justify cost for price image.</p>`,
+<p><b>Read</b></p>
+<ul class="pts">
+<li>event-day instant discount gives +18% units for −37% per-unit profit.</li>
+<li>Adding the coupon gives +15% units versus instant-discount-only (+18 index points), +48% promo cost, and flips per-unit profit from +₩300 to −₩300.</li>
+<li>The coupon subsidizes all 136 buyers, including those who would have bought anyway: about ₩4,200 of profit lost per extra unit.</li>
+</ul>
+<p><b>Confounds</b></p>
+<ul class="pts">
+<li>Event traffic drives much of the volume lift (even instant discount alone earns less total profit than a normal day, so this data does not show it is incremental).</li>
+<li>Which SKUs get stacked is not random.</li>
+<li>Basket and halo effects and WOW retention are unmeasured.</li>
+<li>KVIs may justify cost for price image.</li>
+</ul>`,
     trap: "Quote percentages carefully: +15% (not +18%) units and +48% (not +52%) promo cost for stacking. Say 'index points' when you mean points." },
 
   { cluster: "🎯 Mock case", q: "Is a minimum contribution profit per unit a good guardrail for promotions?",
-    a: `<p><strong>Structure — State the per-unit floor → Convert it to a promo cap → Net against volume → Add the incrementality test</strong></p>
-<p><strong>Floor to cap:</strong> if each extra won of promo cost removes about one won of profit, a floor of +₩100 per unit on a ₩300 baseline means promo cost can rise by ₩200, from ₩1,250 to about ₩1,450. <strong>Net against volume:</strong> total profit = units × profit per unit, so a per-unit floor alone does not guarantee a good outcome. <strong>Incrementality:</strong> the right criterion is incremental profit per promo won, measured with a holdout, because an average per-unit margin ignores whether the volume was incremental. Use the floor as a guardrail and the test as the decision rule.</p>`,
-    trap: "A per-unit floor assumes one-for-one pass-through and ignores volume response. Say both assumptions out loud." },
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>A per-unit profit floor is a good safety net, so we'll keep it. But a promo can clear the floor and still lose money, so the go/no-go decision should rest on incremental profit from a holdout.</div>
+<p>Context: the stacking case recommended "every promoted unit must still earn at least +₩100".</p>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>guardrail, not decision rule</small></b><span>It's a good <b>guardrail</b> (a safety net that blocks the worst outcomes automatically), but not the <b>decision rule</b> for whether a promo is worth running.</span></div>
+<div class="st"><b>Because<small>why it works as a guardrail</small></b><span>Event day, discount only: promo cost ₩1,250, profit +₩300 per unit. Each extra ₩1 of promo cost removes ₩1 of profit (the coupon added ₩600 and profit went +₩300 → −₩300).<br>A +₩100 floor leaves ₩200 of room: promo cost capped at about <b>₩1,450</b>. Simple, automatic, and it blocks loss-making stacks.</span></div>
+<div class="st"><b>So<small>why it fails as a decision rule</small></b><span><b>1. Volume:</b> without the promo (normal day) 100 × ₩480 = <b>₩48,000</b>; a promo that passes the floor at 136 × ₩100 = <b>₩13,600</b>. It passes the guardrail and still loses ₩34,400. Beating ₩48,000 at ₩100 a unit needs 480 units, about 5×.<br><b>2. Incrementality:</b> the ₩100 is earned on every buyer, including the 100 who would have bought anyway at ₩480 each. What matters is incremental profit (with promo − without), which only a holdout measures.</span></div>
+<div class="st"><b>Next<small>how to say it</small></b><span>"Use the floor as the safety net, and decide on incremental profit from a holdout." Name the two assumptions: one-for-one pass-through of promo cost to profit, and no volume response.</span></div>
+</div>`,
+    trap: "A promo can pass a per-unit floor and still lose money once you count volume and the buyers who'd have bought anyway." },
 
   // ---- My experience (Meta Live ads, Partnership Ads) ----
   { cluster: "🧑‍💼 My experience", q: "Tell me about launching Partnership Ads at Meta: the problem, and how you knew it worked.",
@@ -1071,10 +1348,327 @@ COUNT(DISTINCT CASE WHEN order_dt &gt;= effective_dt THEN order_dt END) AS days_
 <div class="steps keys">
 <div class="st"><b>Answer<small>the routine</small></b><span>Say each CTE aloud as you finish it, then run a 30-second checklist on the whole query.</span></div>
 <div class="st"><b>Because<small>why</small></b><span>Across two SQL mocks the logic improved, but the same slips kept returning: a missing <code>&lt;</code>, a missing <code>CASE</code>, a stray bracket, a wrong alias, a copied denominator, and filters that quietly changed a join. A live round gives you one pass, not three revisions.</span></div>
-<div class="st"><b>So<small>the checklist</small></b><span><b>1.</b> Every alias exists and matches. <b>2.</b> Operators and brackets are complete. <b>3.</b> A <code>WHERE</code> on the right-hand table of a <code>LEFT JOIN</code> makes it inner; filter the fact table in a CTE first, then join. <b>4.</b> Window functions appear only in <code>SELECT</code> or <code>ORDER BY</code>; filter the rank outside. <b>5.</b> You never group by an aggregate. <b>6.</b> Date ranges written out, ties chosen on purpose, zero division guarded with <code>NULLIF</code>.</span></div>
+<div class="st"><b>So<small>the checklist</small></b><span><b>1.</b> Every alias exists and matches.<br><b>2.</b> Operators and brackets are complete.<br><b>3.</b> A <code>WHERE</code> on the right-hand table of a <code>LEFT JOIN</code> makes it inner; filter the fact table in a CTE first, then join.<br><b>4.</b> Window functions appear only in <code>SELECT</code> or <code>ORDER BY</code>; filter the rank outside.<br><b>5.</b> You never group by an aggregate.<br><b>6.</b> Date ranges written out, ties chosen on purpose, zero division guarded with <code>NULLIF</code>.</span></div>
 <div class="st"><b>Next<small>how to say it</small></b><span>Say "CTE 1 does X from tables a and b, joined on Y" for each CTE. Interviewers read this as control, and you catch your own errors.</span></div>
 </div>`,
     trap: "Read your own query aloud rather than skimming it. Skimming is how a missing CASE survives." },
+
+  // ---- Experiment design: multiple cut levels with limited sample ----
+  { cluster: "🔬 Causal & experiments", q: "You tested a 50% cut. How would you design a test with multiple cut levels, and what if the available user sample is limited?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the design</small></b><span>One shared control and a few dose arms (for example 0%, 10%, 25%, 50% cuts). Fit a dose-response line across all arms rather than running separate arm-versus-control tests. With limited sample, use fewer arms and put users where the decision needs power.</span></div>
+<div class="st"><b>Because<small>small cuts are expensive</small></b><span>Per-arm sample is roughly <code>16 × σ² / δ²</code> (80% power, 5% significance), where δ is the effect to detect. Halving the effect needs four times the users. If the effect is proportional to the dose (an assumption), then using −4% at a 50% cut as the example, a 25% cut gives about −2% and needs 4× the users, and a 10% cut gives about −0.8% and needs 25×. The 10% arm is the expensive one, and it is the one that answers "is a small cut fine?".</span></div>
+<div class="st"><b>So<small>coping with a limited sample</small></b><span><b>1.</b> Fewer arms, picked from cuts leadership might actually take (for example 25% and 50%).<br><b>2.</b> Unequal allocation: the control is shared, so give it a larger share, and put more users in the smallest-effect arm.<br><b>3.</b> One slope across arms: regressing outcome on dose pools information and needs fewer users than separate pairwise tests; check non-linearity only if power allows.<br><b>4.</b> Cut variance with pre-experiment covariates (CUPED), a lower-variance primary metric, or a longer run, watching for novelty effects.<br><b>5.</b> Control false positives with a trend test or a Dunnett-style adjustment against control.<br><b>6.</b> Set the smallest effect that would change the decision before running; if the smallest effect you can detect at your sample is larger than that, say the test cannot answer the question rather than running it underpowered.</span></div>
+<div class="st"><b>Next<small>limits to name</small></b><span>The linear-effect assumption drives the sample-size table, and real effects may flatten or accelerate. Live content is shared across users, so spillover between arms is possible. Do not test 100% removal as a dose arm for a decision like this: it is costly and rarely a real option.</span></div>
+</div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Cut</th><th>Expected effect (if proportional)</th><th>Users needed vs the 50% arm</th></tr>
+<tr><td>50%</td><td>−4%</td><td>1×</td></tr>
+<tr><td>25%</td><td>−2%</td><td>4×</td></tr>
+<tr><td>10%</td><td>−0.8%</td><td>25×</td></tr>
+</table></div>
+<details><summary>If they probe</summary>
+<p><b>Why a regression across arms?</b> Each arm alone is noisy, but a single dose-response slope uses every user in every arm, so it detects a trend with fewer users than pairwise comparisons.</p>
+<p><b>Coupang bridge:</b> same shape as estimating elasticity from price tests. Small price moves have small effects and need large samples, so test a few meaningful price points and fit a curve.</p>
+</details>`,
+    trap: "Don't promise an effect at a dose you can't power. State the smallest effect that would change the decision, and say plainly when the sample can't detect it." },
+
+  // ---- Promo break-even ----
+  { cluster: "🔬 Causal & experiments", q: "What is the break-even point for a grocery promotion, and does the Rocket Fresh ₩5,000 first-order coupon pay back?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the rule</small></b><span>A price cut of d%, at gross margin m%, breaks even only if volume rises by <code>d ÷ (m − d)</code>. Grocery gross margin is about 25–30% (industry rule of thumb), so a 10% cut needs about +50% to +67% volume.</span></div>
+<div class="st"><b>Because<small>you subsidise base sales</small></b><span>Every unit you would have sold anyway loses margin; only the extra units pay it back. Cannibalisation (switching from your own full-price item) and pantry loading (buy now, buy less later) raise the bar. Net margin after store or fulfilment cost is only about 1–3%.</span></div>
+<div class="st"><b>So<small>apply to the coupon</small></b><span>₩5,000 off a ₩48k first order is about 10% off. Cost per incremental customer is ₩12.5k, so at about 27.5% gross margin you need about <b>₩45k of revenue per incremental customer</b> (₩12.5k ÷ 0.275), roughly one more full order. ₩18k gives about ₩5k of gross profit, so it <b>does not pay back</b> on the first order.</span></div>
+<div class="st"><b>Next<small>judge on repeat</small></b><span>An acquisition coupon only pays back through repeat orders. Judge it on 60–90 day contribution per incremental customer, not first-order revenue. At 18% repeat, most coupon customers never place the order that pays it back, so test a smaller coupon or a minimum spend before scaling.</span></div>
+</div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Discount</th><th>Lift needed at 25% margin</th><th>Lift needed at 30% margin</th></tr>
+<tr><td>5%</td><td>+25%</td><td>+20%</td></tr>
+<tr><td>10%</td><td>+67%</td><td>+50%</td></tr>
+<tr><td>15%</td><td>+150%</td><td>+100%</td></tr>
+<tr><td>20%</td><td>+400%</td><td>+200%</td></tr>
+<tr><td>25%</td><td>never</td><td>+500%</td></tr>
+</table></div>
+<details><summary>Your answer, and the fix</summary>
+<div class="yours">(48×0.15 − 68×0.15×0.6) / (0.15×0.4) = ₩18,000. This is still a net positive, so we can continue to proceed with keeping the coupon.</div>
+<div class="steps">
+<div class="st"><b>Weak point</b><span>compared revenue (₩18k) against cost (₩12.5k).</span></div>
+<div class="st"><b>Replace with</b><span>contribution. ₩18k × about 27.5% ≈ ₩5k, well below ₩12.5k; break-even would need about a 69% margin.</span></div>
+</div>
+</details>
+<details><summary>If they probe</summary>
+<p><b>Online grocery is tighter still:</b> picking, cold chain and delivery come out of the 25–30%, so contribution after fulfilment is thin. Margins here are rules of thumb, not Coupang figures.</p>
+<p><b>Say it in one line:</b> "Break-even lift is discount ÷ (margin − discount). At grocery margins a 10% cut needs about 50–70% more volume, so I'd judge an acquisition coupon on repeat contribution, not first-order revenue."</p>
+</details>`,
+    trap: "Never compare revenue against coupon cost. Convert to contribution first, and count only incremental customers." },
+
+  // ---- Experience: GTM measurement defect ----
+  { cluster: "🧑‍💼 My experience", q: "Tell me about a time something people relied on was broken. What did you do, and what did you put in place so it wouldn't happen again? (GTM incrementality measurement)",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the defect</small></b><span>Our GTM measurement plan broke because partners moved part of the coupon funds into mass-market events we couldn't trace. I re-scoped the measurement to the traceable subset and pushed for a distribution model where spend stays measurable.</span></div>
+<div class="st"><b>Because<small>the trade-off</small></b><span>Only targeted coupon recipients were identifiable. Measuring everyone meant low confidence and a likely neutral reading. Measuring the subset meant mid confidence, but only a <b>lower bound</b> on the total.</span></div>
+<div class="st"><b>So<small>what I did</small></b><span>I gave my PMM both options and recommended the subset. Lift on the subset didn't justify the full spend, and leads reduced budgets for the next half.</span></div>
+<div class="st"><b>Next<small>prevention + feedback loop</small></b><span>Tie partner funds to trackable codes; track the share of funds traceable every week with an alert; move toward programmatic in-product coupon distribution. [Say how far this got.]</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">My GTM incrementality measurement plan was heavily impacted by mass market activations and this resulted in lower ROI than expected which led to leads reducing budgets for future halves. The ROI was lower because third party partners reallocated GTM budgets beyond targeted ad coupon distributions to mass market events. Therefore this meant that i can only measure causal lift on top of subset of activated advertisers, namely those who were part of targeted ad coupon distributions whom I was able to identify. The trade off is that we cannot measure the full GTM funds deployed. I communicated this situation to my PMM counterpart and told her we can measure with mid confidence on a subset of advertisers OR measure with low confidence across the entire partner-enabled advertiser ecosystem with likelihood of neutral lift. She agreed with my recommendation to go with the higher confidence reading, which ultimately showed revenue lift ballpark which did not match the full funds deployed. The impact was leads reduced budgets for future halves. Next for future GTM measurement plans, i was convincing my PMM to shift towards more programmatic product-driven ways to distribute the ad coupons so that we reduce reliance on third parties whom we have lower control over.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Opened with the consequence ("impacted… lower ROI… budgets reduced"), so the listener doesn't know what broke.</td><td>Open with the defect: "Partners spent part of the funds outside the measured design, so part of the spend couldn't be measured."</td></tr>
+<tr><td>"ROI was lower" mixes up no <i>measured</i> lift with no lift.</td><td>"The reading was a lower bound: unmeasured spend isn't zero return."</td></tr>
+<tr><td>No numbers.</td><td>"About X% of funds were traceable; lift on that subset was Y."</td></tr>
+<tr><td>Unclear when you found out.</td><td>Say mid-flight or at readout. If at readout, that's the gap the prevention step closes.</td></tr>
+<tr><td>Prevention is a fix with no feedback loop; "convincing my PMM" sounds unfinished.</td><td>Add the early check (weekly share of funds traceable, alert below a threshold) and say whether it shipped.</td></tr>
+</table></div>
+<div class="todo"><b>Fill in before the interview:</b> share of funds traceable; lift on the subset; when the reallocation was found; whether programmatic distribution or traceable codes shipped.</div>`,
+    trap: "Lead with what broke, not the budget cut. Call the result a lower bound, and name a feedback loop (an early check), not just a fix." },
+
+  { cluster: "🧑‍💼 My experience", q: "Leads cut the GTM budget based on your reading. Was that the right decision? When would you have caught the reallocation, and how?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>verdict</small></b><span>It was premature. Our reading was a lower bound, not proof that the activation didn't work.</span></div>
+<div class="st"><b>Because<small>unknown ≠ zero</small></b><span>The untraced spend had unknown lift, not zero lift, and this was the first run of the pilot.</span></div>
+<div class="st"><b>So<small>what I'd do in the room</small></b><span>Frame it as a lower bound and propose a smaller, fully traceable budget for the next half, so we learn the true lift instead of cutting or keeping blindly. A cut was defensible on risk; what was missing was a way to learn.</span></div>
+<div class="st"><b>Next<small>detect + prevent</small></b><span><b>Detect:</b> weekly reconciliation of funds disbursed against coupon redemptions; alert if traceable spend drops below about 80%, so it surfaces in week 2, not at readout. <b>Prevent:</b> traceable codes as a precondition for releasing partner funds.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">The leads were making a decision based on partial data where we were not able to confirm that 3rd party activation was ineffective. This could be a pre-mature decision esp given we are running this pilot for the very first time. For our future iterations, i would have set the expectations on ability to trace funds distribution via coupon codes. This is a pre-requisite before proceeding with any activation for measurement purposes.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Sounds like hindsight ("leads decided on partial data"); they'll ask "did you say so at the time?"</td><td>Say what you did or would do in the room: lower-bound framing plus a conditional, smaller, traceable budget.</td></tr>
+<tr><td>Answered prevention, not detection ("at what point would you have caught it?").</td><td>Add the weekly reconciliation with an alert threshold.</td></tr>
+<tr><td>"Leads were wrong" can sound defensive.</td><td>Balanced: "A cut was defensible on risk; the gap was a way to learn."</td></tr>
+</table></div>`,
+    trap: "Answer both halves: the verdict, and when you'd have caught it. Detection (a prompt feedback mechanism) is the part Coupang's principle asks for." },
+
+  // ---- Mock case 3: CS contacts ----
+  { cluster: "🎯 Mock case", q: "Mock case 3: CS contacts are up about 30% this quarter and CS cost is over budget. What's going on? (diagnosis)",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>This is a delivery problem, not a CS problem. The new fulfilment centre delivers 20% of its orders late, and 'where is my order' contacts explain 90% of the increase.</div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Exhibit 1</th><th>Q2</th><th>Q3</th><th>Change</th></tr>
+<tr><td>Orders</td><td>50.0M</td><td>54.0M</td><td>+8%</td></tr>
+<tr><td>CS contacts</td><td>2.50M</td><td>3.24M</td><td>+29.6%</td></tr>
+<tr><td>Contacts per 100 orders</td><td>5.0</td><td>6.0</td><td>+20%</td></tr>
+<tr><td>CS cost (₩4,000 per contact)</td><td>₩10.0B</td><td>₩12.96B</td><td>+29.6%</td></tr>
+</table></div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Exhibit 2: per 100 orders</th><th>Q2</th><th>Q3</th></tr>
+<tr><td>Where is my order (WISMO)</td><td>2.0</td><td>2.9</td></tr>
+<tr><td>Damaged / wrong item</td><td>1.0</td><td>1.0</td></tr>
+<tr><td>Returns / refunds</td><td>1.5</td><td>1.6</td></tr>
+<tr><td>Payment / account</td><td>0.5</td><td>0.5</td></tr>
+</table></div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Exhibit 3</th><th>Q2</th><th>Q3</th></tr>
+<tr><td>Late-delivery rate</td><td>4%</td><td>8%</td></tr>
+<tr><td>WISMO per 100 late orders</td><td>25</td><td>25</td></tr>
+<tr><td>WISMO per 100 on-time orders</td><td>1.0</td><td>1.0</td></tr>
+<tr><td>New FC (opened July): 25% of Q3 orders</td><td>–</td><td>20% late</td></tr>
+<tr><td>All other FCs: 75% of Q3 orders</td><td>4% late</td><td>4% late</td></tr>
+</table></div>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the diagnosis</small></b><span>A delivery problem, not a CS problem. The new FC's 20% late rate explains the whole rise in late deliveries, and WISMO explains 90% of the extra contacts.</span></div>
+<div class="st"><b>Because<small>the chain</small></b><span>Volume (+8%) vs rate (+20%): rate is the issue. By reason, WISMO is 0.9 of the 1.0-point rise in contacts per 100 orders. Late orders drive 25× the WISMO of on-time ones, and late rate doubled: 25% × 20% + 75% × 4% = 8%.</span></div>
+<div class="st"><b>So<small>the path you took</small></b><span>Split by reason → hypothesis (late deliveries vs missing tracking info) → delivery time vs promise → by FC. That ordering is the systematic thinking they're testing.</span></div>
+<div class="st"><b>Next<small>what's left</small></b><span>Size it in won, check capacity before shifting volume, and add prevention (see the next card).</span></div>
+</div>
+<details><summary>Your answers, as given</summary>
+<div class="yours">WISMO is explaining 90% of the rise, given the WISMO nett difference is 0.9 out of total orders delta 1.0.</div>
+<div class="yours">If customers are generally more likely to ask Where is my order, this suggests that there are more delayed deliveries or lack of/wrong information on delivery status. To differentiate, I would like to compare the delivery duration versus delivery expectations for problematic orders and split by delivery modes.</div>
+<div class="yours">Overall we are seeing a doubled late delivery rate and this coincides with the new fulfilment center opening in July. With the mix shift to 25% new FC versus 75% all other FC, this is 100% the main contributor to the increased late delivery rate from 4% to 8%. … reduce fulfilment share by half from the new FC to all other FCs while the root cause is diagnosed. Only when new FC late rate has reduced towards the benchmark of 4%, revisit ramping back to 25%.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"0.9 out of total orders delta 1.0": wrong unit.</td><td>"0.9 of the 1.0-point rise in contacts per 100 orders."</td></tr>
+<tr><td>Asked for a new vs existing split before stating a hypothesis.</td><td>State why WISMO would rise first (late vs info), then ask for the data that separates them.</td></tr>
+<tr><td>"100% the main contributor" without showing it.</td><td>Show the line: 25% × 20% + 75% × 4% = 8%, and other FCs unchanged.</td></tr>
+</table></div>`,
+    trap: "Don't treat it as a CS staffing problem. Split volume from rate, then follow the rate to its operational root cause." },
+
+  { cluster: "🎯 Mock case", q: "Mock case 3 follow-ups: how big is the problem, what goes wrong if you shift volume, and how do you stop it at the next FC launch?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>It's costing about ₩2.2B a quarter in CS, plus 2.2M late orders that put repeat purchases at risk. We'll shift volume within spare capacity and send proactive delay alerts now, and gate future FC ramps on late-rate targets.</div>
+<div class="steps keys">
+<div class="st"><b>Answer<small>size in won</small></b><span>Of the ₩2.96B CS cost increase, about ₩0.8B is volume (expected) and about <b>₩2.2B a quarter</b> is rate (1.0 extra per 100 × 54M × ₩4,000); about ₩1.9B of that is WISMO.</span></div>
+<div class="st"><b>Because<small>bigger cost is customers</small></b><span>The new FC added about <b>2.2M extra late orders</b> (54M × 25% × 16 points). Late deliveries hurt repeat purchases, which is worth more than ₩2B of CS cost.</span></div>
+<div class="st"><b>So<small>fix now</small></b><span>Shift new-FC volume only up to other FCs' spare capacity, watching their late rate as a guardrail. Send proactive delay notifications: they deflect WISMO and protect trust even when orders are late.</span></div>
+<div class="st"><b>Next<small>prevent</small></b><span>Stepped ramps for new FCs (5% → 10% → 25%), each step gated on late rate ≤ benchmark. A daily late-rate alert per FC routed to an ops owner. Contacts per order as a launch guardrail.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">The cost per quarter for CS has increased by +29.6%, over 90% of this is contributed by the new fulfilment center late delivery. CS cost can potentially lower than fulfilment center opening costs, fulfilment center needs to be operational so that it can recoup the original upfront investments made. What could go wrong if we shifted half the new FC volume to other FCs is that if they are overcapacity as a result, then the other FCs late rate may become impacted as a spillover effect as well. What i would put in place is to report late rate delivery and WISMO contact per FC so that we would directly attribute the CS costs to the operational inefficiencies.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Sized in percentages only; "over 90% of the +29.6%" counts expected volume growth as the problem.</td><td>Split volume (₩0.8B) from rate (₩2.2B), then WISMO's share of the rate (~₩1.9B).</td></tr>
+<tr><td>"Is CS the biggest cost?" drifted to FC investment payback.</td><td>The customer cost: 2.2M extra late orders and the repeat-purchase hit.</td></tr>
+<tr><td>Spillover named, but no plan.</td><td>Shift only within spare capacity; other FCs' late rate as a guardrail.</td></tr>
+<tr><td>Prevention is a report, which is reactive; CS cost lags.</td><td>A leading indicator with a gate and an owner: stepped ramp gated on late rate, daily alert per FC.</td></tr>
+<tr><td>Missed the WISMO deflection lever.</td><td>Proactive delay notifications.</td></tr>
+</table></div>`,
+    trap: "A report is not prevention. Coupang's principle wants a gate and an alert with an owner, on a leading indicator, not the lagging CS bill." },
+
+  // ---- Experience: automated weekly leadership report ----
+  { cluster: "🧑‍💼 My experience", q: "Tell me about a recurring analysis or manual process you turned into something scalable. How did you know it was working, and how did it catch problems? (weekly leadership goal report)",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>result first</small></b><span>I automated a weekly leadership goal update, saving about 5 analyst hours a week. It also became an early-warning system for advertiser spend.</span></div>
+<div class="st"><b>Because<small>three standards</small></b><span>The same analysis was rebuilt by hand every week from inconsistent sources, so I standardised three things: a template, one source of truth for metrics, and fixed AI prompts. Every number comes from the embedded query; the AI only writes the narrative.</span></div>
+<div class="st"><b>So<small>staged rollout</small></b><span>Ran it privately with my data engineer for [N] weeks, reconciling against the source-of-truth dashboard. That caught defects like week-on-week comparisons on too few days of data (now suppressed, not shown as a drop). Then widened it to the broader group.</span></div>
+<div class="st"><b>Next<small>business impact</small></b><span>Weekly spend-burst flags let product warm up sales conversations. One flagged Amazon's spike in week [X] → product looped in sales → it became a white-glove account. [Add the automated pre-send checks, if they existed.]</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">I launched a scheduled recurring weekly goal update catered to leadership, reducing analyst hours by 5hours weekly. The approach i took was to establish a standardised template and source of truth for key data foundations as well as metrics used frequently within our organisation. With ai- i ensured that it read my standardised prompts to produce repeatable analysis with the source query embedded within appendix. To operationalise this, I first scheduled the report for an internal work channel only with myself and my data engineer to conduct quality assurance. Only when we have had several weeks of consistent accurate readouts, after we caught the initial mistakes made such as ensuring minimum data periods are available, I then progressed to schedule the report landing directly within a broader group chat. This report was scheduled weekly which meant that it was able to surface advertisers who had sudden bursts of spend in a very proactive manner. This was extremely useful for the product team to proactively share this with the sales team to intiate warm conversations and ensure stable ad delivery. overall one standout was was our ability to capture Amazon as a large client for Live video ads and sustain their spend through dedicated white glove service.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"Consistent accurate readouts": accurate against what?</td><td>"Reconciled each week against the source-of-truth dashboard; matched for N weeks in a row."</td></tr>
+<tr><td>No ongoing safety net: QA was manual and pre-launch only.</td><td>Automated pre-send checks (freshness, row counts, reconciliation within ±X%); hold the report and alert if one fails.</td></tr>
+<tr><td>"Minimum data periods" unexplained.</td><td>"Comparisons with fewer than N days of data were suppressed, not shown as a drop."</td></tr>
+<tr><td>Mentioning AI invites a hallucination probe.</td><td>"Every number comes from the embedded query; the AI only writes the narrative from fixed prompts."</td></tr>
+<tr><td>Amazon link is loose; could sound like an overclaim.</td><td>Spell out the chain: flagged spike → product looped in sales → white-glove account. Claim only the step you can show.</td></tr>
+<tr><td>The middle rambles.</td><td>Three parts: template, one source of truth, fixed prompts.</td></tr>
+</table></div>
+<div class="todo"><b>Fill in before the interview:</b> weeks of private QA; how accuracy was checked; whether automated pre-send checks existed; the week Amazon was flagged and their spend.</div>`,
+    trap: "Answer 'how did you know it was working' with a named check, and 'how did it catch problems' with an ongoing automated guardrail, not pre-launch QA alone." },
+
+  { cluster: "🧑‍💼 My experience", q: "Your weekly report goes to a broad group. An upstream table breaks and it shows a fake −40% spend drop. How would you know before leadership read it, and what if it reached them?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>catch it before send</small></b><span>Automated checks before the report sends, which hold it if something looks wrong.</span></div>
+<div class="st"><b>Because<small>implausible moves</small></b><span>A real −40% week-on-week company-wide move is implausible. Freshness, row counts and reconciliation against an <b>independent</b> source (billing or finance) flag it as a pipeline issue; any metric moving more than ±X% holds the send for review.</span></div>
+<div class="st"><b>So<small>if it reached them</small></b><span>Correct fast and plainly: "The −40% is a data issue, please don't act on it. Corrected version by [time]."</span></div>
+<div class="st"><b>Next<small>prevent</small></b><span>Post-mortem: root cause → add a check that would have caught it → that class of error is caught automatically from then on.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">This report would provide a benchmark comparison against company level revenue which comes from the same source of truth table, in this scenario it would showcase both the product and company level revenue have dropped at a same degree which suggests there is an upstream data pipeline issue. If it did reach the leadership team, I would proactively communicate my top hypothesis on the revenue drop, and commit to a follow-up timeline on the investigation results.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>The company benchmark only helps after someone reads it, and leadership reads it at the same time.</td><td>An automated pre-send check against an independent source, with a hold-and-alert.</td></tr>
+<tr><td>"Communicate my top hypothesis on the revenue drop" treats the drop as possibly real.</td><td>"Data issue, don't act on it; corrected version by [time]."</td></tr>
+<tr><td>No prevention loop after the incident.</td><td>Post-mortem plus a new check for that failure.</td></tr>
+</table></div>`,
+    trap: "'Before leadership read it' means automated, before send. A benchmark inside the report is diagnosis, not prevention." },
+
+  // ---- Mock case 4: sponsored slots ----
+  { cluster: "🎯 Mock case", q: "Mock case 4: the search PM wants to ship 4 sponsored slots per page (up from 2): \"Ad revenue +18%, GMV flat.\" What do you ask for, and what do you see? (exhibits)",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>'GMV flat' isn't quite right: GMV is trending down (−0.1% to −0.7%), and our heaviest searchers, 60% of GMV, are down 1.2%. I wouldn't ship this to everyone.</div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Exhibit 1: 2-week A/B, user-level 50/50, ~10M per arm</th><th>Control</th><th>Treatment</th><th>Change</th><th>95% CI</th></tr>
+<tr><td>Ad revenue per user</td><td>₩300</td><td>₩354</td><td>+18%</td><td>+15% to +21%</td></tr>
+<tr><td>GMV per user</td><td>₩40,000</td><td>₩39,840</td><td>−0.4%</td><td>−1.0% to +0.2%</td></tr>
+<tr><td>Search conversion</td><td>12.0%</td><td>11.93%</td><td>−0.6% rel</td><td>−1.0% to −0.2%</td></tr>
+</table></div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>By week (vs control)</th><th>Week 1</th><th>Week 2</th></tr>
+<tr><td>Ad revenue</td><td>+19%</td><td>+17%</td></tr>
+<tr><td>GMV</td><td>−0.1%</td><td>−0.7%</td></tr>
+</table></div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Segment (defined pre-test)</th><th>Users</th><th>GMV share</th><th>GMV change (CI)</th><th>Control ad rev</th><th>Ad rev gain share</th></tr>
+<tr><td>Heavy searchers</td><td>20%</td><td>60%</td><td>−1.2% (−2.0 to −0.4)</td><td>₩750 (+₩135)</td><td>50%</td></tr>
+<tr><td>Everyone else</td><td>80%</td><td>40%</td><td>+0.8% (−0.2 to +1.8)</td><td>₩188 (+₩34)</td><td>50%</td></tr>
+</table></div>
+<div class="steps keys">
+<div class="st"><b>Answer<small>"flat" isn't flat</small></b><span>GMV isn't significant, but non-significant is not no effect: the CI reaches −1.0%, and search conversion is significantly down.</span></div>
+<div class="st"><b>Because<small>trend + segment</small></b><span>GMV harm grows from week 1 to week 2 (−0.1% → −0.7%): the opposite of novelty; users may be learning to skip the top of the page. And harm is concentrated in heavy searchers, who drive 60% of GMV.</span></div>
+<div class="st"><b>So<small>the path you took</small></b><span>Guardrails → trend by week → segments → targeted rollout. Each exhibit asked for with a reason: this is the sequence to repeat.</span></div>
+<div class="st"><b>Next<small>ask this too</small></b><span>Is the week-2 decline also present for everyone else? If so, "no harm" there may not last.</span></div>
+</div>
+<details><summary>Your answers, as given</summary>
+<div class="yours">I want to clarify whether we discussed any guardrails. Also the experiment has been running for 2 weeks, do we believe that the ad revenue lift is persistent across the two weeks or does week 1 vs 2 look different in terms of lift?</div>
+<div class="yours">It looks like while ad revenue has improved, GMV loss has been worsening. Would we be able to drill down by user groups to understand new versus existing user lifts change?</div>
+<div class="yours">Heavy searchers who contribute an outsized proportion of GMV are more heavily impacted… Assuming we are exploring a partial rollout option, are we able to evaluate if we will be able to capture majority of the ad revenue gains if we were to ship only to the group outside of heavy searchers?</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"GMV loss has been worsening" stated without the why.</td><td>"Harm is growing, the opposite of novelty, so two weeks likely understates the long-run cost."</td></tr>
+<tr><td>Didn't note that no ship thresholds were agreed.</td><td>Flag it: guardrails without thresholds can't decide anything.</td></tr>
+</table></div>`,
+    trap: "Don't accept \"GMV flat\": read the CI, the trend by week, and the heaviest segment before anything else." },
+
+  { cluster: "🎯 Mock case", q: "Mock case 4: size the heavy-searcher trade-off and recommend. Ship 4 sponsored slots to whom?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>Ship the extra ad slots to everyone except heavy searchers. That keeps about half the ad revenue gain and avoids losing about ₩720M of contribution to gain ₩270M of ad revenue. We'll keep a long-term holdout and test a lighter version for heavy searchers.</div>
+<div class="steps keys">
+<div class="st"><b>Answer<small>targeted ship</small></b><span>Don't ship to everyone. Ship 4 slots to non-heavy searchers only: about half the ad revenue gain without measurable GMV harm.</span></div>
+<div class="st"><b>Because<small>contribution, not GMV</small></b><span>Heavy searchers: ad revenue +2M users × ₩135 = <b>+₩270M</b>. GMV: 60% of ₩400B × −1.2% = −₩2.88B; × about 25% margin (assumption) ≈ <b>−₩720M</b> contribution. Net negative, and the loss was growing.</span></div>
+<div class="st"><b>So<small>ship with a safety net</small></b><span>Ship to everyone else with a long-term holdout (about 5% of users for 8+ weeks) and heavy-searcher GMV and conversion as standing guardrails. For heavy searchers, test 3 slots or relevance-gated slots (show an ad only when it's as relevant as the organic result).</span></div>
+<div class="st"><b>Next<small>prevent</small></b><span>Make pre-agreed ship criteria the standard for every ad-load test, e.g. "ship only if the GMV CI lower bound is above −0.3%". Bridge: "At Meta I ran the same trade-off: ad load against core sessions (−4% impressions, −0.5% sessions)."</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">Sizing the trade off here for Heavy searchers, we are looking at a 10M * 0.2 * +W135 revenue gain against a 10M * 0.6 * W40000 * -1.2% of GMV, the net contributions would be +270M Won versus -2,880M Won. This suggests that we likely would not be able to justify the GMV losses with the net gains of Ad revenue for Heavy searches. On the other hand, everyone else is seeing a net lift in Ad revenue as well as neutral movement to GMV change which means no guardrail trade offs. The recommendation would be able to capture 50% of the estimated ad revenue by shipping only to everyone else. As next steps given we observed a lift to GMV though neutral, this may suggest that the ad product units are effective in driving gmv and search conversions in this cohort. I would suggest to monitor further by extending the test for learning purposes.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Compared ad revenue (near pure margin) against GMV (revenue): the same trap as the coupon case.</td><td>Convert GMV to contribution: −₩2.88B × ~25% ≈ −₩720M vs +₩270M.</td></tr>
+<tr><td>"10M × 0.6" reads as 60% of users.</td><td>Say "60% of GMV".</td></tr>
+<tr><td>"Ads are effective in driving GMV" from a non-significant +0.8%.</td><td>"No evidence of harm; CI −0.2% to +1.8%."</td></tr>
+<tr><td>Didn't check whether the week-2 decline also hits everyone else.</td><td>Check the trend in the shipped segment before shipping.</td></tr>
+<tr><td>"Extend the test for learning" is vague.</td><td>Long-term holdout, 5% for 8+ weeks, with standing guardrails.</td></tr>
+<tr><td>No option for heavy searchers; no prevention; no bridge.</td><td>3 slots or relevance-gated slots; pre-agreed ship criteria; the Meta ad-load bridge.</td></tr>
+</table></div>`,
+    trap: "Convert GMV to contribution before comparing it with ad revenue, and never call a non-significant lift a lift." },
+
+  // ---- Price index, joint optimization, bundles ----
+  { cluster: "🏗️ System design", q: "What is a price index target, and how can a price index be below 100?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>definition</small></b><span>Index = our price ÷ competitor price × 100, averaged across a basket (usually sales-weighted). The target is the level the pricing team commits to hold, e.g. "≤ 100 against Competitor X on KVIs".</span></div>
+<div class="st"><b>Because<small>below 100 = cheaper</small></b><span>Eggs at ₩9,500 vs competitor ₩10,000 → 95 (5% cheaper). ₩10,500 vs ₩10,000 → 105 (5% dearer).</span></div>
+<div class="st"><b>So<small>targets by item role</small></b><span>KVIs (frequent, price-known items like milk, eggs, diapers): ≤ 100, invest margin for price perception. Mid-tier: about 100–103. Long tail: about 103–110, recover margin. The index is the measure; KVIs are where you target ≤ 100.</span></div>
+<div class="st"><b>Next<small>trade-off + guardrails</small></b><span>Every index point on KVIs costs margin, so ask whether the extra traffic and basket pays for it. Match like-for-like items on competitors' latest prices; monitor daily. Price-war guards: margin floors, match-don't-beat, respond only on KVIs and credible competitors, daily change limits, and a circuit breaker (auto-stop when a move crosses a threshold) as the last safety net.</span></div>
+</div>`,
+    trap: "Targets and KVI lists at Coupang aren't public; the ranges are typical retail practice. Say so if asked." },
+
+  { cluster: "🏗️ System design", q: "What is joint price optimization? Give an example.",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>price together</small></b><span>Price linked items together, because one item's price changes another's sales.</span></div>
+<div class="st"><b>Because<small>three links</small></b><span><b>Complements</b> (razor and blades): one sale pulls another.<br><b>Substitutes</b> (Brand A and B water): one steals from the other.<br><b>Shared constraints</b>: a category price index or limited inventory.</span></div>
+<div class="st"><b>So<small>razor example</small></b><span>Razor cost ₩5,000; each buyer later buys 3 blade packs at ₩6,000 margin (+₩18k). Alone, ₩10,000 wins (₩5.0M). Jointly, ₩7,000 wins (₩32.0M vs ₩23.0M): <b>+₩9M</b>.</span></div>
+<div class="st"><b>Next<small>the other two cases</small></b><span>Substitutes: priced separately, each cut steals from the other; jointly, both go higher because lost sales are partly recaptured. Shared index: spend the index budget on the most visible, price-sensitive KVIs and recover margin elsewhere.</span></div>
+</div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Razor price</th><th>Units</th><th>Razor-only profit</th><th>Incl. blades (+₩18k)</th></tr>
+<tr><td>₩7,000</td><td>1,600</td><td>₩3.2M</td><td><b>₩32.0M</b></td></tr>
+<tr><td>₩10,000</td><td>1,000</td><td><b>₩5.0M</b></td><td>₩23.0M</td></tr>
+<tr><td>₩12,000</td><td>700</td><td>₩4.9M</td><td>₩17.5M</td></tr>
+</table></div>`,
+    trap: "Complements push one price down to sell the other; substitutes push both prices up." },
+
+  { cluster: "🏗️ System design", q: "How would you price a bundle deal (e.g. shampoo + conditioner)?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>break-even on converts</small></b><span>A bundle pays only if enough single-item buyers convert to cover the discount given to people who already bought both.</span></div>
+<div class="st"><b>Because<small>the bundle trap</small></b><span>Each item ₩10,000 (cost ₩6,000). 1,000 buy both (₩8,000 margin); 2,000 buy shampoo only (₩4,000). Existing both-buyers switch and pocket the discount: the same incrementality problem as a coupon.</span></div>
+<div class="st"><b>So<small>depth vs converts</small></b><span>₩17,000 bundle: switchers cost ₩3.0M, each convert adds ₩1,000 → 3,000 needed, only 2,000 exist: <b>never pays</b>. ₩18,500: switchers cost ₩1.5M, each convert adds ₩2,500 → 600 needed (<b>30%</b>).</span></div>
+<div class="st"><b>Next<small>rules</small></b><span>Bounds: cost plus margin floor ≤ bundle ≤ sum of parts. Target customers who value one item more than the other. Mixed bundling (sell separately and as a bundle) usually beats bundle-only. Multi-buys ("2 for ₩X"): check pantry loading.</span></div>
+</div>`,
+    trap: "A deeper bundle discount isn't automatically better: it's paid to everyone who takes the bundle, and only converts pay it back." },
+
+  { cluster: "🔬 Causal & experiments", q: "How would you measure whether a bundle (or joint pricing change) worked?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>whole basket</small></b><span>Measure total contribution across the linked items, not bundle sales, and randomise so linked items stay together.</span></div>
+<div class="st"><b>Because<small>bundle sales flatter</small></b><span>₩18,500 bundle: 1,500 bundles sold looks like a win, but 1,000 were switchers and 500 converts. Contribution: control ₩16.0M vs treatment ₩15.75M (1,500 × ₩6,500 + 1,500 × ₩4,000): <b>−₩0.25M</b>, since 500 &lt; 600 break-even.</span></div>
+<div class="st"><b>So<small>the plan</small></b><span><b>1.</b> Primary: contribution per user or cluster across the linked group.<br><b>2.</b> Diagnostics: take rate; switchers vs converts (tag pre-period both-buyers); attach rate.<br><b>3.</b> Guardrails: component price index; post-period dip (pantry loading).<br><b>4.</b> Unit: users if offers can differ (price differences between customers are a trust and legal risk, so usually coupons or offers); item clusters for substitutes (keep A and B in the same arm); geo or switchback otherwise.<br><b>5.</b> Window: long enough to see later complement purchases.</span></div>
+<div class="st"><b>Next<small>limits</small></b><span>Long-run effects need a holdout after launch. Pre-register the break-even conversion (600, 30%) as the ship threshold.</span></div>
+</div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th></th><th>Control</th><th>Treatment</th></tr>
+<tr><td>Bundles sold</td><td>–</td><td>1,500 (1,000 switchers + 500 converts)</td></tr>
+<tr><td>Shampoo-only buyers</td><td>2,000</td><td>1,500</td></tr>
+<tr><td>Total contribution</td><td>₩16.0M</td><td>₩15.75M</td></tr>
+</table></div>`,
+    trap: "Bundle sales always look good. Separate switchers from converts and judge on whole-basket contribution." },
 
 ];
 
