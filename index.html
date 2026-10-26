@@ -197,12 +197,15 @@
                color: var(--good); font-weight: 800; margin-bottom: 4px; }
   .wex .step { display: block; margin: 2px 0; }
   .cmp-wrap { overflow-x: auto; margin: 4px 0 14px; }
+  .q .exh { font-size: 14px; font-weight: 400; margin-top: 14px; }
+  .q .exh-t { font-weight: 700; margin: 12px 0 6px; }
+  .q .exh-n { color: var(--muted, #777); font-size: 13px; margin: -6px 0 12px; }
   table.cmp { border-collapse: collapse; background: var(--panel); border: 1px solid var(--border);
               border-radius: 12px; overflow: hidden; font-size: 13px; min-width: 640px; width: 100%; }
   table.cmp th { text-align: left; padding: 9px 11px; background: var(--panel-2); color: var(--text);
                  font-size: 11.5px; font-weight: 800; letter-spacing: .03em; border-bottom: 1px solid var(--border); }
   table.cmp td { padding: 9px 11px; border-top: 1px solid var(--border); vertical-align: top; }
-  table.cmp td:first-child { font-weight: 700; color: var(--accent-strong); white-space: nowrap; }
+  table.cmp td:first-child { font-weight: 700; color: var(--accent-strong); min-width: 90px; }
   table.cmp .err { display: block; color: var(--bad); font-weight: 600; font-size: 12px; margin-top: 4px; }
   table.cmp .ok { display: block; color: var(--good); font-size: 12px; margin-top: 4px; }
 
@@ -913,50 +916,7 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
     trap: "Winsorizing trades a little bias for lower variance, and it can trim the very effect the coupon aims for (heavier buyers). It is a sensitivity check, not a replacement for the raw estimate and its interval." },
 
   // ---- Mock case ----
-  { cluster: "🎯 Mock case", q: "Difference-in-differences: how do you isolate the effect of a pricing launch with no holdout?",
-    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
-<div class="vp"><b>Say it to a VP</b>We didn't have a holdout, so I compared against Kitchen &amp; Dining over the same weeks. About 0.7pt of the 1.7pt WOW drop is due to the launch; the rest hit both categories. For the next launch we'll hold out 15% of SKUs so we don't need this workaround.</div>
-<p class="sec">Model answer</p>
-<div class="steps keys">
-<div class="st"><b>Answer<small>compare to a control category</small></b><span>Compare the launched category's change with a similar category that didn't get the change over the same weeks. The difference is the effect.</span></div>
-<div class="st"><b>Because<small>raw before/after is polluted</small></b><span>With no holdout, a raw before/after mixes the launch with everything else that week (e.g. the competitor promo). The comparison category absorbs shared shocks.</span></div>
-<div class="st"><b>So<small>the steps</small></b><span>Pick a comparison (Kitchen &amp; Dining: 1P, non-KVI, no algorithm).<br>Check the two moved together in prior weeks.<br>Subtract for every metric: WOW raw −1.7pt, comparison −1.0pt → <b>−0.7pt</b> attributable.<br>Net the metrics into one number.</span></div>
-<div class="st"><b>Next<small>caveats</small></b><span>Parallel trends can break if a shock hit unequally; spillover between substitute categories; short window. Propose a randomized holdout next.</span></div>
-</div>
-<p class="sec">Detail</p>
-<p><strong>Detail structure — Choose the comparison → Check pre-trends → Subtract → Net the metrics → State the caveats</strong></p>
-<div class="steps">
-<div class="st"><b>Choose</b><span>a comparable category on the same weeks that did not get the change (same seller type, similar volume).</span></div>
-<div class="st"><b>Check pre-trends</b><span>were the two moving together over the prior weeks?</span></div>
-<div class="st"><b>Subtract</b><span>effect = (treated change) − (comparison change), for every metric, including side metrics such as WOW conversion.</span></div>
-<div class="st"><b>Net</b><span>combine effects into one number before deciding.</span></div>
-<div class="st"><b>Caveats</b><span>parallel trends may not hold if a shock hit categories unequally; spillover between substitute categories; short window and novelty effects; no randomization, so propose a holdout next.</span></div>
-</div>`,
-    trap: "Apply the same subtraction to every metric. Attributing the raw WOW drop (−1.7pt) to the algorithm, when the comparison category also fell −1.0pt, leaves only −0.7pt attributable." },
-
-  { cluster: "🎯 Mock case", q: "Profit per order is up and units are down after a pricing launch. How do you decide whether it worked?",
-    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
-<div class="vp"><b>Say it to a VP</b>The launch isn't working yet. Higher profit per order was offset by lower volume: net +3% in week 1, flat in week 2, while our price gap to competitors widened. I'd treat it as a warning, not a win.</div>
-<p class="sec">Model answer</p>
-<div class="steps keys">
-<div class="st"><b>Answer<small>net it</small></b><span>Total profit ≈ orders × profit per order, so net the two. The gain faded from about +3pp to 0pp: not a win.</span></div>
-<div class="st"><b>Because<small>the numbers</small></b><span>Week 1: profit per order +5pp, units −2pp → <b>+3pp</b>.<br>Week 2: +4pp, −4pp → <b>0pp</b>.<br>Meanwhile the index gap widened (+2 → +3) and the WOW gap widened (−0.2 → −0.7pt).</span></div>
-<div class="st"><b>So<small>guardrails, interpreted</small></b><span>Raw week 2 breached both (units −9%, index 109). On a difference-in-differences basis units were −4pp, but the index was 106 even in the comparison category because of the competitor promo.</span></div>
-<div class="st"><b>Next<small>fix the system</small></b><span>Guardrails should trigger on an absolute breach regardless of cause, and the algorithm should respond to competitor price drops.</span></div>
-</div>
-<p class="sec">Detail</p>
-<p><strong>Detail structure — Convert to one number → Look at the trend → Check guardrails → Decide</strong></p>
-<p>Total profit ≈ orders × profit per order, so net the two. From the mock case (difference-in-differences vs. Kitchen &amp; Dining):</p>
-<p>Week 1: profit per order +5pp, units −2pp, net about <strong>+3pp</strong>. Week 2: +4pp and −4pp, net about <strong>0pp</strong>. The gain faded while the price-index gap widened (+2 to +3) and the attributable WOW gap widened (−0.2 to −0.7pt). That is a worsening trend, not a stable win.</p>
-<p><b>Guardrails</b></p>
-<ul class="pts">
-<li>state the interpretation.</li>
-<li>Raw week 2 breached both (units −9%, index 109); on a difference-in-differences basis units were −4pp, but the index was 106 even in the comparison category because of the competitor promotion.</li>
-<li>A guardrail should trigger on an absolute breach regardless of cause, and the algorithm should respond to competitor price drops.</li>
-</ul>`,
-    trap: "Saying 'gains outweigh the units loss' without computing the net is the most common miss." },
-
-  { cluster: "🎯 Mock case", q: "Mock case: an algorithm launched on all 1P non-KVI Household Staples with no holdout. Profit per order +4%, units −6%, price index 101 → 106, WOW conversion −1pt; a competitor ran a site-wide promo in week 2. Keep, roll back, or expand?",
+  { cluster: "🎯 Mock case", q: "Case 1: an algorithm launched on all 1P non-KVI Household Staples with no holdout. Profit per order +4%, units −6%, price index 101 → 106, WOW conversion −1pt; a competitor ran a site-wide promo in week 2. Keep, roll back, or expand?",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="vp"><b>Say it to a VP</b>My recommendation: don't expand and don't roll back yet. Net profit has faded to zero and customer metrics are slipping, but a competitor promo explains most of the drop. We'll run a two-week holdout with hard guardrails and roll back if net profit stays flat.</div>
 <p class="sec">Model answer</p>
@@ -967,42 +927,89 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
 <div class="st"><b>Next<small>checkpoint + principle</small></b><span>Roll back if net profit stays near zero or the attributable WOW loss grows. The customer experience isn't traded for short-term profit; the guardrails make that explicit.</span></div>
 </div>
 <p class="sec">Detail</p>
-<p><strong>Detail structure — Clarify → Isolate → Net → Decide → Derisk</strong></p>
+<p><strong>Case framework — Clarify → Decompose → Locate → Size → Recommend → Prevent</strong></p>
 <p><strong>Clarify:</strong> the objective was contribution profit with guardrails of index ≤ 105 and units no worse than −5%; WOW is monitored. Ask for the weekly split (week 1 / week 2) and a comparison category.</p>
-<p><strong>Isolate:</strong> use Kitchen &amp; Dining (1P, non-KVI, no algorithm) as the comparison. Week 2 effects: profit per order +4pp, units −4pp, index +3, WOW −0.7pt.</p>
-<p><strong>Net:</strong> profit gain is offset by volume loss; net about +3pp in week 1 and about 0pp in week 2, with the index and WOW gaps widening.</p>
-<p><strong>Decide:</strong> do not expand, and do not fully roll back yet. Net profit is fading, and perception and member risk are rising, but the competitor promo explains most of the raw drop.</p>
-<p><b>Derisk</b></p>
+<p><strong>Decompose:</strong> separate the launch from everything else with difference-in-differences; use Kitchen &amp; Dining (1P, non-KVI, no algorithm) as the comparison. Week 2 effects: profit per order +4pp, units −4pp, index +3, WOW −0.7pt.</p>
+<p><strong>Locate:</strong> the problem is in week 2: the gain fades while the index and WOW gaps widen.</p>
+<p><strong>Size:</strong> profit gain is offset by volume loss; net about +3pp in week 1 and about 0pp in week 2, with the index and WOW gaps widening.</p>
+<p><strong>Recommend:</strong> do not expand, and do not fully roll back yet. Net profit is fading, and perception and member risk are rising, but the competitor promo explains most of the raw drop.</p>
+<p><b>Prevent</b></p>
 <ul class="pts">
 <li>make the index and WOW hard guardrails, fix competitor reaction so prices fall when the index rises, run a randomized holdout (for example 15% of SKUs) for two weeks, and set a checkpoint: roll back if net profit stays near zero or the attributable WOW loss grows.</li>
 <li>Then name the company principle: the customer experience is not traded for short-term profit, and the guardrails make that explicit.</li>
 </ul>`,
     trap: "A binary 'roll it back because of a principle' answer skips the quantified tradeoff. Lead with the numbers, then the principle, and offer a middle path." },
 
+  { cluster: "🎯 Mock case", q: "Case 1 · Decompose step: difference-in-differences. How do you isolate the effect of a pricing launch with no holdout?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>We didn't have a holdout, so I compared against Kitchen &amp; Dining over the same weeks. About 0.7pt of the 1.7pt WOW drop is due to the launch; the rest hit both categories. For the next launch we'll hold out 15% of SKUs so we don't need this workaround.</div>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>compare to a control category</small></b><span>Compare the launched category's change with a similar category that didn't get the change over the same weeks. The difference is the effect.</span></div>
+<div class="st"><b>Because<small>raw before/after is polluted</small></b><span>With no holdout, a raw before/after mixes the launch with everything else that week (e.g. the competitor promo). The comparison category absorbs shared shocks.</span></div>
+<div class="st"><b>So<small>the steps</small></b><span>Pick a comparison (Kitchen &amp; Dining: 1P, non-KVI, no algorithm).<br>Check the two moved together in prior weeks.<br>Subtract for every metric: WOW raw −1.7pt, comparison −1.0pt → <b>−0.7pt</b> attributable.<br>Net the metrics into one number.</span></div>
+<div class="st"><b>Next<small>caveats</small></b><span>Parallel trends can break if a shock hit unequally; spillover between substitute categories; short window. Propose a randomized holdout next.</span></div>
+</div>
+<p class="sec">Detail</p>
+<div class="steps">
+<div class="st"><b>Choose</b><span>a comparable category on the same weeks that did not get the change (same seller type, similar volume).</span></div>
+<div class="st"><b>Check pre-trends</b><span>were the two moving together over the prior weeks?</span></div>
+<div class="st"><b>Subtract</b><span>effect = (treated change) − (comparison change), for every metric, including side metrics such as WOW conversion.</span></div>
+<div class="st"><b>Net</b><span>combine effects into one number before deciding.</span></div>
+<div class="st"><b>Caveats</b><span>parallel trends may not hold if a shock hit categories unequally; spillover between substitute categories; short window and novelty effects; no randomization, so propose a holdout next.</span></div>
+</div>`,
+    trap: "Apply the same subtraction to every metric. Attributing the raw WOW drop (−1.7pt) to the algorithm, when the comparison category also fell −1.0pt, leaves only −0.7pt attributable." },
+
+  { cluster: "🎯 Mock case", q: "Case 1 · Size step: profit per order is up and units are down after the launch. How do you decide whether it worked?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>The launch isn't working yet. Higher profit per order was offset by lower volume: net +3% in week 1, flat in week 2, while our price gap to competitors widened. I'd treat it as a warning, not a win.</div>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>net it</small></b><span>Total profit ≈ orders × profit per order, so net the two. The gain faded from about +3pp to 0pp: not a win.</span></div>
+<div class="st"><b>Because<small>the numbers</small></b><span>Week 1: profit per order +5pp, units −2pp → <b>+3pp</b>.<br>Week 2: +4pp, −4pp → <b>0pp</b>.<br>Meanwhile the index gap widened (+2 → +3) and the WOW gap widened (−0.2 → −0.7pt).</span></div>
+<div class="st"><b>So<small>guardrails, interpreted</small></b><span>Raw week 2 breached both (units −9%, index 109). On a difference-in-differences basis units were −4pp, but the index was 106 even in the comparison category because of the competitor promo.</span></div>
+<div class="st"><b>Next<small>fix the system</small></b><span>Guardrails should trigger on an absolute breach regardless of cause, and the algorithm should respond to competitor price drops.</span></div>
+</div>
+<p class="sec">Detail</p>
+<p>Total profit ≈ orders × profit per order, so net the two. From the mock case (difference-in-differences vs. Kitchen &amp; Dining):</p>
+<p>Week 1: profit per order +5pp, units −2pp, net about <strong>+3pp</strong>. Week 2: +4pp and −4pp, net about <strong>0pp</strong>. The gain faded while the price-index gap widened (+2 to +3) and the attributable WOW gap widened (−0.2 to −0.7pt). That is a worsening trend, not a stable win.</p>
+<p><b>Guardrails</b></p>
+<ul class="pts">
+<li>state the interpretation.</li>
+<li>Raw week 2 breached both (units −9%, index 109); on a difference-in-differences basis units were −4pp, but the index was 106 even in the comparison category because of the competitor promotion.</li>
+<li>A guardrail should trigger on an absolute breach regardless of cause, and the algorithm should respond to competitor price drops.</li>
+</ul>`,
+    trap: "Saying 'gains outweigh the units loss' without computing the net is the most common miss." },
+
 
   // ---- Mock case 2 ----
-  { cluster: "🎯 Mock case", q: `Mock case 2 (25–30 min, about 3 clarifying questions): Packaged Food (1P) contribution profit per order fell 6% QoQ (₩4,800 → ₩4,510) while GMV rose 8% and orders 10%. The VP asks: what's driving it, is it a problem, and what would you do?
-<pre><code>Exhibit 1 — per order, Q2 → Q3 (KRW)
-                     WOW            Non-WOW
-Contribution profit  5,220 → 4,790  4,020 → 3,990
-Promo cost to us*    1,464 → 1,952    824 → 932
-Orders: +10% in both (WOW = 65% of orders)
-GMV per order: WOW −2.4%, non-WOW −0.5%
-*instant discount (70% Coupang-funded) + coupon (100%)
-
-Exhibit 2 — where the WOW promo cost increase sits (+₩488 per order)
-120 leak SKUs (loss days ≥ 3)   58%  (35 KVI: 21%, 85 non-KVI: 37%)
-Other discounted SKUs           33%
-Non-promo SKUs                   9%
-Lines with instant discount + coupon stacked:
-  12% of lines, 55% of the increase
-
-Exhibit 3 — same 120 leak SKUs, WOW, Q3
-                          Units   Promo cost   Profit
-                          (index) per unit     per unit
-Normal day, discount only   100    ₩1,150       +₩480
-Event day, discount only    118    ₩1,250       +₩300
-Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
+  { cluster: "🎯 Mock case", q: `Case 2 (25–30 min, about 3 clarifying questions): Packaged Food (1P) contribution profit per order fell 6% QoQ (₩4,800 → ₩4,510) while GMV rose 8% and orders 10%. The VP asks: what's driving it, is it a problem, and what would you do?
+<div class="exh">
+<p class="exh-t">Exhibit 1 — per order, Q2 → Q3 (KRW)</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th></th><th>WOW</th><th>Non-WOW</th></tr>
+<tr><td>Contribution profit</td><td>5,220 → 4,790</td><td>4,020 → 3,990</td></tr>
+<tr><td>Promo cost to us*</td><td>1,464 → 1,952</td><td>824 → 932</td></tr>
+<tr><td>Orders</td><td>+10% (65% of orders)</td><td>+10%</td></tr>
+<tr><td>GMV per order</td><td>−2.4%</td><td>−0.5%</td></tr>
+</table></div>
+<p class="exh-n">*Instant discount (70% Coupang-funded) + coupon (100%).</p>
+<p class="exh-t">Exhibit 2 — where the WOW promo cost increase sits (+₩488 per order)</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>SKU group</th><th>Share of increase</th></tr>
+<tr><td>120 leak SKUs (loss days ≥ 3)</td><td>58% (35 KVI: 21%, 85 non-KVI: 37%)</td></tr>
+<tr><td>Other discounted SKUs</td><td>33%</td></tr>
+<tr><td>Non-promo SKUs</td><td>9%</td></tr>
+</table></div>
+<p class="exh-n">Lines with instant discount + coupon stacked: 12% of lines, 55% of the increase.</p>
+<p class="exh-t">Exhibit 3 — same 120 leak SKUs, WOW, Q3</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Condition</th><th>Units (index)</th><th>Promo cost per unit</th><th>Profit per unit</th></tr>
+<tr><td>Normal day, discount only</td><td>100</td><td>₩1,150</td><td>+₩480</td></tr>
+<tr><td>Event day, discount only</td><td>118</td><td>₩1,250</td><td>+₩300</td></tr>
+<tr><td>Event day, + coupon</td><td>136</td><td>₩1,850</td><td>−₩300</td></tr>
+</table></div>
+</div>`,
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="vp"><b>Say it to a VP</b>Profit per order fell because of WOW promo costs, not weaker demand. Most of it sits in 120 products where coupons stack on discounts and lose ₩300 a unit. Stopping default stacking on 85 of them recovers roughly a sixth to a third of the decline; I'll confirm with a holdout and come back with a phase 2 for the rest.</div>
 <p class="sec">Model answer</p>
@@ -1013,11 +1020,11 @@ Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
 <div class="st"><b>Next<small>derisk + phase 2</small></b><span>Randomized holdout on stacking for 2–3 weeks; roll back if profit doesn't improve or conversion falls below discount-only. Phase 2: discount depth on the remaining discounted SKUs (33% of the increase).</span></div>
 </div>
 <p class="sec">Detail</p>
-<p><strong>Detail structure — Clarify → Decompose → Locate → Test → Recommend → Derisk</strong> (about 3 / 5 / 5 / 5 / 7 / 3 minutes)</p>
+<p><strong>Case framework — Clarify → Decompose → Locate → Size → Recommend → Prevent</strong> (about 3 / 5 / 5 / 5 / 7 / 3 minutes)</p>
 <p><strong>Clarify (3 questions):</strong> the objective (total contribution profit while keeping WOW healthy; per-order profit is the KPI), who can use the discounts (coupons about 85% to WOW; no rule against stacking), and a comparison or baseline.</p>
 <p><strong>Decompose (Exhibit 1):</strong> the ₩290 decline is about 96% WOW (−₩430 per WOW order). Promo cost per WOW order rose ₩488, more than the decline, so promotions are the driver. Orders grew +10% in both segments but WOW basket value fell, so this is cost, not demand.</p>
 <p><strong>Locate (Exhibit 2):</strong> concentrated, not broad. 120 SKUs hold 58% of the increase, and stacked lines (12% of lines) hold 55%. 35 of the 120 are KVIs, so KVI and non-KVI need different treatment.</p>
-<p><b>Test (Exhibit 3)</b></p>
+<p><b>Size (Exhibit 3: test stacking)</b></p>
 <ul class="pts">
 <li>stacking adds about 15% units versus discount only (118 → 136) but takes profit per unit from +₩300 to −₩300, so total profit on those SKU-days turns negative.</li>
 <li>Caveats: event traffic inflates the volume lift, stacked SKUs are not randomly chosen, and basket and WOW retention effects are unmeasured.</li>
@@ -1028,10 +1035,10 @@ Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
 <li>Be honest about size: this recovers an estimated 15–31% of the decline (an upper bound of about ₩89 per order blended; stopping stacking removes the coupon, not the instant discount).</li>
 <li>Name phase 2 for the rest: discount depth on non-stacked leak SKUs and the other discounted SKUs (33% of the increase).</li>
 </ul>
-<p><strong>Derisk:</strong> randomized holdout on stacking for 2–3 weeks; track units, profit per order, WOW conversion and basket; roll back if profit does not improve or conversion falls below the discount-only level.</p>`,
+<p><strong>Prevent:</strong> make a per-unit promo-cost cap an automatic guardrail and stacking off by default; confirm with a randomized holdout on stacking for 2–3 weeks; track units, profit per order, WOW conversion and basket; roll back if profit does not improve or conversion falls below the discount-only level.</p>`,
     trap: "Don't present the stacking fix as the whole answer: it closes 15–31% of the decline. Say what it covers, what it doesn't, and what comes next." },
 
-  { cluster: "🎯 Mock case", q: "How do you test whether stacking a coupon on an instant discount is worth it, using the same SKUs?",
+  { cluster: "🎯 Mock case", q: "Case 2 · Size step: how do you test whether stacking a coupon on an instant discount is worth it, using the same SKUs?",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="vp"><b>Say it to a VP</b>Stacking the coupon isn't paying off. It adds 15% more units, but each unit goes from +₩300 profit to −₩300, so we lose about ₩4,200 for every extra unit sold. I'd stop it by default and confirm with a short holdout.</div>
 <p class="sec">Model answer</p>
@@ -1042,7 +1049,6 @@ Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
 <div class="st"><b>Next<small>confounds → test</small></b><span>Event traffic inflates volume; stacked SKUs aren't random; basket, halo and WOW retention are unmeasured; KVIs may justify the cost. So confirm with a randomized holdout.</span></div>
 </div>
 <p class="sec">Detail</p>
-<p><strong>Detail structure — Hold the SKU fixed → Separate event days from normal days → Compare three conditions → Net volume against per-unit profit → State the confounds</strong></p>
 <p>Same 120 leak SKUs, WOW orders, Q3:</p>
 <div class="cmp-wrap"><table class="cmp">
 <tr><th>Condition</th><th>Units per SKU-day (index)</th><th>Coupang promo cost per unit</th><th>Profit per unit</th><th>Profit per SKU-day (index)</th></tr>
@@ -1065,21 +1071,201 @@ Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
 </ul>`,
     trap: "Quote percentages carefully: +15% (not +18%) units and +48% (not +52%) promo cost for stacking. Say 'index points' when you mean points." },
 
-  { cluster: "🎯 Mock case", q: "Is a minimum contribution profit per unit a good guardrail for promotions?",
+  { cluster: "🎯 Mock case", q: "Case 2 · Recommend follow-up: is a minimum contribution profit per unit a good guardrail for promotions?",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="vp"><b>Say it to a VP</b>A per-unit profit floor is a good safety net, so we'll keep it. But a promo can clear the floor and still lose money, so the go/no-go decision should rest on incremental profit from a holdout.</div>
 <p>Context: the stacking case recommended "every promoted unit must still earn at least +₩100".</p>
 <p class="sec">Model answer</p>
 <div class="steps keys">
-<div class="st"><b>Answer<small>guardrail, not decision rule</small></b><span>It's a good <b>guardrail</b> (a safety net that blocks the worst outcomes automatically), but not the <b>decision rule</b> for whether a promo is worth running.</span></div>
+<div class="st"><b>Answer<small>guardrail, not decision rule</small></b><span>A per-unit profit floor is a good safety net, but it doesn't tell you whether the <b>incremental</b> volume is enough to offset the lower margin on <b>every</b> unit, including those that would have sold anyway.<br>So it's a <b>guardrail</b> (blocks the worst outcomes automatically), not the <b>decision rule</b> for whether a promo is worth running.</span></div>
 <div class="st"><b>Because<small>why it works as a guardrail</small></b><span>Event day, discount only: promo cost ₩1,250, profit +₩300 per unit. Each extra ₩1 of promo cost removes ₩1 of profit (the coupon added ₩600 and profit went +₩300 → −₩300).<br>A +₩100 floor leaves ₩200 of room: promo cost capped at about <b>₩1,450</b>. Simple, automatic, and it blocks loss-making stacks.</span></div>
 <div class="st"><b>So<small>why it fails as a decision rule</small></b><span><b>1. Volume:</b> without the promo (normal day) 100 × ₩480 = <b>₩48,000</b>; a promo that passes the floor at 136 × ₩100 = <b>₩13,600</b>. It passes the guardrail and still loses ₩34,400. Beating ₩48,000 at ₩100 a unit needs 480 units, about 5×.<br><b>2. Incrementality:</b> the ₩100 is earned on every buyer, including the 100 who would have bought anyway at ₩480 each. What matters is incremental profit (with promo − without), which only a holdout measures.</span></div>
 <div class="st"><b>Next<small>how to say it</small></b><span>"Use the floor as the safety net, and decide on incremental profit from a holdout." Name the two assumptions: one-for-one pass-through of promo cost to profit, and no volume response.</span></div>
 </div>`,
     trap: "A promo can pass a per-unit floor and still lose money once you count volume and the buyers who'd have bought anyway." },
 
-  // ---- My experience (Meta Live ads, Partnership Ads) ----
-  { cluster: "🧑‍💼 My experience", q: "Tell me about launching Partnership Ads at Meta: the problem, and how you knew it worked.",
+  // ---- My experience: story bank ----
+  { cluster: "🧑‍💼 My experience", q: "Story bank: which story do I use for which question?",
+    a: `<p><strong>Structure — Hear the question type → Pick the story → Open with its Answer line</strong></p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Role</th><th>Story</th><th>Hook (your Answer line)</th><th>Use for</th><th>Coupang principles</th></tr>
+<tr><td>Lead</td><td>1 · Weekly leadership report</td><td>Automated the weekly update: 5 analyst hours a week saved, staged QA rollout, spend-burst alerts (Amazon).</td><td><b>Think Systematically</b>, feedback mechanisms</td><td><b>Think Systematically</b>; Simplify; Hate Waste</td></tr>
+<tr><td>Lead</td><td>2 · Live ads adoption programme</td><td>Designed a rule-based coupon system (tiered eligibility, automated exception check, a spend gate that closed coupon leakage) that cut the goal gap from 10% to 5%.</td><td><b>Think Systematically</b>, promo design</td><td><b>Think Systematically</b>; Aim High and Find a Way; Deliver Results with Grit</td></tr>
+<tr><td>Lead</td><td>3 · Live ads incrementality test</td><td>When directors proposed downranking Live for Reels, my A/B test showed cutting Live ads 50% cost −4% ad impressions and −0.5% core sessions, so Live kept full delivery.</td><td><b>Influence without authority</b>, A/B testing</td><td><b>Influence without Authority</b>; Dive Deep; Company-wide Perspective</td></tr>
+<tr><td>Lead</td><td>4 · Live ads on Reels and Stories (to build)</td><td>Led the launch decision: more ad load against minimal engagement regression.</td><td><b>Ecosystem trade-offs</b>, launch decisions</td><td><b>Company-wide Perspective</b>; Wow the Customer</td></tr>
+<tr><td>Lead</td><td>5 · Partnership Ads launch</td><td>Launched a creator live ad format; +9% cost per purchase (range +5% to +13%) across 20–30 lift tests.</td><td>Impact, experiment design</td><td><b>Wow the Customer</b>; Dive Deep; Aim High and Find a Way</td></tr>
+<tr><td>Lead</td><td>6 · Live ad pacing reliability</td><td>Cut p75 time to first impression for large Live campaigns from 35 minutes to under 10; treated campaigns +5% revenue and 7% cheaper per impression.</td><td>Root cause, customer trust, cross-team influence</td><td><b>Dive Deep</b>; Wow the Customer; Influence without Authority; Think Systematically</td></tr>
+<tr><td>Situational</td><td>7 · PM pushback</td><td>PM called my 4-year projection too conservative; aligned on milestone check-ins and team-level goals.</td><td>Influence, conflict</td><td><b>Disagree and Commit</b>; Influence without Authority</td></tr>
+<tr><td>Situational</td><td>8 · Ad reliability for big live budgets</td><td>Big advertisers wanted to spend five-figure sums in a 4–8 hour live window with no precedent; I recommended higher budgets, split ad sets and early scheduling so reviews didn't block delivery.</td><td>Customer focus, ambiguity, risk</td><td><b>Move with Urgency</b>; Wow the Customer</td></tr>
+<tr><td>Situational</td><td>9 · Being wrong</td><td>Assumed mid-half growth would re-accelerate; it didn't (10% gap); ran the war room and cut the gap to 5%.</td><td>Being wrong, learning</td><td><b>Learn Voraciously</b>; Deliver Results with Grit</td></tr>
+<tr><td>Backup</td><td>10 · GTM measurement</td><td>Partners moved funds outside the measured design; re-scoped to a lower-bound reading and made traceability a precondition.</td><td>Failure or defect only</td><td><b>Think Systematically</b>; Learn Voraciously</td></tr>
+</table></div>
+<p class="sec">How to answer probes</p>
+<div class="steps keys">
+<div class="st"><b>Decisions<small>how it was made</small></b><span>Name the options, the criteria, who decided, and whether the criteria were agreed before the data.</span></div>
+<div class="st"><b>Trade-offs<small>sized</small></b><span>Put both sides in the same unit (₩, revenue, hours) and say which assumption drives the answer.</span></div>
+<div class="st"><b>Diagnosis<small>what first</small></b><span>Check the most likely and cheapest-to-test causes first, rule each out with data, then go deeper.</span></div>
+<div class="st"><b>Prioritisation<small>why this fix</small></b><span>Impact × effort × reversibility: start with the cheapest reversible step that tests the root cause.</span></div>
+</div>
+<p class="sec">Notes</p>
+<div class="steps">
+<div class="st"><b>Principle gaps</b><span>No story yet for <b>Ruthless Prioritization</b> (resume: setting roadmap goals across 4 cycles against team capacity) or <b>Hire and Develop the Best</b> (resume: onboarding buddy to 5 new DS). Bold = the principle to name out loud.</span></div>
+<div class="st"><b>Live ads adoption programme</b><span>Tell it as a <b>system</b>, not a programme: rule-based eligibility, automated exception detection, a spend gate, leak controls.<br>Prepare for "Was the ROI of 4 incremental?" e.g. "No, it was observed ROI. Today I'd hold out a random slice of eligible advertisers to measure incremental spend."</span></div>
+<div class="st"><b>Live ads incrementality test</b><span>Frame it as DS driving a decision without authority: the key move was getting leads to agree the decision rule (reduce or maintain) before the test.</span></div>
+<div class="st"><b>Live ads on Reels and Stories</b><span>To build in a mock. Prepare: the two sides and their metrics, the exchange rate (revenue per 0.1% engagement lost), the threshold and who set it, the decision and the standing guardrail.</span></div>
+<div class="st"><b>Ad reliability for big live budgets</b><span>Lead with <b>Move with Urgency</b>: live windows are perishable, so waiting for precedent cost revenue and trust. Open with the advertiser's pain, not "incomplete data". For Dive Deep, use Live ad pacing reliability instead.<br>Fill in: a reliability number (share of budget delivered in the window, before and after).</span></div>
+<div class="st"><b>GTM measurement</b><span>Offline partner activations don't map well to Coupang, and the outcome is weak. If used, bridge it: "Same risk as 3P sellers or card issuers funding promos outside our measured design."</span></div>
+</div>`,
+    trap: "Pick the story from the question type, not the one you know best. Lead with Stories 1–6; keep Story 10 for failure questions only." },
+  { cluster: "🧑‍💼 My experience", q: "Story 1 · Weekly leadership report: Tell me about a recurring analysis or manual process you turned into something scalable. How did you know it was working, and how did it catch problems?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>result first</small></b><span>I automated a weekly leadership goal update, saving about 5 analyst hours a week. It also became an early-warning system for advertiser spend.</span></div>
+<div class="st"><b>Because<small>three standards</small></b><span>The same analysis was rebuilt by hand every week from inconsistent sources, so I standardised three things: a template, one source of truth for metrics, and fixed AI prompts. Every number comes from the embedded query; the AI only writes the narrative.</span></div>
+<div class="st"><b>So<small>staged rollout</small></b><span>Ran it privately with my data engineer for [N] weeks, reconciling against the source-of-truth dashboard. That caught defects like week-on-week comparisons on too few days of data (now suppressed, not shown as a drop). Then widened it to the broader group.</span></div>
+<div class="st"><b>Next<small>business impact</small></b><span>Weekly spend-burst flags let product warm up sales conversations. One flagged Amazon's spike in week [X] → product looped in sales → it became a white-glove account. [Add the automated pre-send checks, if they existed.]</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">I launched a scheduled recurring weekly goal update catered to leadership, reducing analyst hours by 5hours weekly. The approach i took was to establish a standardised template and source of truth for key data foundations as well as metrics used frequently within our organisation. With ai- i ensured that it read my standardised prompts to produce repeatable analysis with the source query embedded within appendix. To operationalise this, I first scheduled the report for an internal work channel only with myself and my data engineer to conduct quality assurance. Only when we have had several weeks of consistent accurate readouts, after we caught the initial mistakes made such as ensuring minimum data periods are available, I then progressed to schedule the report landing directly within a broader group chat. This report was scheduled weekly which meant that it was able to surface advertisers who had sudden bursts of spend in a very proactive manner. This was extremely useful for the product team to proactively share this with the sales team to intiate warm conversations and ensure stable ad delivery. overall one standout was was our ability to capture Amazon as a large client for Live video ads and sustain their spend through dedicated white glove service.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"Consistent accurate readouts": accurate against what?</td><td>"Reconciled each week against the source-of-truth dashboard; matched for N weeks in a row."</td></tr>
+<tr><td>No ongoing safety net: QA was manual and pre-launch only.</td><td>Automated pre-send checks (freshness, row counts, reconciliation within ±X%); hold the report and alert if one fails.</td></tr>
+<tr><td>"Minimum data periods" unexplained.</td><td>"Comparisons with fewer than N days of data were suppressed, not shown as a drop."</td></tr>
+<tr><td>Mentioning AI invites a hallucination probe.</td><td>"Every number comes from the embedded query; the AI only writes the narrative from fixed prompts."</td></tr>
+<tr><td>Amazon link is loose; could sound like an overclaim.</td><td>Spell out the chain: flagged spike → product looped in sales → white-glove account. Claim only the step you can show.</td></tr>
+<tr><td>The middle rambles.</td><td>Three parts: template, one source of truth, fixed prompts.</td></tr>
+</table></div>
+<div class="todo"><b>Fill in before the interview:</b> weeks of private QA; how accuracy was checked; whether automated pre-send checks existed; the week Amazon was flagged and their spend.</div>
+<p class="sec">Likely probes</p>
+<div class="steps">
+<div class="st"><b>Probe 1</b><span><b>How did you decide what went into the report?</b><br>Start from the decisions leadership makes with it (goal status, where we're off track); use metrics already in the source of truth; drop anything nobody acted on. [Fill in: what you cut.]</span></div>
+<div class="st"><b>Probe 2</b><span><b>Why automate this over other work? How did you size it?</b><br>5 analyst hours a week ≈ [X] weeks a year, plus fewer errors and earlier spend alerts, for a small build cost.</span></div>
+<div class="st"><b>Probe 3</b><span><b>How did you know the numbers were right?</b><br>Ran it privately with my data engineer for [N] weeks and reconciled every number with the source-of-truth dashboard before widening.</span></div>
+<div class="st"><b>Probe 4</b><span><b>What was the trade-off in using AI for the narrative?</b><br>Speed against accuracy risk. Constrained it: numbers only from the embedded queries, fixed prompts, staged QA.</span></div>
+<div class="st"><b>Probe 5</b><span><b>What broke after launch, and what did you change?</b><br>Week-on-week comparisons on too few days of data looked like drops; added a rule to suppress them. [Any later issue.]</span></div>
+</div>`,
+    trap: "Answer 'how did you know it was working' with a named check, and 'how did it catch problems' with an ongoing automated guardrail, not pre-launch QA alone." },
+
+  { cluster: "🧑‍💼 My experience", q: "Story 1 · Follow-up: Your weekly report goes to a broad group. An upstream table breaks and it shows a fake −40% spend drop. How would you know before leadership read it, and what if it reached them?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>catch it before send</small></b><span>Automated checks before the report sends, which hold it if something looks wrong.</span></div>
+<div class="st"><b>Because<small>implausible moves</small></b><span>A real −40% week-on-week company-wide move is implausible. Freshness, row counts and reconciliation against an <b>independent</b> source (billing or finance) flag it as a pipeline issue; any metric moving more than ±X% holds the send for review.</span></div>
+<div class="st"><b>So<small>if it reached them</small></b><span>Correct fast and plainly: "The −40% is a data issue, please don't act on it. Corrected version by [time]."</span></div>
+<div class="st"><b>Next<small>prevent</small></b><span>Post-mortem: root cause → add a check that would have caught it → that class of error is caught automatically from then on.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">This report would provide a benchmark comparison against company level revenue which comes from the same source of truth table, in this scenario it would showcase both the product and company level revenue have dropped at a same degree which suggests there is an upstream data pipeline issue. If it did reach the leadership team, I would proactively communicate my top hypothesis on the revenue drop, and commit to a follow-up timeline on the investigation results.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>The company benchmark only helps after someone reads it, and leadership reads it at the same time.</td><td>An automated pre-send check against an independent source, with a hold-and-alert.</td></tr>
+<tr><td>"Communicate my top hypothesis on the revenue drop" treats the drop as possibly real.</td><td>"Data issue, don't act on it; corrected version by [time]."</td></tr>
+<tr><td>No prevention loop after the incident.</td><td>Post-mortem plus a new check for that failure.</td></tr>
+</table></div>`,
+    trap: "'Before leadership read it' means automated, before send. A benchmark inside the report is diagnosis, not prevention." },
+
+  // ---- Mock case 4: sponsored slots ----
+  { cluster: "🧑‍💼 My experience", q: "Story 2 · Live ads adoption programme: Tell me about the Live video ads adoption programme you co-owned (ad coupons by spend tier): why it existed, how you set it up, and how you kept it healthy as it scaled.",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong> (about 2 minutes)</p>
+<p>Tell it as a <b>system you designed</b>, not a programme you ran. A separate story from Partnership Ads; don't join them.</p>
+<div class="vp"><b>Say it in 20 seconds</b>"We were 10% behind goal, so I designed a rule-based coupon system for Live ads: tiered eligibility, an automated daily exception check, and a spend gate that closed the leak it found. It ran double-digit activations without manual review and cut the gap to 5%."</div>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>reason + result</small></b><span>We were 10% behind goal, so with the PMM I designed a <b>rule-based coupon system</b> to drive Live ads adoption. It ran double-digit activations without manual review and cut the gap to <b>5%</b>.</span></div>
+<div class="st"><b>Because<small>the rules</small></b><span><b>Eligibility by tier:</b> new and existing advertisers behave differently.<br>Existing: target ROI of 4 [define the unit, e.g. revenue per $1 of coupon].<br>New: a 1:1 coupon match on their spend.<br>Each tier's ROI threshold was built into the monitoring.</span></div>
+<div class="st"><b>So<small>detect → root cause → rule</small></b><span><b>Detect:</b> a daily job flagged any advertiser below their tier's ROI [confirm it was scheduled]. It showed advertisers redeeming coupons with little Live spend.<br><b>Root cause:</b> coupons were being spent on other Meta ad products, so they weren't driving Live adoption at all. [Size: share of coupon value or number of advertisers.]<br><b>Rule:</b> a <b>spend gate</b> in the reward logic: coupons unlock only after a minimum Live spend.<br><b>Result:</b> [share of coupon value spent on Live, before → after].</span></div>
+<div class="st"><b>Next<small>feedback loop + limit</small></b><span>The exception became a rule, and the daily check kept running to catch the next one: <b>rules for the bulk, people for exceptions, and every exception improves the rules.</b><br>Limit: ROI was observed, not incremental. Today I'd hold out a random slice of eligible advertisers to measure incremental spend.</span></div>
+</div>
+<p class="sec">The system, mapped to Coupang</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Component</th><th>What it did</th><th>Coupang equivalent</th></tr>
+<tr><td>Tiered eligibility</td><td>Different rules for new vs existing advertisers</td><td>Promo eligibility by customer segment (e.g. WOW vs non-WOW, new vs repeat)</td></tr>
+<tr><td>ROI threshold per tier</td><td>The bar each advertiser had to clear</td><td>Promo guardrail, e.g. a profit floor per unit</td></tr>
+<tr><td>Daily exception job</td><td>Flagged below-target advertisers automatically</td><td>Anomaly alerts on promo cost or margin</td></tr>
+<tr><td>Spend gate</td><td>Coupons unlock only after minimum Live spend, closing the leak</td><td>Minimum-spend conditions on coupons; coupons valid only on the intended category</td></tr>
+</table></div>
+<p class="sec">Operational vs system framing</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Avoid (sounds operational)</th><th>Say (sounds like a system)</th></tr>
+<tr><td>"We set up spend tiers"</td><td>"Rule-based eligibility: two tiers with different ROI targets"</td></tr>
+<tr><td>"I ran a daily report"</td><td>"Automated exception detection against each tier's target"</td></tr>
+<tr><td>"We moved the reward to after minimum spend"</td><td>"A spend gate in the reward logic closed the leakage"</td></tr>
+</table></div>
+<details><summary>Your answer, as given (final version in the mock)</summary>
+<div class="yours">For the double digit activations, we first set up the programme with spend tiers to represent new versus existing live advertisers. We wanted to increase the ROI to 4 for existing live advertisers whereas new advertisers is 1:1 where we match their spend with ad coupons. Next, during this programme, we realised that advertisers were indiscriminately spending their ad coupons on other ad products within Meta. To protect the ad coupons to be spent on Live, we chose to shift the reward mechanism to after they have hit a minimum Live ads spend. To detect at scale, I could not manually look into each and every advertiser, therefore I ran a daily report which flagged any advertiser who fell below their tier's ROI target. To address a double dipping risk, I suggested shorter expiry to reduce the scenario that advertisers can participate in multiple campaigns at once.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Sounds operational: "we set up", "I ran a daily report".</td><td>Describe the rules and the automated detection (table above).</td></tr>
+<tr><td>Opened at "set up spend tiers", with no reason or result.</td><td>Open with the 10% gap and the 10% → 5% result.</td></tr>
+<tr><td>"Increase the ROI to 4 for existing; 1:1 match for new": two units in one sentence.</td><td>Define ROI once, then give the match ratio separately.</td></tr>
+<tr><td>Two fixes (gate and expiry) told at the same weight; expiry only narrows double-dipping.</td><td>Tell one leak end to end (leakage → gate → result). Keep double-dipping as a reserve answer.</td></tr>
+<tr><td>No incrementality, no leak numbers.</td><td>Name the limit (observed ROI) and the holdout you'd run; size the leak and the before → after.</td></tr>
+</table></div>
+<div class="todo"><b>Confirm before using the system framing:</b> was the daily check scheduled, or run by hand? Did the spend gate ship? Did the report reveal the leak? Size of the leak, and Live share of coupon value before → after. How was ROI 4 anchored?</div>
+<p class="sec">Likely probes</p>
+<div class="steps">
+<div class="st"><b>Probe 1</b><span><b>How did you choose the tiers and the ROI target of 4?</b><br>New and existing advertisers behave differently: a 1:1 match lowers the entry barrier for new; ROI 4 for existing was anchored on [fill in: historical ROI or goal maths].</span></div>
+<div class="st"><b>Probe 2</b><span><b>Was the ROI incremental?</b><br>No, it was observed ROI. Today I'd hold out a random slice of eligible advertisers to measure incremental spend.</span></div>
+<div class="st"><b>Probe 3</b><span><b>How did you size whether the programme was worth its cost?</b><br>Gap to goal was 10%; the programme closed 5 points. Coupon cost vs revenue: [fill in].</span></div>
+<div class="st"><b>Probe 4</b><span><b>Did the system catch anything else?</b><br>Reserve answer: "Yes, double-dipping, where the same spend claimed coupons from several campaigns. We narrowed it with shorter expiry; single-use codes would close it." [Confirm what shipped.]</span></div>
+<div class="st"><b>Probe 5</b><span><b>What would break at 10x?</b><br>Manual review of exceptions. See the follow-up card: rules for the bulk, people for exceptions.</span></div>
+</div>`,
+    trap: "Say \"system\", not \"programme\". Tell one leak end to end: detect → root cause → rule → result. Only claim automation and fixes that actually shipped." },
+
+  { cluster: "🧑‍💼 My experience", q: "Story 2 · Follow-up: Suppose the Live video ads adoption programme grows 10x in advertisers, budget and programme types. What breaks first, and what do you change?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>what breaks first</small></b><span>Interpretation, not volume.</span></div>
+<div class="st"><b>Because<small>why</small></b><span>One ROI threshold worked when every advertiser had the same goal. Across dozens of programmes it misleads: a programme built to win new advertisers can tolerate below $2 of ad revenue per $1 coupon, and an existing-advertiser programme cannot.</span></div>
+<div class="st"><b>So<small>what I change</small></b><span>Set an objective and tolerance per programme and report each against its own target. Roll up to one overview of which programmes are inside their tolerance, weighted by coupon dollars. Rank daily flags by dollars at risk.</span></div>
+<div class="st"><b>Next<small>what I keep</small></b><span>The spend gate and the daily exception check.</span></div>
+</div>
+<details><summary>If they probe</summary>
+<p><b>Coupang bridge:</b> same as pricing across categories: KVIs, margin categories and the long tail have different objectives, so one margin or index target would mislead.</p>
+</details>`,
+    trap: "Ask once whether 10x means participants, budget or complexity, then commit to an assumption and answer. Anchor the tolerance (for example payback on acquiring a new advertiser) so 'below $2 is fine' is not a guess." },
+  { cluster: "🧑‍💼 My experience", q: "Story 3 · Live ads incrementality test: Tell me about a time you drove a decision without having the authority to make it.",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the outcome</small></b><span>When Meta ecosystem directors proposed downranking Live in favour of priorities like Reels, I designed the A/B test that kept Live at full delivery: cutting Live ads by 50% cost <b>−4% ad impressions and −0.5% core sessions</b>, both significant.</span></div>
+<div class="st"><b>Because<small>why influence was needed</small></b><span>DS doesn't own ranking priorities, and our team was in a defensive position. So before running anything, I got monetisation and ecosystem leads to agree the decision rule: <b>reduce or maintain</b> Live delivery, with success and guardrail metrics set in advance.</span></div>
+<div class="st"><b>So<small>the test and the evidence</small></b><span>Randomised by user: 2% of global users in equal halves. Control kept normal delivery; treatment got 50% fewer Live ad impressions.<br>The chain: less Live viewing → less time on Facebook → fewer ad impressions and fewer core sessions.<br>And no other ad product filled those slots at the same revenue.</span></div>
+<div class="st"><b>Next<small>decision + reuse</small></b><span>Leads maintained Live delivery. The same test setup and metric chain became the template for launching Live ads on new surfaces (Story 4).<br>Limit: a 50% cut shows reducing hurts, not that today's level is optimal.</span></div>
+</div>
+<details><summary>Your answers, as given</summary>
+<div class="yours">Through the incrementality measurement experiment, I delivered quantitative results showcasing that live content is dual positive to meta ecosystem in terms of both ad revenue and user sessions engagement. This test was crucial because we were challenged by Meta ecosystem directors that Live content should be downranked against other strategic priorities such as Reels. however I took the initiative to design an incrementality test where the unit is defined as users, the control group had BAU production delivery whereas treatment group had 50% less live video ads impressions delivered. The results were clear that when we removed Live video ads partially, users spent less time watching live videos, which extended to less time spent on fb surfaces which indirectly resulted in -4% ads impressions being delivered and -0.5% core session counts on global fb metrics both of which were statistically significant. Overall this was convincing enough to monetisation and ecosystem leads to maintain Live video ads delivery and not reduce delivery. For further studies, we leveraged the same ecosystem insights to launch to net new surfaces by employing the experimentation setup and key chaining of cause and effect in metrics movement observed.</div>
+<div class="yours">We used 2% of global user population to run the experiment in equal halves for control and test setup. The -4% is observed across the entire generalisable user population. I tested a 50% cut and concluded Live should stay at 100% because it showed that when we removed Live ad inventory, at that point there was no equivalent alternative ad product that could be delivered at the same slots to maintain the same ad revenue. This meant that live video ads was still most effective.</div>
+<div class="yours">Strategically our team was in a defensive position so we were only able to get alignment to run a test with the decision criteria to either reduce or maintain live delivery in best case scenario.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Opens with the result, not the conflict. For an influence question, the listener needs to know who disagreed and what was at stake.</td><td>"Ecosystem directors proposed downranking Live in favour of Reels; I had no say over ranking, so I used a test."</td></tr>
+<tr><td>Your influence moves are buried: the pre-agreed decision rule only came out under probing.</td><td>Say it in the Because step: "I got leads to agree the rule (reduce or maintain) before the test."</td></tr>
+<tr><td>The 2% split came only after probing.</td><td>Volunteer the unit and split in one sentence.</td></tr>
+<tr><td>"Concluded Live should stay at 100%" overclaims.</td><td>"A 50% cut showed reducing hurts, so we maintained. It doesn't prove 100% is optimal."</td></tr>
+<tr><td>Impact stops at impressions and sessions.</td><td>Translate to money: [revenue impact of −4% impressions]. Confirm whether the resume's +0.05% global revenue (~$0.225M daily) comes from this framework.</td></tr>
+</table></div>
+<details><summary>If they probe</summary>
+<p><b>"How do you get from a harmful 50% cut to keeping 100%?"</b> Ask which they mean first: (A) why maintain rather than cut a little, or (B) why not increase. Then: "The test was designed for the decision on the table, reduce or maintain. It shows a large cut hurts both revenue and engagement; it can't tell us the optimal level. That needs dose arms (see the dose-design card)."</p>
+<p><b>"Why did they listen to you?"</b> "Because the rule was agreed before the result. Once the data came in, the decision followed from criteria they'd already signed up to."</p>
+</details>
+<div class="todo"><b>Fill in before the interview:</b> the revenue value of −4% impressions; whether the +0.05% global revenue figure is from this work; who exactly you aligned (titles); how long the test ran.</div>
+<p class="sec">Likely probes</p>
+<div class="steps">
+<div class="st"><b>Probe 1</b><span><b>Why a 50% cut, not full removal or several levels?</b><br>Full removal is costly and not a real option; one arm powered for the decision on the table (reduce or maintain). Dose arms need far more sample (dose-design card).</span></div>
+<div class="st"><b>Probe 2</b><span><b>How did you size −4% impressions against what Reels would gain?</b><br>−4% impressions ≈ [fill in revenue]. No other ad product filled the freed slots at the same revenue, so the trade gave up revenue and engagement for no measured gain.</span></div>
+<div class="st"><b>Probe 3</b><span><b>Why 2% of users?</b><br>Enough power for the smallest core-sessions drop leadership cared about, while limiting revenue at risk. [Fill in the minimum detectable effect.]</span></div>
+<div class="st"><b>Probe 4</b><span><b>What if the result had gone the other way?</b><br>We'd have reduced delivery. The pre-agreed rule cut both ways, which is what made it credible.</span></div>
+<div class="st"><b>Probe 5</b><span><b>Why did leadership accept a DS-led conclusion?</b><br>They'd agreed the decision rule before seeing the data, so the decision followed from their own criteria.</span></div>
+</div>`,
+    trap: "For an influence question, lead with the disagreement and your move (a pre-agreed decision rule), then the result. Don't claim the test proved 100% is optimal." },
+
+  { cluster: "🧑‍💼 My experience", q: "Story 5 · Partnership Ads: Tell me about launching Partnership Ads at Meta: the problem, and how you knew it worked.",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong> (about 90 seconds)</p>
 
 <p class="sec">1. Remember four anchors</p>
@@ -1114,49 +1300,18 @@ Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
 <p><b>Your role:</b> you found the creators in the data and set metrics and the test with PMM, engineering and the PM. Say "I" for the parts you drove.</p>
 <p><b>Bridge to Coupang:</b> "Same measurement logic for a price or promo change: randomise, set a guardrail, check incrementality."</p>
 <p><b>Fill in:</b> how many advertisers were in the pilot; what the 9% was measured against (BAU cost per purchase); any pushback you handled.</p>
-</details>`,
+</details>
+<p class="sec">Likely probes</p>
+<div class="steps">
+<div class="st"><b>Probe 1</b><span><b>Why a one-partner pilot instead of a broad rollout?</b><br>Speed to evidence over breadth; we accepted that results apply to similar advertisers and extended the claim as more tests came in.</span></div>
+<div class="st"><b>Probe 2</b><span><b>How did you size the opportunity before building?</b><br>About 100K ready creators and brands going live 4–8 hours a day. [Fill in: revenue sizing.]</span></div>
+<div class="st"><b>Probe 3</b><span><b>How did you choose success and guardrail metrics?</b><br>Success: ROAS and cost per purchase (the advertiser's efficiency). Guardrails: total impressions and purchases, so a win couldn't come from shrinking delivery.</span></div>
+<div class="st"><b>Probe 4</b><span><b>Why pool 20–30 lift tests with random effects?</b><br>Each test alone is noisy; random effects lets the true effect vary by advertiser and gives a range (+5% to +13%), not a single point.</span></div>
+<div class="st"><b>Probe 5</b><span><b>What would have made you stop?</b><br>Guardrails falling: impressions or purchases down beyond [threshold].</span></div>
+</div>`,
     trap: "Lead with the number and its range. Answer the unit of randomisation in the first pass. Name one method (random-effects meta-analysis, or Bayesian hierarchical only if that is what it was)." },
 
-  { cluster: "🧑‍💼 My experience", q: "Tell me about the Live video ads adoption programme you co-owned (ad coupons by spend tier): why it existed, how you set it up, and how you kept it healthy as it scaled.",
-    a: `<p><strong>Structure — Answer → Because → So → Next</strong> (about 2 minutes)</p>
-<p>This programme drove adoption of Live video ads overall, not just the Partnership Ads format. It is a separate story from Partnership Ads. Do not join them.</p>
-
-<p class="sec">1. Remember four anchors</p>
-<div class="steps keys">
-<div class="st"><b>Answer<small>the result</small></b><span>"We were 10% behind goal and coupons were the lever. Double-digit activations cut the gap to 5%." The reason and result first, so the tiers don't sound arbitrary.</span></div>
-<div class="st"><b>Because<small>why this design</small></b><span>New and existing advertisers behave differently, so two tiers. Existing: target ROI 4 [define the unit]. New: 1:1 coupon match.</span></div>
-<div class="st"><b>So<small>how I kept it healthy</small></b><span>A daily report flags anyone below their tier's ROI. It showed coupons spent on other ad products, so the reward unlocks only after a minimum Live spend.</span></div>
-<div class="st"><b>Next<small>the defect and prevention</small></b><span>Double-dipping: the same spend claiming coupons from several programmes. Single-use codes stop duplicate claims; shorter expiry narrows overlap. Monitor [duplicate claims per unit of spend].</span></div>
-</div>
-
-<p class="sec">2. Your answer against the ideal answer</p>
-<div class="cmp-wrap"><table class="cmp">
-<tr><th>Anchor</th><th>Your answer</th><th>Ideal answer</th></tr>
-<tr><td>Answer<span class="err">Fix</span></td><td>Started at "set up the programme with spend tiers", with no reason for the programme and no result.</td><td>Open with the 10% gap, the coupon lever and the 10% to 5% result.</td></tr>
-<tr><td>Because<span class="err">Fix</span></td><td>"Increase the ROI to 4 for existing; 1:1 match for new." Two units in one sentence.</td><td>Say why two tiers, define ROI once (for example revenue per $1 of coupon), then give the match ratio separately.</td></tr>
-<tr><td>So<span class="ok">Keep</span></td><td>Daily report flagged below-target advertisers (good). Coupons spent on other products, so the reward moved to after a minimum spend. Unclear if discovered or designed.</td><td>Keep. Say how the leak was found, then the gate. A discovery you fixed is a stronger story than a plan.</td></tr>
-<tr><td>Next<span class="err">Fix</span></td><td>Final version only had shorter expiry, which reduces overlap but does not stop it. No numbers for the leak.</td><td>Single-use codes and shorter expiry, saying which does which. Add how many advertisers, how far ROI fell, and whether the fix shipped.</td></tr>
-</table></div>
-
-<details><summary>Your answer, as given (final version in the mock)</summary>
-<div class="yours">For the double digit activations, we first set up the programme with spend tiers to represent new versus existing live advertisers. We wanted to increase the ROI to 4 for existing live advertisers whereas new advertisers is 1:1 where we match their spend with ad coupons. Next, during this programme, we realised that advertisers were indiscriminately spending their ad coupons on other ad products within Meta. To protect the ad coupons to be spent on Live, we chose to shift the reward mechanism to after they have hit a minimum Live ads spend. To detect at scale, I could not manually look into each and every advertiser, therefore I ran a daily report which flagged any advertiser who fell below their tier's ROI target. To address a double dipping risk, I suggested shorter expiry to reduce the scenario that advertisers can participate in multiple campaigns at once.</div>
-</details>
-
-<p class="sec">3. The ideal answer</p>
-<div class="steps">
-<div class="st"><b>Answer<small>the result</small></b><span>We were 10% behind goal, so I co-owned a programme with the PMM to drive adoption of Live video ads: ad coupons by spend tier, run as double-digit activations, which cut the gap to 5%.</span></div>
-<div class="st"><b>Because<small>why this design</small></b><span>New and existing advertisers behave differently, so two tiers. Existing advertisers had a target ROI of 4 [define the unit]. New advertisers got a 1:1 coupon match on their spend.</span></div>
-<div class="st"><b>So<small>how I kept it healthy</small></b><span>I couldn't review every advertiser, so a daily report flagged anyone below their tier's ROI. It showed coupons going to other Meta ad products, so the reward now unlocks only after a minimum Live spend.</span></div>
-<div class="st"><b>Next<small>the defect and prevention</small></b><span>It also showed double-dipping across campaigns, so we added single-use codes and shorter expiry, and monitor [duplicate claims per unit of spend].</span></div>
-</div>
-<details><summary>If time, or if they probe</summary>
-<p><b>Principle:</b> rules for the bulk, people for exceptions, and every exception improves the rules.</p>
-<p><b>Bridge to Coupang:</b> same failure as promo stacking in retail. A coupon only earns its cost if it is incremental.</p>
-<p><b>Fill in:</b> how many advertisers double-dipped and how far ROI fell; whether the fix shipped; how the ROI target of 4 was anchored; whether the report is what revealed the coupon leak (if so, say that before the gate).</p>
-</details>`,
-    trap: "Do not list single-use codes and expiry as equivalent: codes close the gap, expiry only narrows it." },
-
-  { cluster: "🧑‍💼 My experience", q: "How do you know the +9% came from the format and not from the advertisers who joined the pilot?",
+  { cluster: "🧑‍💼 My experience", q: "Story 5 · Follow-up: How do you know the +9% came from the format and not from the advertisers who joined the pilot?",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="steps keys">
 <div class="st"><b>Answer<small>the claim</small></b><span>The format drove it, because users were randomised, so advertiser mix cannot explain the difference between arms.</span></div>
@@ -1165,21 +1320,171 @@ Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
 <div class="st"><b>Next<small>the limit</small></b><span>Advertisers came from one partner's pool, so the result holds for advertisers like them. We chose that pool for speed and extend the claim as more results arrive.</span></div>
 </div>`,
     trap: "Say plainly that selection limits generalisation, not the comparison inside the test. Interviewers reward the honesty." },
+  { cluster: "🧑‍💼 My experience", q: "Story 6 · Live ad pacing reliability: Tell me about a time you dug into a problem to find its root cause.",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>result first</small></b><span>I cut the time large Live campaigns took to start delivering from <b>35 minutes to under 10</b> (p75 time to first impression). Treated campaigns showed a <b>5% revenue lift</b> and paid <b>7% less per impression</b>.</span></div>
+<div class="st"><b>Because<small>the dive</small></b><span>For six months large advertisers said delivery was unreliable, and on Live the audience only exists for a few hours.<br>I split the 35 minutes into review queue, review and ramp-up. Queue and review were steady; only ramp-up varied.<br>I ruled out big budgets and peak-stream competition, then audited pacing logs: pacing was built for multi-week campaigns, so it was working as designed, for the wrong use case.</span></div>
+<div class="st"><b>So<small>fix + influence</small></b><span>With my PM, I picked the lowest-lift fix: a Live-only initial bid multiplier during ramp-up, validated with budget-controlled experiments.<br>The pacing team had no bandwidth, so we proposed a shared incremental-revenue goal backed by my lift sizing; our team ran the experiment and they reviewed the code changes.</span></div>
+<div class="st"><b>Next<small>outcome + learning</small></b><span>Large advertisers kept their trust and their spend. I now look at where the variation comes from, not just the overall number, and treat benchmarks as things to review, not set once.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours"><b>Situation:</b> For about six months, large advertisers kept telling us delivery was unreliable. On Live, the audience exists for only a few hours, so an ad needs to start almost immediately and then spend steadily through the stream. The problem required deep domain expertise on foundational pacing systems. We needed to ensure large advertisers continue to maintain high trust in our ad reliability so that they would not pull back spend.<br><br><b>Task:</b> I had to clearly measure the problem space, find the root cause, and get it fixed. Success metric here is defined as a stricter bar of p75 time to first ad impression. The current performance was 35 minutes, we needed to drive it down towards 5-10 minutes.<br><br><b>Action:</b> I did three things. First, break down our primary metric into its key components. I broke the 35 minutes into its three stages: the ad review queue, the review itself, and the ramp-up, where the system gradually increases spend. Queue and review times were steady. The ramp-up was the one that varied, and the slow campaigns were slow because their ramp-up ran long. Second, build hypotheses. I checked the obvious explanations, big budgets and peak-stream competition, and the delay persisted across both, so neither was the cause. Then I audited the pacing logs for a sample of delayed campaigns. The system was designed for multi-week campaigns (long warm-up periods). Live needs the opposite: start within five minutes, then spend steadily over four to eight hours. It was working as designed, so the ask changed from 'fix reliability' to 'recalibrate pacing for Live'. Third, design an experimentation plan and get it prioritised. After sharing the key insights with my PM and TL, we brainstormed several proposals to address this slow ramp up; shorten the ramp-up by adding an initial bid multiplier for Live ads only, implement a dedicated live pacing system, etc. Eventually PM and I agreed on the approach which required the lowest lift which was a Live-only initial bid multiplier during ramp-up with a learning purpose; we needed to validate this treatment with budget-controlled experiments. The pacing team had their own roadmap and no bandwidth, so my PM proposed joint goals on incremental revenue and I supplemented a sizing on the estimated lift. A shared goal gave both teams the same incentive. Our product team offered to run the experiment as long as the pacing team reviewed the diffs.<br><br><b>Result:</b> The typical slow campaign now started in under 10 minutes, down from 35. In the experiments, treated campaigns spent more of their committed budget, giving a 5% revenue lift with no extra advertiser budget, and advertisers paid 7% less per impression. This was a launch decision, Live is a small share of the total Meta revenue so the lift was diluted and underpowered. Ultimately, we saw segment level gains but undetected at global Meta incremental revenue. Ultimately we still managed to address a root cause of slow start → larger advertisers maintain trust → continue to spend → defend topline.<br><br><b>Learnings:</b> Two things stuck with me. First, the overview hid the cause: queue and review times were steady, and the whole problem was in the variable stage, so I now look at where the variation comes from, not only the overall. Second, since the benchmark I set two years ago was right then and wrong now, I treat benchmarks as things to review, not to set once.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Long, in STAR order: the result arrives last.</td><td>Answer → Because → So → Next, result first.</td></tr>
+<tr><td>"Required deep domain expertise" is filler.</td><td>Cut it; the decomposition shows the expertise.</td></tr>
+<tr><td>Result contradicts itself: "+5% revenue lift", then "underpowered, undetected".</td><td>"+5% on treated Live campaigns; too small a share of Meta to detect globally, as expected."</td></tr>
+<tr><td>"Paid 7% less per impression" after a higher initial bid will be probed.</td><td>Prepare the mechanism (e.g. steadier early spend avoided expensive catch-up bidding later) — only if true.</td></tr>
+<tr><td>"The benchmark I set two years ago" appears only in the learnings.</td><td>Set it up in the Situation: the reliability benchmark you'd set earlier no longer fit Live.</td></tr>
+<tr><td>No standing check afterwards.</td><td>Add the feedback loop if one exists: p75 time to first impression by surface, with an alert.</td></tr>
+</table></div>
+<details><summary>If they probe</summary>
+<p><b>Why p75?</b> "The median looked fine; the slow tail is what large advertisers felt."</p>
+<p><b>Why the lowest-lift fix?</b> "It tested the root-cause hypothesis cheaply. A dedicated Live pacing system only made sense once the multiplier proved the gain."</p>
+<p><b>How did you get the pacing team to prioritise it?</b> "A shared incremental-revenue goal, backed by my sizing of the lift, and we did the build so they only had to review."</p>
+<p><b>Why wasn't it visible in Meta revenue?</b> "Live is a small share, so a 5% segment lift is diluted below what a global test can detect. We judged it at the segment level, where it was powered."</p>
+</details>
+<div class="todo"><b>Fill in before the interview:</b> the mechanism behind 7% cheaper impressions; whether the 5% segment lift was significant; the benchmark you set two years earlier; any monitoring added after launch.</div>
+<p class="sec">Likely probes</p>
+<div class="steps">
+<div class="st"><b>Probe 1</b><span><b>How did you decide which hypothesis to test first?</b><br>The most commonly blamed and cheapest to check: budget size and peak-stream competition, both ruled out with existing data. Then the slower log audit.</span></div>
+<div class="st"><b>Probe 2</b><span><b>Bid multiplier vs a dedicated Live pacing system: how did you size that?</b><br>The multiplier was the lowest lift, reversible, and tested the root cause directly. A dedicated system only made sense if the multiplier proved the gain. [Fill in engineering estimates.]</span></div>
+<div class="st"><b>Probe 3</b><span><b>How did you size the lift to win the pacing team?</b><br>[Fill in: committed budget going unspent × share expected to be recovered.]</span></div>
+<div class="st"><b>Probe 4</b><span><b>What could go wrong with a higher initial bid, and what were the guardrails?</b><br>Overpaying early and squeezing other advertisers. Guardrails on cost per impression and advertiser cost; the result was 7% cheaper per impression.</span></div>
+<div class="st"><b>Probe 5</b><span><b>Why ship when the global revenue test was underpowered?</b><br>Live is a small share, so the global test couldn't detect it; we judged it at the segment level, where it was powered.</span></div>
+</div>`,
+    trap: "Lead with 35 → under 10 minutes. Explain the variation, not the average, and be ready for the 7% cheaper per impression probe." },
 
-  { cluster: "🧑‍💼 My experience", q: "Suppose the Live video ads adoption programme grows 10x in advertisers, budget and programme types. What breaks first, and what do you change?",
+  { cluster: "🧑‍💼 My experience", q: "Story 7 · PM pushback: Tell me about a time a PM or business partner pushed back on your analysis. What did you do?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="yours"><span class="lbl">Your answer</span>My lead PM questioned my assumptions for being too conservative in front of DS and Eng directors. The situation was a 4-year projection of daily run rate for our ad product. I simplified my framework to three inputs: TAM, % adoption rate and average spend. For adoption I benchmarked against other early-stage products, close to the team's line of sight from projects on hand. The PM lead was convinced we needed a number closer to the fair share Meta can capture in four years. I aligned with him in the meeting that the new assumption would be set up as a milestone check-in and a team-level goal. He agreed to drive ownership with my PM counterpart, and we adjusted the model. My objective was to drive the leads' ownership of the key outputs, and the leads were confident to bring the numbers into resource budget conversations. A positive outcome.</div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>The disagreement was never named</td><td>One phrase: your bottom-up view (what current projects deliver) against his top-down view (Meta's fair share over four years).</td></tr>
+<tr><td>Opened with setup, not the point</td><td>Open with the resolution: "I raised the assumption on one condition: it became a team milestone with an owner."</td></tr>
+<tr><td>Sounds like you gave in</td><td>State your judgement and the risk (committing to a target current projects don't support) and how the milestone covers it. Expect: "Did you think the higher number was right?"</td></tr>
+<tr><td>No numbers</td><td>The projection from [X] to [Y], and the budget outcome.</td></tr>
+<tr><td>Vague close: "drive ownership", "positive outcome"</td><td>A fact: the leads took the numbers into the resource budget conversation [outcome].</td></tr>
+<tr><td>About 230 words</td><td>Aim for 150.</td></tr>
+</table></div>
+<div class="wex"><span class="wex-title">Tightened version</span>
+<span class="step"><b>Answer:</b> my lead PM challenged my four-year daily run-rate projection as too conservative, in front of DS and Eng directors. I agreed to raise the adoption assumption on one condition: it became a team milestone with an owner.</span>
+<span class="step"><b>Because:</b> my model had three inputs, TAM, adoption and average spend, and I'd set adoption from early-stage benchmarks, close to what our projects could deliver. He wanted Meta's fair share over four years. It was bottom-up against top-down.</span>
+<span class="step"><b>So:</b> I proposed the higher adoption rate as a milestone check-in goal, owned by him and my PM counterpart, and we updated the model [from X to Y].</span>
+<span class="step"><b>Next:</b> the leads were confident taking the numbers into the resource budget conversation [outcome]. If adoption lags, the milestone tells us early. (Say that last line only if the check-in really reviews progress.)</span></div>
+<p class="sec">Likely probes</p>
+<div class="steps">
+<div class="st"><b>Probe 1</b><span><b>Who was right, you or the PM?</b><br>Both, for different jobs: mine was an evidence-based forecast, his was an ambition. I kept the forecast and set his number as the goal, with milestone check-ins.</span></div>
+<div class="st"><b>Probe 2</b><span><b>How big was the gap between the two assumptions?</b><br>[Fill in: adoption % in each version and the revenue difference.]</span></div>
+<div class="st"><b>Probe 3</b><span><b>What happened at the first milestone check?</b><br>[Fill in.]</span></div>
+<div class="st"><b>Probe 4</b><span><b>How do you disagree in front of directors without losing the room?</b><br>Challenge the assumption, not the person, and turn the disagreement into something testable (a milestone).</span></div>
+</div>`,
+    trap: "The follow-up is 'did you think the higher number was right?' Have a one-sentence view and the risk it carries." },
+
+  { cluster: "🧑‍💼 My experience", q: "Story 8 · Ad reliability for big live budgets: Tell me about a decision you made with incomplete data. How did you limit the risk of being wrong?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="yours"><span class="lbl">Your answer</span>I made a decision to drastically increase live video ads budget recommendations with incomplete data. Larger advertisers were willing to put in five-figure sums to be spent within a 4–8 hour window. That was hard for DS to recommend because the Meta ads ecosystem is rarely required to spend so much in such a compressed period, and there was no precedent. When I proposed the higher budget range I gave two recommendations: split the budget across a few campaign ad sets to run in parallel, and schedule ahead of time so ad reviews start earlier and don't block at the expected time. The result was positive: we saw strong ad reliability and clients shared positive sentiments.</div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"Incomplete" never defined</td><td>What data was missing and what you used instead (proxy campaigns, advertiser commitments). This is the centre of the question.</td></tr>
+<tr><td>Safeguards without the risk they address</td><td>Name the risk first (under-delivery, pacing, start-time blocker), then "because [risk], I [safeguard]".</td></tr>
+<tr><td>"Drastically increase" has no number</td><td>The range, from [X] to [Y].</td></tr>
+<tr><td>No feedback loop</td><td>What you watched live to know early if it was working. Say it only if you had it.</td></tr>
+<tr><td>Soft result: "strong reliability", "positive sentiment"</td><td>A delivery figure or number of events run.</td></tr>
+</table></div>
+<div class="wex"><span class="wex-title">Tightened version</span>
+<span class="step"><b>Answer:</b> I recommended a much higher budget range for live video ads [from X to Y], with no precedent in Meta ads.</span>
+<span class="step"><b>Because:</b> large advertisers wanted five-figure sums spent in 4–8 hours, and we had no history for spend that concentrated, so I [used Z as the benchmark].</span>
+<span class="step"><b>So:</b> the risk was [under-delivery or a start-time blocker], so I recommended splitting the budget across parallel ad sets and scheduling ahead so ad review couldn't block the start.</span>
+<span class="step"><b>Next:</b> [what you watched live to know early if it was working]. Result: [delivery figure], and clients gave positive feedback.</span></div>
+<p class="sec">Likely probes</p>
+<div class="steps">
+<div class="st"><b>Probe 1</b><span><b>With no precedent, how did you decide how high to go?</b><br>[Fill in: what data anchored it, e.g. the highest spend per hour delivered before, and delivery capacity.]</span></div>
+<div class="st"><b>Probe 2</b><span><b>What was the risk if you were wrong, and how did you limit it?</b><br>Under-delivery would erode trust. Splitting across ad sets removed a single point of failure; scheduling early meant reviews didn't block the live window.</span></div>
+<div class="st"><b>Probe 3</b><span><b>Why act then instead of waiting for more data?</b><br>Live windows are perishable and advertisers were ready to spend; waiting cost revenue and trust.</span></div>
+<div class="st"><b>Probe 4</b><span><b>How did you know it worked?</b><br>[Fill in: share of budget delivered in the window, before and after] and client feedback.</span></div>
+</div>`,
+    trap: "Don't list mitigations without the risk. A safeguard only sounds smart next to the thing it guards against." },
+
+  { cluster: "🧑‍💼 My experience", q: "Story 9 · Being wrong: Tell me about a time you were wrong about something at work. What changed afterwards?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="yours"><span class="lbl">Your answer</span>I was wrong about whether our stagnant growth mid-half would persist, which led to a gap to goal by end of half. It was challenging because by not recognising earlier that the revenue growth trajectory had slowed, the team stayed complacent. We assumed growth would accelerate because we saw the same pattern the previous year. The growth stayed slow and translated into a 10% gap to goal with very little time to reverse. After I reacted, the team went into a war room where I was in charge of diagnosing the slowdown and prioritising team efforts. By end of half we ran double-digit live ad coupon activations, which reduced the gap from 10% to 5%. My learning is to communicate a detected slowdown much earlier to allow more turnaround time.</div>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Root cause not named</td><td>One phrase: "I anchored on last year's second-half acceleration."</td></tr>
+<tr><td>Lesson is a behaviour ("communicate earlier")</td><td>A mechanism: for example a no-acceleration scenario beside the seasonal one, or a rule that [N] weeks below trend triggers escalation. If you changed nothing, say what you would change now. Never claim a change you didn't make.</td></tr>
+<tr><td>No answer for the obvious probe</td><td>Expect: "You owned the traffic-light forecast, so why didn't it catch this?" Likely honest answer: it carried last year's seasonal assumption, so the light stayed green.</td></tr>
+<tr><td>No timing</td><td>How many weeks between the first sign and when you called it. That is the cost of the delay.</td></tr>
+<tr><td>"It was challenging because…" blurs the point</td><td>State the cause directly.</td></tr>
+<tr><td>Stories feel separate</td><td>If the coupon activations were the response to this gap, say so, and tie it to the Live video ads adoption programme (the double-digit coupon activations that cut the gap from 10% to 5%). Only if true.</td></tr>
+</table></div>
+<div class="wex"><span class="wex-title">Tightened version</span>
+<span class="step"><b>Answer:</b> I was wrong that our mid-half stagnant growth would reverse.</span>
+<span class="step"><b>Because:</b> I assumed last year's acceleration would repeat, so we stayed on plan, and [N weeks] later we had a 10% gap to goal with little time left.</span>
+<span class="step"><b>So:</b> I led a war room, diagnosed the slowdown and prioritised the team's efforts. Double-digit live ad coupon activations narrowed the gap from 10% to 5%.</span>
+<span class="step"><b>Next:</b> [for example, the forecast now carries a no-acceleration scenario, and a set number of weeks below trend triggers escalation]. The lesson wasn't just to speak up sooner but to build the check that makes speaking up automatic.</span></div>
+<p class="sec">Likely probes</p>
+<div class="steps">
+<div class="st"><b>Probe 1</b><span><b>What signal did you miss, and when could you have caught it?</b><br>Growth slowed mid-half and I assumed last year's re-acceleration. [Fill in: the leading indicator that showed it earlier.]</span></div>
+<div class="st"><b>Probe 2</b><span><b>How did you prioritise in the war room?</b><br>Ranked levers by impact × time to deploy; coupons were fastest to move spend within the half.</span></div>
+<div class="st"><b>Probe 3</b><span><b>How did you size what each lever could close?</b><br>[Fill in.] The coupon activations closed 5 of the 10 points.</span></div>
+<div class="st"><b>Probe 4</b><span><b>What changed in your process afterwards?</b><br>Forecast against daily actuals with a traffic-light status, so a slowdown shows up as it happens, not at the end of the half.</span></div>
+</div>`,
+    trap: "'Communicate earlier' is a good intention, not a system. Coupang's principle is to fix the defect and prevent it recurring." },
+
+  { cluster: "🧑‍💼 My experience", q: "Story 10 · GTM measurement: Tell me about a time something people relied on was broken. What did you do, and what did you put in place so it wouldn't happen again?",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="steps keys">
-<div class="st"><b>Answer<small>what breaks first</small></b><span>Interpretation, not volume.</span></div>
-<div class="st"><b>Because<small>why</small></b><span>One ROI threshold worked when every advertiser had the same goal. Across dozens of programmes it misleads: a programme built to win new advertisers can tolerate below $2 of ad revenue per $1 coupon, and an existing-advertiser programme cannot.</span></div>
-<div class="st"><b>So<small>what I change</small></b><span>Set an objective and tolerance per programme and report each against its own target. Roll up to one overview of which programmes are inside their tolerance, weighted by coupon dollars. Rank daily flags by dollars at risk.</span></div>
-<div class="st"><b>Next<small>what I keep</small></b><span>The spend gate, single-use codes and the daily refresh.</span></div>
+<div class="st"><b>Answer<small>the defect</small></b><span>Our GTM measurement plan broke because partners moved part of the coupon funds into mass-market events we couldn't trace. I re-scoped the measurement to the traceable subset and pushed for a distribution model where spend stays measurable.</span></div>
+<div class="st"><b>Because<small>the trade-off</small></b><span>Only targeted coupon recipients were identifiable. Measuring everyone meant low confidence and a likely neutral reading. Measuring the subset meant mid confidence, but only a <b>lower bound</b> on the total.</span></div>
+<div class="st"><b>So<small>what I did</small></b><span>I gave my PMM both options and recommended the subset. Lift on the subset didn't justify the full spend, and leads reduced budgets for the next half.</span></div>
+<div class="st"><b>Next<small>prevention + feedback loop</small></b><span>Tie partner funds to trackable codes; track the share of funds traceable every week with an alert; move toward programmatic in-product coupon distribution. [Say how far this got.]</span></div>
 </div>
-<details><summary>If they probe</summary>
-<p><b>Coupang bridge:</b> same as pricing across categories: KVIs, margin categories and the long tail have different objectives, so one margin or index target would mislead.</p>
-</details>`,
-    trap: "Ask once whether 10x means participants, budget or complexity, then commit to an assumption and answer. Anchor the tolerance (for example payback on acquiring a new advertiser) so 'below $2 is fine' is not a guess." },
+<details><summary>Your answer, as given</summary>
+<div class="yours">My GTM incrementality measurement plan was heavily impacted by mass market activations and this resulted in lower ROI than expected which led to leads reducing budgets for future halves. The ROI was lower because third party partners reallocated GTM budgets beyond targeted ad coupon distributions to mass market events. Therefore this meant that i can only measure causal lift on top of subset of activated advertisers, namely those who were part of targeted ad coupon distributions whom I was able to identify. The trade off is that we cannot measure the full GTM funds deployed. I communicated this situation to my PMM counterpart and told her we can measure with mid confidence on a subset of advertisers OR measure with low confidence across the entire partner-enabled advertiser ecosystem with likelihood of neutral lift. She agreed with my recommendation to go with the higher confidence reading, which ultimately showed revenue lift ballpark which did not match the full funds deployed. The impact was leads reduced budgets for future halves. Next for future GTM measurement plans, i was convincing my PMM to shift towards more programmatic product-driven ways to distribute the ad coupons so that we reduce reliance on third parties whom we have lower control over.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Opened with the consequence ("impacted… lower ROI… budgets reduced"), so the listener doesn't know what broke.</td><td>Open with the defect: "Partners spent part of the funds outside the measured design, so part of the spend couldn't be measured."</td></tr>
+<tr><td>"ROI was lower" mixes up no <i>measured</i> lift with no lift.</td><td>"The reading was a lower bound: unmeasured spend isn't zero return."</td></tr>
+<tr><td>No numbers.</td><td>"About X% of funds were traceable; lift on that subset was Y."</td></tr>
+<tr><td>Unclear when you found out.</td><td>Say mid-flight or at readout. If at readout, that's the gap the prevention step closes.</td></tr>
+<tr><td>Prevention is a fix with no feedback loop; "convincing my PMM" sounds unfinished.</td><td>Add the early check (weekly share of funds traceable, alert below a threshold) and say whether it shipped.</td></tr>
+</table></div>
+<div class="todo"><b>Fill in before the interview:</b> share of funds traceable; lift on the subset; when the reallocation was found; whether programmatic distribution or traceable codes shipped.</div>
+<p class="sec">Likely probes</p>
+<div class="steps">
+<div class="st"><b>Probe 1</b><span><b>Why the subset reading over the full one? How did you size that?</b><br>Mid confidence on the subset vs low confidence and a likely neutral result on everyone. A lower bound supports a decision; a noisy neutral doesn't.</span></div>
+<div class="st"><b>Probe 2</b><span><b>When did you find out about the reallocation?</b><br>[Fill in: mid-flight or at readout.]</span></div>
+<div class="st"><b>Probe 3</b><span><b>What would you fix first to prevent it?</b><br>Traceable codes as a precondition for releasing partner funds, then a weekly reconciliation of funds disbursed against redemptions.</span></div>
+<div class="st"><b>Probe 4</b><span><b>Was the budget cut right?</b><br>See the follow-up card: premature, because unmeasured isn't zero.</span></div>
+</div>`,
+    trap: "Lead with what broke, not the budget cut. Call the result a lower bound, and name a feedback loop (an early check), not just a fix." },
 
-  { cluster: "🧑‍💼 My experience", q: "How do you explain a scaling story step by step without drifting or running long?",
+  { cluster: "🧑‍💼 My experience", q: "Story 10 · Follow-up: Leads cut the GTM budget based on your reading. Was that the right decision? When would you have caught the reallocation, and how?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>verdict</small></b><span>It was premature. Our reading was a lower bound, not proof that the activation didn't work.</span></div>
+<div class="st"><b>Because<small>unknown ≠ zero</small></b><span>The untraced spend had unknown lift, not zero lift, and this was the first run of the pilot.</span></div>
+<div class="st"><b>So<small>what I'd do in the room</small></b><span>Frame it as a lower bound and propose a smaller, fully traceable budget for the next half, so we learn the true lift instead of cutting or keeping blindly. A cut was defensible on risk; what was missing was a way to learn.</span></div>
+<div class="st"><b>Next<small>detect + prevent</small></b><span><b>Detect:</b> weekly reconciliation of funds disbursed against coupon redemptions; alert if traceable spend drops below about 80%, so it surfaces in week 2, not at readout. <b>Prevent:</b> traceable codes as a precondition for releasing partner funds.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">The leads were making a decision based on partial data where we were not able to confirm that 3rd party activation was ineffective. This could be a pre-mature decision esp given we are running this pilot for the very first time. For our future iterations, i would have set the expectations on ability to trace funds distribution via coupon codes. This is a pre-requisite before proceeding with any activation for measurement purposes.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Sounds like hindsight ("leads decided on partial data"); they'll ask "did you say so at the time?"</td><td>Say what you did or would do in the room: lower-bound framing plus a conditional, smaller, traceable budget.</td></tr>
+<tr><td>Answered prevention, not detection ("at what point would you have caught it?").</td><td>Add the weekly reconciliation with an alert threshold.</td></tr>
+<tr><td>"Leads were wrong" can sound defensive.</td><td>Balanced: "A cut was defensible on risk; the gap was a way to learn."</td></tr>
+</table></div>`,
+    trap: "Answer both halves: the verdict, and when you'd have caught it. Detection (a prompt feedback mechanism) is the part Coupang's principle asks for." },
+
+  // ---- Mock case 3: CS contacts ----
+  { cluster: "🗣️ Communication", q: "How do you explain a scaling story step by step without drifting or running long?",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="steps keys">
 <div class="st"><b>Answer<small>spine and count</small></b><span>Choose the order before speaking and say it: "four things: set up, detect, protect, fix". Keep that order.</span></div>
@@ -1208,7 +1513,7 @@ Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
 <tr><td>"Tell me about a time…"</td><td>Answer: the result. Because: the situation. So: what I did. Next: what changed afterwards.</td></tr></table></div>`,
     trap: "Keep the jotted bullets to single words so you speak naturally. Reciting them flat sounds scripted." },
 
-  { cluster: "🧑‍💼 My experience", q: "Which phrases connect my Meta experience back to Coupang without overclaiming?",
+  { cluster: "🗣️ Communication", q: "Which phrases connect my Meta experience back to Coupang without overclaiming?",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="steps keys">
 <div class="st"><b>Answer<small>what I did</small></b><span>"That was ads, where the lever was a coupon."</span></div>
@@ -1224,62 +1529,6 @@ Event day, + coupon         136    ₩1,850       −₩300</code></pre>`,
     trap: "Bridge in one sentence, then return to the question. Don't claim Coupang-specific facts you only inferred; say 'I'd expect' or 'I'd check'." },
 
   // ---- Unexpected-question mock (my answers, weak points, tightened versions) ----
-  { cluster: "🧑‍💼 My experience", q: "Unexpected Q1: Tell me about a time a PM or business partner pushed back on your analysis. What did you do?",
-    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
-<div class="yours"><span class="lbl">Your answer</span>My lead PM questioned my assumptions for being too conservative in front of DS and Eng directors. The situation was a 4-year projection of daily run rate for our ad product. I simplified my framework to three inputs: TAM, % adoption rate and average spend. For adoption I benchmarked against other early-stage products, close to the team's line of sight from projects on hand. The PM lead was convinced we needed a number closer to the fair share Meta can capture in four years. I aligned with him in the meeting that the new assumption would be set up as a milestone check-in and a team-level goal. He agreed to drive ownership with my PM counterpart, and we adjusted the model. My objective was to drive the leads' ownership of the key outputs, and the leads were confident to bring the numbers into resource budget conversations. A positive outcome.</div>
-<div class="cmp-wrap"><table class="cmp">
-<tr><th>Weak point</th><th>Replace with</th></tr>
-<tr><td>The disagreement was never named</td><td>One phrase: your bottom-up view (what current projects deliver) against his top-down view (Meta's fair share over four years).</td></tr>
-<tr><td>Opened with setup, not the point</td><td>Open with the resolution: "I raised the assumption on one condition: it became a team milestone with an owner."</td></tr>
-<tr><td>Sounds like you gave in</td><td>State your judgement and the risk (committing to a target current projects don't support) and how the milestone covers it. Expect: "Did you think the higher number was right?"</td></tr>
-<tr><td>No numbers</td><td>The projection from [X] to [Y], and the budget outcome.</td></tr>
-<tr><td>Vague close: "drive ownership", "positive outcome"</td><td>A fact: the leads took the numbers into the resource budget conversation [outcome].</td></tr>
-<tr><td>About 230 words</td><td>Aim for 150.</td></tr>
-</table></div>
-<div class="wex"><span class="wex-title">Tightened version</span>
-<span class="step"><b>Answer:</b> my lead PM challenged my four-year daily run-rate projection as too conservative, in front of DS and Eng directors. I agreed to raise the adoption assumption on one condition: it became a team milestone with an owner.</span>
-<span class="step"><b>Because:</b> my model had three inputs, TAM, adoption and average spend, and I'd set adoption from early-stage benchmarks, close to what our projects could deliver. He wanted Meta's fair share over four years. It was bottom-up against top-down.</span>
-<span class="step"><b>So:</b> I proposed the higher adoption rate as a milestone check-in goal, owned by him and my PM counterpart, and we updated the model [from X to Y].</span>
-<span class="step"><b>Next:</b> the leads were confident taking the numbers into the resource budget conversation [outcome]. If adoption lags, the milestone tells us early. (Say that last line only if the check-in really reviews progress.)</span></div>`,
-    trap: "The follow-up is 'did you think the higher number was right?' Have a one-sentence view and the risk it carries." },
-
-  { cluster: "🧑‍💼 My experience", q: "Unexpected Q2: Tell me about a decision you made with incomplete data. How did you limit the risk of being wrong?",
-    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
-<div class="yours"><span class="lbl">Your answer</span>I made a decision to drastically increase live video ads budget recommendations with incomplete data. Larger advertisers were willing to put in five-figure sums to be spent within a 4–8 hour window. That was hard for DS to recommend because the Meta ads ecosystem is rarely required to spend so much in such a compressed period, and there was no precedent. When I proposed the higher budget range I gave two recommendations: split the budget across a few campaign ad sets to run in parallel, and schedule ahead of time so ad reviews start earlier and don't block at the expected time. The result was positive: we saw strong ad reliability and clients shared positive sentiments.</div>
-<div class="cmp-wrap"><table class="cmp">
-<tr><th>Weak point</th><th>Replace with</th></tr>
-<tr><td>"Incomplete" never defined</td><td>What data was missing and what you used instead (proxy campaigns, advertiser commitments). This is the centre of the question.</td></tr>
-<tr><td>Safeguards without the risk they address</td><td>Name the risk first (under-delivery, pacing, start-time blocker), then "because [risk], I [safeguard]".</td></tr>
-<tr><td>"Drastically increase" has no number</td><td>The range, from [X] to [Y].</td></tr>
-<tr><td>No feedback loop</td><td>What you watched live to know early if it was working. Say it only if you had it.</td></tr>
-<tr><td>Soft result: "strong reliability", "positive sentiment"</td><td>A delivery figure or number of events run.</td></tr>
-</table></div>
-<div class="wex"><span class="wex-title">Tightened version</span>
-<span class="step"><b>Answer:</b> I recommended a much higher budget range for live video ads [from X to Y], with no precedent in Meta ads.</span>
-<span class="step"><b>Because:</b> large advertisers wanted five-figure sums spent in 4–8 hours, and we had no history for spend that concentrated, so I [used Z as the benchmark].</span>
-<span class="step"><b>So:</b> the risk was [under-delivery or a start-time blocker], so I recommended splitting the budget across parallel ad sets and scheduling ahead so ad review couldn't block the start.</span>
-<span class="step"><b>Next:</b> [what you watched live to know early if it was working]. Result: [delivery figure], and clients gave positive feedback.</span></div>`,
-    trap: "Don't list mitigations without the risk. A safeguard only sounds smart next to the thing it guards against." },
-
-  { cluster: "🧑‍💼 My experience", q: "Unexpected Q3: Tell me about a time you were wrong about something at work. What changed afterwards?",
-    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
-<div class="yours"><span class="lbl">Your answer</span>I was wrong about whether our stagnant growth mid-half would persist, which led to a gap to goal by end of half. It was challenging because by not recognising earlier that the revenue growth trajectory had slowed, the team stayed complacent. We assumed growth would accelerate because we saw the same pattern the previous year. The growth stayed slow and translated into a 10% gap to goal with very little time to reverse. After I reacted, the team went into a war room where I was in charge of diagnosing the slowdown and prioritising team efforts. By end of half we ran double-digit live ad coupon activations, which reduced the gap from 10% to 5%. My learning is to communicate a detected slowdown much earlier to allow more turnaround time.</div>
-<div class="cmp-wrap"><table class="cmp">
-<tr><th>Weak point</th><th>Replace with</th></tr>
-<tr><td>Root cause not named</td><td>One phrase: "I anchored on last year's second-half acceleration."</td></tr>
-<tr><td>Lesson is a behaviour ("communicate earlier")</td><td>A mechanism: for example a no-acceleration scenario beside the seasonal one, or a rule that [N] weeks below trend triggers escalation. If you changed nothing, say what you would change now. Never claim a change you didn't make.</td></tr>
-<tr><td>No answer for the obvious probe</td><td>Expect: "You owned the traffic-light forecast, so why didn't it catch this?" Likely honest answer: it carried last year's seasonal assumption, so the light stayed green.</td></tr>
-<tr><td>No timing</td><td>How many weeks between the first sign and when you called it. That is the cost of the delay.</td></tr>
-<tr><td>"It was challenging because…" blurs the point</td><td>State the cause directly.</td></tr>
-<tr><td>Stories feel separate</td><td>If the coupon activations were the response to this gap, say so, and tie it to the Live video ads adoption programme (the double-digit coupon activations that cut the gap from 10% to 5%). Only if true.</td></tr>
-</table></div>
-<div class="wex"><span class="wex-title">Tightened version</span>
-<span class="step"><b>Answer:</b> I was wrong that our mid-half stagnant growth would reverse.</span>
-<span class="step"><b>Because:</b> I assumed last year's acceleration would repeat, so we stayed on plan, and [N weeks] later we had a 10% gap to goal with little time left.</span>
-<span class="step"><b>So:</b> I led a war room, diagnosed the slowdown and prioritised the team's efforts. Double-digit live ad coupon activations narrowed the gap from 10% to 5%.</span>
-<span class="step"><b>Next:</b> [for example, the forecast now carries a no-acceleration scenario, and a set number of weeks below trend triggers escalation]. The lesson wasn't just to speak up sooner but to build the check that makes speaking up automatic.</span></div>`,
-    trap: "'Communicate earlier' is a good intention, not a system. Coupang's principle is to fix the defect and prevent it recurring." },
-
   { cluster: "🗣️ Communication", q: "Unexpected Q4: Daily orders in one major category dropped 5% yesterday versus the previous week. How do you figure out what happened?",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="yours"><span class="lbl">Your answer</span>Three buckets: artifact versus real drop, external, and internal root causes. First, whether loggers or order and category definitions changed week on week. If nothing changed, I check whether the trend is unique to the major category, and whether a promotion or price change last week drove a weekly high and this is a post-sale dip. I check whether competitors ran a promotion that cannibalises our sales. If there are no marketing or competitor effects, I move to internal factors: shifts in how we rank the category on the home page so it became less visible, and whether this level of fluctuation is within tolerable range of historical weekly trends. The sequence strikes out the most likely hypothesis.</div>
@@ -1404,50 +1653,7 @@ COUNT(DISTINCT CASE WHEN order_dt &gt;= effective_dt THEN order_dt END) AS days_
 </details>`,
     trap: "Never compare revenue against coupon cost. Convert to contribution first, and count only incremental customers." },
 
-  // ---- Experience: GTM measurement defect ----
-  { cluster: "🧑‍💼 My experience", q: "Tell me about a time something people relied on was broken. What did you do, and what did you put in place so it wouldn't happen again? (GTM incrementality measurement)",
-    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
-<div class="steps keys">
-<div class="st"><b>Answer<small>the defect</small></b><span>Our GTM measurement plan broke because partners moved part of the coupon funds into mass-market events we couldn't trace. I re-scoped the measurement to the traceable subset and pushed for a distribution model where spend stays measurable.</span></div>
-<div class="st"><b>Because<small>the trade-off</small></b><span>Only targeted coupon recipients were identifiable. Measuring everyone meant low confidence and a likely neutral reading. Measuring the subset meant mid confidence, but only a <b>lower bound</b> on the total.</span></div>
-<div class="st"><b>So<small>what I did</small></b><span>I gave my PMM both options and recommended the subset. Lift on the subset didn't justify the full spend, and leads reduced budgets for the next half.</span></div>
-<div class="st"><b>Next<small>prevention + feedback loop</small></b><span>Tie partner funds to trackable codes; track the share of funds traceable every week with an alert; move toward programmatic in-product coupon distribution. [Say how far this got.]</span></div>
-</div>
-<details><summary>Your answer, as given</summary>
-<div class="yours">My GTM incrementality measurement plan was heavily impacted by mass market activations and this resulted in lower ROI than expected which led to leads reducing budgets for future halves. The ROI was lower because third party partners reallocated GTM budgets beyond targeted ad coupon distributions to mass market events. Therefore this meant that i can only measure causal lift on top of subset of activated advertisers, namely those who were part of targeted ad coupon distributions whom I was able to identify. The trade off is that we cannot measure the full GTM funds deployed. I communicated this situation to my PMM counterpart and told her we can measure with mid confidence on a subset of advertisers OR measure with low confidence across the entire partner-enabled advertiser ecosystem with likelihood of neutral lift. She agreed with my recommendation to go with the higher confidence reading, which ultimately showed revenue lift ballpark which did not match the full funds deployed. The impact was leads reduced budgets for future halves. Next for future GTM measurement plans, i was convincing my PMM to shift towards more programmatic product-driven ways to distribute the ad coupons so that we reduce reliance on third parties whom we have lower control over.</div>
-</details>
-<div class="cmp-wrap"><table class="cmp">
-<tr><th>Weak point</th><th>Replace with</th></tr>
-<tr><td>Opened with the consequence ("impacted… lower ROI… budgets reduced"), so the listener doesn't know what broke.</td><td>Open with the defect: "Partners spent part of the funds outside the measured design, so part of the spend couldn't be measured."</td></tr>
-<tr><td>"ROI was lower" mixes up no <i>measured</i> lift with no lift.</td><td>"The reading was a lower bound: unmeasured spend isn't zero return."</td></tr>
-<tr><td>No numbers.</td><td>"About X% of funds were traceable; lift on that subset was Y."</td></tr>
-<tr><td>Unclear when you found out.</td><td>Say mid-flight or at readout. If at readout, that's the gap the prevention step closes.</td></tr>
-<tr><td>Prevention is a fix with no feedback loop; "convincing my PMM" sounds unfinished.</td><td>Add the early check (weekly share of funds traceable, alert below a threshold) and say whether it shipped.</td></tr>
-</table></div>
-<div class="todo"><b>Fill in before the interview:</b> share of funds traceable; lift on the subset; when the reallocation was found; whether programmatic distribution or traceable codes shipped.</div>`,
-    trap: "Lead with what broke, not the budget cut. Call the result a lower bound, and name a feedback loop (an early check), not just a fix." },
-
-  { cluster: "🧑‍💼 My experience", q: "Leads cut the GTM budget based on your reading. Was that the right decision? When would you have caught the reallocation, and how?",
-    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
-<div class="steps keys">
-<div class="st"><b>Answer<small>verdict</small></b><span>It was premature. Our reading was a lower bound, not proof that the activation didn't work.</span></div>
-<div class="st"><b>Because<small>unknown ≠ zero</small></b><span>The untraced spend had unknown lift, not zero lift, and this was the first run of the pilot.</span></div>
-<div class="st"><b>So<small>what I'd do in the room</small></b><span>Frame it as a lower bound and propose a smaller, fully traceable budget for the next half, so we learn the true lift instead of cutting or keeping blindly. A cut was defensible on risk; what was missing was a way to learn.</span></div>
-<div class="st"><b>Next<small>detect + prevent</small></b><span><b>Detect:</b> weekly reconciliation of funds disbursed against coupon redemptions; alert if traceable spend drops below about 80%, so it surfaces in week 2, not at readout. <b>Prevent:</b> traceable codes as a precondition for releasing partner funds.</span></div>
-</div>
-<details><summary>Your answer, as given</summary>
-<div class="yours">The leads were making a decision based on partial data where we were not able to confirm that 3rd party activation was ineffective. This could be a pre-mature decision esp given we are running this pilot for the very first time. For our future iterations, i would have set the expectations on ability to trace funds distribution via coupon codes. This is a pre-requisite before proceeding with any activation for measurement purposes.</div>
-</details>
-<div class="cmp-wrap"><table class="cmp">
-<tr><th>Weak point</th><th>Replace with</th></tr>
-<tr><td>Sounds like hindsight ("leads decided on partial data"); they'll ask "did you say so at the time?"</td><td>Say what you did or would do in the room: lower-bound framing plus a conditional, smaller, traceable budget.</td></tr>
-<tr><td>Answered prevention, not detection ("at what point would you have caught it?").</td><td>Add the weekly reconciliation with an alert threshold.</td></tr>
-<tr><td>"Leads were wrong" can sound defensive.</td><td>Balanced: "A cut was defensible on risk; the gap was a way to learn."</td></tr>
-</table></div>`,
-    trap: "Answer both halves: the verdict, and when you'd have caught it. Detection (a prompt feedback mechanism) is the part Coupang's principle asks for." },
-
-  // ---- Mock case 3: CS contacts ----
-  { cluster: "🎯 Mock case", q: "Mock case 3: CS contacts are up about 30% this quarter and CS cost is over budget. What's going on? (diagnosis)",
+  { cluster: "🎯 Mock case", q: "Case 3: CS contacts are up about 30% this quarter and CS cost is over budget. What's going on? (diagnosis)",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="vp"><b>Say it to a VP</b>This is a delivery problem, not a CS problem. The new fulfilment centre delivers 20% of its orders late, and 'where is my order' contacts explain 90% of the increase.</div>
 <div class="cmp-wrap"><table class="cmp">
@@ -1478,6 +1684,15 @@ COUNT(DISTINCT CASE WHEN order_dt &gt;= effective_dt THEN order_dt END) AS days_
 <div class="st"><b>So<small>the path you took</small></b><span>Split by reason → hypothesis (late deliveries vs missing tracking info) → delivery time vs promise → by FC. That ordering is the systematic thinking they're testing.</span></div>
 <div class="st"><b>Next<small>what's left</small></b><span>Size it in won, check capacity before shifting volume, and add prevention (see the next card).</span></div>
 </div>
+<p class="sec">Case framework — Clarify → Decompose → Locate → Size → Recommend → Prevent</p>
+<div class="steps">
+<div class="st"><b>Clarify</b><span>what counts as a contact; any launches or changes this quarter?</span></div>
+<div class="st"><b>Decompose</b><span>volume (+8% orders) vs rate (+20% contacts per order); then rate by contact reason: WISMO is 0.9 of the 1.0-point rise.</span></div>
+<div class="st"><b>Locate</b><span>WISMO → late deliveries (4% → 8%) → the new FC (20% late on 25% of orders).</span></div>
+<div class="st"><b>Size</b><span>about ₩2.2B a quarter of excess CS cost, plus about 2.2M extra late orders.</span></div>
+<div class="st"><b>Recommend</b><span>shift volume within other FCs' spare capacity; proactive delay notifications.</span></div>
+<div class="st"><b>Prevent</b><span>stepped FC ramps gated on late rate; daily late-rate alert per FC with an owner.</span></div>
+</div>
 <details><summary>Your answers, as given</summary>
 <div class="yours">WISMO is explaining 90% of the rise, given the WISMO nett difference is 0.9 out of total orders delta 1.0.</div>
 <div class="yours">If customers are generally more likely to ask Where is my order, this suggests that there are more delayed deliveries or lack of/wrong information on delivery status. To differentiate, I would like to compare the delivery duration versus delivery expectations for problematic orders and split by delivery modes.</div>
@@ -1491,7 +1706,7 @@ COUNT(DISTINCT CASE WHEN order_dt &gt;= effective_dt THEN order_dt END) AS days_
 </table></div>`,
     trap: "Don't treat it as a CS staffing problem. Split volume from rate, then follow the rate to its operational root cause." },
 
-  { cluster: "🎯 Mock case", q: "Mock case 3 follow-ups: how big is the problem, what goes wrong if you shift volume, and how do you stop it at the next FC launch?",
+  { cluster: "🎯 Mock case", q: "Case 3 · Size, Recommend and Prevent follow-ups: how big is the problem, what goes wrong if you shift volume, and how do you stop it at the next FC launch?",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="vp"><b>Say it to a VP</b>It's costing about ₩2.2B a quarter in CS, plus 2.2M late orders that put repeat purchases at risk. We'll shift volume within spare capacity and send proactive delay alerts now, and gate future FC ramps on late-rate targets.</div>
 <div class="steps keys">
@@ -1513,51 +1728,7 @@ COUNT(DISTINCT CASE WHEN order_dt &gt;= effective_dt THEN order_dt END) AS days_
 </table></div>`,
     trap: "A report is not prevention. Coupang's principle wants a gate and an alert with an owner, on a leading indicator, not the lagging CS bill." },
 
-  // ---- Experience: automated weekly leadership report ----
-  { cluster: "🧑‍💼 My experience", q: "Tell me about a recurring analysis or manual process you turned into something scalable. How did you know it was working, and how did it catch problems? (weekly leadership goal report)",
-    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
-<div class="steps keys">
-<div class="st"><b>Answer<small>result first</small></b><span>I automated a weekly leadership goal update, saving about 5 analyst hours a week. It also became an early-warning system for advertiser spend.</span></div>
-<div class="st"><b>Because<small>three standards</small></b><span>The same analysis was rebuilt by hand every week from inconsistent sources, so I standardised three things: a template, one source of truth for metrics, and fixed AI prompts. Every number comes from the embedded query; the AI only writes the narrative.</span></div>
-<div class="st"><b>So<small>staged rollout</small></b><span>Ran it privately with my data engineer for [N] weeks, reconciling against the source-of-truth dashboard. That caught defects like week-on-week comparisons on too few days of data (now suppressed, not shown as a drop). Then widened it to the broader group.</span></div>
-<div class="st"><b>Next<small>business impact</small></b><span>Weekly spend-burst flags let product warm up sales conversations. One flagged Amazon's spike in week [X] → product looped in sales → it became a white-glove account. [Add the automated pre-send checks, if they existed.]</span></div>
-</div>
-<details><summary>Your answer, as given</summary>
-<div class="yours">I launched a scheduled recurring weekly goal update catered to leadership, reducing analyst hours by 5hours weekly. The approach i took was to establish a standardised template and source of truth for key data foundations as well as metrics used frequently within our organisation. With ai- i ensured that it read my standardised prompts to produce repeatable analysis with the source query embedded within appendix. To operationalise this, I first scheduled the report for an internal work channel only with myself and my data engineer to conduct quality assurance. Only when we have had several weeks of consistent accurate readouts, after we caught the initial mistakes made such as ensuring minimum data periods are available, I then progressed to schedule the report landing directly within a broader group chat. This report was scheduled weekly which meant that it was able to surface advertisers who had sudden bursts of spend in a very proactive manner. This was extremely useful for the product team to proactively share this with the sales team to intiate warm conversations and ensure stable ad delivery. overall one standout was was our ability to capture Amazon as a large client for Live video ads and sustain their spend through dedicated white glove service.</div>
-</details>
-<div class="cmp-wrap"><table class="cmp">
-<tr><th>Weak point</th><th>Replace with</th></tr>
-<tr><td>"Consistent accurate readouts": accurate against what?</td><td>"Reconciled each week against the source-of-truth dashboard; matched for N weeks in a row."</td></tr>
-<tr><td>No ongoing safety net: QA was manual and pre-launch only.</td><td>Automated pre-send checks (freshness, row counts, reconciliation within ±X%); hold the report and alert if one fails.</td></tr>
-<tr><td>"Minimum data periods" unexplained.</td><td>"Comparisons with fewer than N days of data were suppressed, not shown as a drop."</td></tr>
-<tr><td>Mentioning AI invites a hallucination probe.</td><td>"Every number comes from the embedded query; the AI only writes the narrative from fixed prompts."</td></tr>
-<tr><td>Amazon link is loose; could sound like an overclaim.</td><td>Spell out the chain: flagged spike → product looped in sales → white-glove account. Claim only the step you can show.</td></tr>
-<tr><td>The middle rambles.</td><td>Three parts: template, one source of truth, fixed prompts.</td></tr>
-</table></div>
-<div class="todo"><b>Fill in before the interview:</b> weeks of private QA; how accuracy was checked; whether automated pre-send checks existed; the week Amazon was flagged and their spend.</div>`,
-    trap: "Answer 'how did you know it was working' with a named check, and 'how did it catch problems' with an ongoing automated guardrail, not pre-launch QA alone." },
-
-  { cluster: "🧑‍💼 My experience", q: "Your weekly report goes to a broad group. An upstream table breaks and it shows a fake −40% spend drop. How would you know before leadership read it, and what if it reached them?",
-    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
-<div class="steps keys">
-<div class="st"><b>Answer<small>catch it before send</small></b><span>Automated checks before the report sends, which hold it if something looks wrong.</span></div>
-<div class="st"><b>Because<small>implausible moves</small></b><span>A real −40% week-on-week company-wide move is implausible. Freshness, row counts and reconciliation against an <b>independent</b> source (billing or finance) flag it as a pipeline issue; any metric moving more than ±X% holds the send for review.</span></div>
-<div class="st"><b>So<small>if it reached them</small></b><span>Correct fast and plainly: "The −40% is a data issue, please don't act on it. Corrected version by [time]."</span></div>
-<div class="st"><b>Next<small>prevent</small></b><span>Post-mortem: root cause → add a check that would have caught it → that class of error is caught automatically from then on.</span></div>
-</div>
-<details><summary>Your answer, as given</summary>
-<div class="yours">This report would provide a benchmark comparison against company level revenue which comes from the same source of truth table, in this scenario it would showcase both the product and company level revenue have dropped at a same degree which suggests there is an upstream data pipeline issue. If it did reach the leadership team, I would proactively communicate my top hypothesis on the revenue drop, and commit to a follow-up timeline on the investigation results.</div>
-</details>
-<div class="cmp-wrap"><table class="cmp">
-<tr><th>Weak point</th><th>Replace with</th></tr>
-<tr><td>The company benchmark only helps after someone reads it, and leadership reads it at the same time.</td><td>An automated pre-send check against an independent source, with a hold-and-alert.</td></tr>
-<tr><td>"Communicate my top hypothesis on the revenue drop" treats the drop as possibly real.</td><td>"Data issue, don't act on it; corrected version by [time]."</td></tr>
-<tr><td>No prevention loop after the incident.</td><td>Post-mortem plus a new check for that failure.</td></tr>
-</table></div>`,
-    trap: "'Before leadership read it' means automated, before send. A benchmark inside the report is diagnosis, not prevention." },
-
-  // ---- Mock case 4: sponsored slots ----
-  { cluster: "🎯 Mock case", q: "Mock case 4: the search PM wants to ship 4 sponsored slots per page (up from 2): \"Ad revenue +18%, GMV flat.\" What do you ask for, and what do you see? (exhibits)",
+  { cluster: "🎯 Mock case", q: "Case 4: the search PM wants to ship 4 sponsored slots per page (up from 2): \"Ad revenue +18%, GMV flat.\" What do you ask for, and what do you see? (exhibits)",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="vp"><b>Say it to a VP</b>'GMV flat' isn't quite right: GMV is trending down (−0.1% to −0.7%), and our heaviest searchers, 60% of GMV, are down 1.2%. I wouldn't ship this to everyone.</div>
 <div class="cmp-wrap"><table class="cmp">
@@ -1582,6 +1753,15 @@ COUNT(DISTINCT CASE WHEN order_dt &gt;= effective_dt THEN order_dt END) AS days_
 <div class="st"><b>So<small>the path you took</small></b><span>Guardrails → trend by week → segments → targeted rollout. Each exhibit asked for with a reason: this is the sequence to repeat.</span></div>
 <div class="st"><b>Next<small>ask this too</small></b><span>Is the week-2 decline also present for everyone else? If so, "no harm" there may not last.</span></div>
 </div>
+<p class="sec">Case framework — Clarify → Decompose → Locate → Size → Recommend → Prevent</p>
+<div class="steps">
+<div class="st"><b>Clarify</b><span>which guardrails were agreed, and with what ship thresholds (none).</span></div>
+<div class="st"><b>Decompose</b><span>overall CIs, then the trend by week: GMV −0.1% → −0.7%.</span></div>
+<div class="st"><b>Locate</b><span>heavy searchers (60% of GMV) carry the harm: −1.2%.</span></div>
+<div class="st"><b>Size</b><span>heavy searchers: +₩270M ad revenue vs about −₩720M contribution.</span></div>
+<div class="st"><b>Recommend</b><span>ship to non-heavy searchers with a long-term holdout; test 3 or relevance-gated slots for heavy searchers.</span></div>
+<div class="st"><b>Prevent</b><span>pre-agreed ship criteria and standing heavy-user guardrails for every ad-load test.</span></div>
+</div>
 <details><summary>Your answers, as given</summary>
 <div class="yours">I want to clarify whether we discussed any guardrails. Also the experiment has been running for 2 weeks, do we believe that the ad revenue lift is persistent across the two weeks or does week 1 vs 2 look different in terms of lift?</div>
 <div class="yours">It looks like while ad revenue has improved, GMV loss has been worsening. Would we be able to drill down by user groups to understand new versus existing user lifts change?</div>
@@ -1594,7 +1774,7 @@ COUNT(DISTINCT CASE WHEN order_dt &gt;= effective_dt THEN order_dt END) AS days_
 </table></div>`,
     trap: "Don't accept \"GMV flat\": read the CI, the trend by week, and the heaviest segment before anything else." },
 
-  { cluster: "🎯 Mock case", q: "Mock case 4: size the heavy-searcher trade-off and recommend. Ship 4 sponsored slots to whom?",
+  { cluster: "🎯 Mock case", q: "Case 4 · Size and Recommend: size the heavy-searcher trade-off. Ship 4 sponsored slots to whom?",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <div class="vp"><b>Say it to a VP</b>Ship the extra ad slots to everyone except heavy searchers. That keeps about half the ad revenue gain and avoids losing about ₩720M of contribution to gain ₩270M of ad revenue. We'll keep a long-term holdout and test a lighter version for heavy searchers.</div>
 <div class="steps keys">
@@ -1680,6 +1860,39 @@ let revealed = false;
 let activeCluster = "All";
 let reviewOnly = false;
 const marked = new Set(JSON.parse(localStorage.getItem("pricing_marked_cards") || "[]"));
+if (!localStorage.getItem("pricing_marked_v2")) {
+  const remap = { 31: 32, 32: 33, 33: 31 };
+  const moved = [...marked].map(i => (i in remap ? remap[i] : i));
+  marked.clear(); moved.forEach(i => marked.add(i));
+  localStorage.setItem("pricing_marked_cards", JSON.stringify([...marked]));
+  localStorage.setItem("pricing_marked_v2", "1");
+}
+if (!localStorage.getItem("pricing_marked_v3")) {
+  const remap = { 37: 38, 38: 40, 40: 41, 41: 49, 42: 50, 43: 51, 44: 46, 45: 47, 46: 48, 47: 52, 48: 53, 49: 54, 50: 55, 51: 56, 52: 57, 53: 58, 54: 42, 55: 43, 56: 59, 57: 60, 58: 44, 59: 45, 60: 61, 61: 62, 62: 63, 63: 64, 64: 65, 65: 66 };
+  const moved = [...marked].map(i => (i in remap ? remap[i] : i));
+  marked.clear(); moved.forEach(i => marked.add(i));
+  localStorage.setItem("pricing_marked_cards", JSON.stringify([...marked]));
+  localStorage.setItem("pricing_marked_v3", "1");
+}
+if (!localStorage.getItem("pricing_marked_v4")) {
+  const remap = { 38: 42, 39: 43, 42: 47, 43: 48, 44: 38, 45: 39, 46: 44, 47: 45, 48: 46 };
+  const moved = [...marked].map(i => (i in remap ? remap[i] : i));
+  marked.clear(); moved.forEach(i => marked.add(i));
+  localStorage.setItem("pricing_marked_cards", JSON.stringify([...marked]));
+  localStorage.setItem("pricing_marked_v4", "1");
+}
+if (!localStorage.getItem("pricing_marked_v5")) {
+  const moved = [...marked].map(i => (i >= 42 ? i + 1 : i));
+  marked.clear(); moved.forEach(i => marked.add(i));
+  localStorage.setItem("pricing_marked_cards", JSON.stringify([...marked]));
+  localStorage.setItem("pricing_marked_v5", "1");
+}
+if (!localStorage.getItem("pricing_marked_v6")) {
+  const moved = [...marked].map(i => (i >= 45 ? i + 1 : i));
+  marked.clear(); moved.forEach(i => marked.add(i));
+  localStorage.setItem("pricing_marked_cards", JSON.stringify([...marked]));
+  localStorage.setItem("pricing_marked_v6", "1");
+}
 
 const clusters = ["All", ...Array.from(new Set(CARDS.map(c => c.cluster)))];
 let currentView = "cheatsheet";
