@@ -1092,7 +1092,7 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
 <tr><td>Lead</td><td>1 · Weekly leadership report</td><td>Automated the weekly update: 5 analyst hours a week saved, staged QA rollout, spend-burst alerts (Amazon).</td><td><b>Think Systematically</b>, feedback mechanisms</td><td><b>Think Systematically</b>; Simplify; Hate Waste</td></tr>
 <tr><td>Lead</td><td>2 · Live ads adoption programme</td><td>Designed a rule-based coupon system (tiered eligibility, automated exception check, a spend gate that closed coupon leakage) that cut the goal gap from 10% to 5%.</td><td><b>Think Systematically</b>, promo design</td><td><b>Think Systematically</b>; Aim High and Find a Way; Deliver Results with Grit</td></tr>
 <tr><td>Lead</td><td>3 · Live ads incrementality test</td><td>When directors proposed downranking Live for Reels, my A/B test showed cutting Live ads 50% cost −4% ad impressions and −0.5% core sessions, so Live kept full delivery.</td><td><b>Influence without authority</b>, A/B testing</td><td><b>Influence without Authority</b>; Dive Deep; Company-wide Perspective</td></tr>
-<tr><td>Lead</td><td>4 · Live ads on Reels and Stories (to build)</td><td>Led the launch decision: more ad load against minimal engagement regression.</td><td><b>Ecosystem trade-offs</b>, launch decisions</td><td><b>Company-wide Perspective</b>; Wow the Customer</td></tr>
+<tr><td>Lead</td><td>4 · Live ads on Reels and Stories</td><td>Led the launch of Live ads on Reels: +3–5% surface revenue for −0.5–1% engagement, about 5:1 once engagement is valued in dollars; 5% long-term holdout.</td><td><b>Ecosystem trade-offs</b>, launch decisions</td><td><b>Company-wide Perspective</b>; Wow the Customer</td></tr>
 <tr><td>Lead</td><td>5 · Partnership Ads launch</td><td>Launched a creator live ad format; +9% cost per purchase (range +5% to +13%) across 20–30 lift tests.</td><td>Impact, experiment design</td><td><b>Wow the Customer</b>; Dive Deep; Aim High and Find a Way</td></tr>
 <tr><td>Lead</td><td>6 · Live ad pacing reliability</td><td>Cut p75 time to first impression for large Live campaigns from 35 minutes to under 10; treated campaigns +5% revenue and 7% cheaper per impression.</td><td>Root cause, customer trust, cross-team influence</td><td><b>Dive Deep</b>; Wow the Customer; Influence without Authority; Think Systematically</td></tr>
 <tr><td>Situational</td><td>7 · PM pushback</td><td>PM called my 4-year projection too conservative; aligned on milestone check-ins and team-level goals.</td><td>Influence, conflict</td><td><b>Disagree and Commit</b>; Influence without Authority</td></tr>
@@ -1112,7 +1112,7 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
 <div class="st"><b>Principle gaps</b><span>No story yet for <b>Ruthless Prioritization</b> (resume: setting roadmap goals across 4 cycles against team capacity) or <b>Hire and Develop the Best</b> (resume: onboarding buddy to 5 new DS). Bold = the principle to name out loud.</span></div>
 <div class="st"><b>Live ads adoption programme</b><span>Tell it as a <b>system</b>, not a programme: rule-based eligibility, automated exception detection, a spend gate, leak controls.<br>Prepare for "Was the ROI of 4 incremental?" e.g. "No, it was observed ROI. Today I'd hold out a random slice of eligible advertisers to measure incremental spend."</span></div>
 <div class="st"><b>Live ads incrementality test</b><span>Frame it as DS driving a decision without authority: the key move was getting leads to agree the decision rule (reduce or maintain) before the test.</span></div>
-<div class="st"><b>Live ads on Reels and Stories</b><span>To build in a mock. Prepare: the two sides and their metrics, the exchange rate (revenue per 0.1% engagement lost), the threshold and who set it, the decision and the standing guardrail.</span></div>
+<div class="st"><b>Live ads on Reels and Stories</b><span>Say how the bar was agreed before the test, give the worst case of both ranges, and name persistence as the assumption that swings the answer. Fill in: the surface team's maximum engagement loss, test length, and what happened with Stories.</span></div>
 <div class="st"><b>Ad reliability for big live budgets</b><span>Lead with <b>Move with Urgency</b>: live windows are perishable, so waiting for precedent cost revenue and trust. Open with the advertiser's pain, not "incomplete data". For Dive Deep, use Live ad pacing reliability instead.<br>Fill in: a reliability number (share of budget delivered in the window, before and after).</span></div>
 <div class="st"><b>GTM measurement</b><span>Offline partner activations don't map well to Coupang, and the outcome is weak. If used, bridge it: "Same risk as 3P sellers or card issuers funding promos outside our measured design."</span></div>
 </div>`,
@@ -1264,6 +1264,69 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
 <div class="st"><b>Probe 5</b><span><b>Why did leadership accept a DS-led conclusion?</b><br>They'd agreed the decision rule before seeing the data, so the decision followed from their own criteria.</span></div>
 </div>`,
     trap: "For an influence question, lead with the disagreement and your move (a pre-agreed decision rule), then the result. Don't claim the test proved 100% is optimal." },
+  { cluster: "🧑‍💼 My experience", q: "Story 4 · Live ads on Reels and Stories: Tell me about a launch decision where more revenue meant a worse experience for users. How did you size the trade-off, and how did you decide?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>decision + trade-off</small></b><span>I led the decision to launch Live ads on Reels: <b>+3–5% surface revenue for −0.5–1% engagement</b>, about <b>5:1</b> once engagement is valued in dollars.</span></div>
+<div class="st"><b>Because<small>how we agreed the bar</small></b><span>The surface teams owned the user experience, so I agreed the exchange rate (engagement valued through user lifetime value) and their maximum acceptable engagement loss with them <b>before</b> the test. A user-level A/B test showed we stayed inside it.</span></div>
+<div class="st"><b>So<small>launch + limit the cost</small></b><span>We launched on Reels [and Stories], with [frequency caps, ad load caps or a quality bar for which streams get ads] to limit the engagement cost.</span></div>
+<div class="st"><b>Next<small>standing guardrail</small></b><span>A 5% long-term holdout tracks revenue against engagement. If the revenue gain shrinks or the engagement loss grows past [threshold], we revisit.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">I convinced surfaces teams owning Reels and story to launch live video ads with an upside of 3-5% surface revenue while trading off user engagement by 0.5%-1%. This was tolerable because when translating the user engagement into dollar amounts by multiplying the user lifetime value and comparing this with the surface level revenue gains, there is a net positive ratio of 5:1. Namely we are able to achieve a 5x improvement of revenue for trade off in user engagement. So next we launched the live video ads into the fb reels surface post alignment with surface teams. We also set up a long term holdout for 5% of all surface users to continue monitoring the user engagement versus revenue gains. In the scenario that we see reduced surface revenue gains against increased user engagements, we will revisit the launch decision.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"Convinced the surface teams", but not how. For an influence story, that's the interesting part.</td><td>"I agreed the exchange rate and their maximum acceptable engagement loss with them before the test."</td></tr>
+<tr><td>"Tolerable", but who set the bar?</td><td>"Their guardrail was a maximum engagement loss of [X]%; we came in at 0.5–1%."</td></tr>
+<tr><td>The test design is missing.</td><td>"A user-level A/B test, treatment shows Live ads in Reels, [N] weeks."</td></tr>
+<tr><td>The ranges hide the worst case.</td><td>"5:1 at the midpoint, still about [X]:1 at +3% against −1%."</td></tr>
+<tr><td>Revisit condition is backwards: "reduced revenue against <i>increased</i> engagement".</td><td>"If the revenue gain shrinks or the engagement loss grows past [threshold]."</td></tr>
+<tr><td>Reels only, but the resume says Reels <i>and</i> Stories.</td><td>Say what happened with Stories.</td></tr>
+<tr><td>Accepted the trade-off as given.</td><td>Say how you reduced the downside: frequency caps, ad load caps, or a quality bar.</td></tr>
+</table></div>
+<p class="sec">Likely probes</p>
+<div class="steps">
+<div class="st"><b>Probe 1</b><span><b>How did you get the surface teams to agree?</b><br>The bar was agreed before the data: the exchange rate and their maximum engagement loss. The decision then followed from their own criteria.</span></div>
+<div class="st"><b>Probe 2</b><span><b>Why was 5:1 enough? Would 1.5:1 have been?</b><br>Any ratio above 1 is net positive in expectation, but the ranges and the persistence assumption argue for a margin of safety. [Who set the bar, and what it was.]</span></div>
+<div class="st"><b>Probe 3</b><span><b>What would have made you not launch?</b><br>The worst-case ratio below 1, engagement loss above the surface guardrail, or the loss concentrated in high-value users.</span></div>
+<div class="st"><b>Probe 4</b><span><b>How did you reduce the engagement cost?</b><br>[Fill in: caps, ad load limits, which streams were eligible.]</span></div>
+<div class="st"><b>Probe 5</b><span><b>Why a 5% holdout, and for how long?</b><br>Big enough to detect the long-run engagement effect, small enough to limit revenue held back. [Fill in duration.]</span></div>
+</div>
+<div class="todo"><b>Fill in before the interview:</b> the surface team's maximum engagement loss; test duration; the worst-case ratio; what happened with Stories; any caps or quality rules; holdout duration.</div>`,
+    trap: "Say how the bar was agreed before the test, and use the worst case of both ranges, not just the midpoint." },
+
+  { cluster: "🧑‍💼 My experience", q: "Story 4 · Follow-up: Walk me through how you turned a 0.5–1% engagement drop into dollars. What horizon, and which assumption changes the answer most?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the formula</small></b><span>Per affected user over 5 years: lost value = 5-year revenue per user × engagement drop, compared with 5 years of extra Live ads revenue per user, both discounted. That gave about 5:1.</span></div>
+<div class="st"><b>Because<small>same unit</small></b><span>Lifetime value captures the longer-term revenue a user brings, so it puts engagement and revenue in the same unit.</span></div>
+<div class="st"><b>So<small>assumptions to flag</small></b><span>Lifetime value moves one-for-one with engagement (it could be more, through retention, or less, if users shift to other surfaces), and the drop persists for all 5 years.</span></div>
+<div class="st"><b>Next<small>what swings it</small></b><span>Persistence swings the answer most: a temporary dip costs far less than a habit change, which is why we kept the long-term holdout. I'd also check the ratio by segment, in case the loss sits with high-value users.</span></div>
+</div>
+<p class="sec">Same horizon on both sides (per user)</p>
+<div class="steps">
+<div class="st"><b>Loss</b><span>5-year revenue per user $50 × 1% engagement drop = <b>$0.50 per user over 5 years</b>.</span></div>
+<div class="st"><b>Gain</b><span>Extra Live ads revenue $0.50 per user <b>per year</b> × 5 = <b>$2.50 per user over 5 years</b>.</span></div>
+<div class="st"><b>Ratio</b><span>$2.50 ÷ $0.50 = <b>5:1</b>. Comparing one year of gain ($0.50) with 5 years of loss would give 1:1 and make the launch look 5× worse.</span></div>
+<div class="st"><b>Checks</b><span>The same users on both sides (users who see Live ads on Reels), and the gain is per user too.<br>The gain recurs each year but may shrink if engagement falls, so don't just multiply year 1 by 5 without saying so.<br>Gains arriving before losses tilts slightly towards launch once discounted (second-order).</span></div>
+</div>
+<p><b>One-liner:</b> "Per affected user over 5 years: about $X lost in long-term revenue against about $Y gained from Live ads, roughly 5:1. Both sides discounted; the gain recurs each year, and the loss assumes the drop persists."</p>
+<p class="todo"><b>Check before the interview:</b> did your team compare both sides over 5 years? The 5:1 only holds if they did. Illustrative numbers above; replace with real ones.</p>
+<details><summary>Your answer, as given</summary>
+<div class="yours">We took 0.5 - 1% engagement drop and multiplied by user lifetime value ($) to derive a $ number. We know that the user lifetime value ($) is determined at a 5-year horizon, which represents the full mid-long revenue impact of the launch. Essentially the revenue lifts need to exceed the full mid-long term estimation of user value lost before we can make a launch decision. The key assumption that would change the answer the most is if we differentiate user lifetime value by user profiles such as video-heavy or photo-heavy or infrequent.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>No user count.</td><td>Multiply by the affected users.</td></tr>
+<tr><td>Assumes lifetime value falls one-for-one with engagement.</td><td>Say it as an assumption, and which way it could break.</td></tr>
+<tr><td>Assumes the drop lasts all 5 years.</td><td>"Persistence is the biggest swing; the holdout tests it."</td></tr>
+<tr><td>Compared a 5-year loss with a revenue lift of unstated horizon.</td><td>Same horizon for both, both discounted.</td></tr>
+<tr><td>Segment lifetime value named, but not why it matters.</td><td>"If the drop sits in video-heavy users, who are worth most, the average understates the loss."</td></tr>
+</table></div>`,
+    trap: "Name the persistence assumption: a 5-year lifetime value only applies if the engagement drop lasts." },
 
   { cluster: "🧑‍💼 My experience", q: "Story 5 · Partnership Ads: Tell me about launching Partnership Ads at Meta: the problem, and how you knew it worked.",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong> (about 90 seconds)</p>
@@ -1324,14 +1387,28 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
 <p class="sec">Model answer</p>
 <div class="steps keys">
-<div class="st"><b>Answer<small>result first</small></b><span>I cut the time large Live campaigns took to start delivering from <b>35 minutes to under 10</b> (p75 time to first impression). Treated campaigns showed a <b>5% revenue lift</b> and paid <b>7% less per impression</b>.</span></div>
-<div class="st"><b>Because<small>the dive</small></b><span>For six months large advertisers said delivery was unreliable, and on Live the audience only exists for a few hours.<br>I split the 35 minutes into review queue, review and ramp-up. Queue and review were steady; only ramp-up varied.<br>I ruled out big budgets and peak-stream competition, then audited pacing logs: pacing was built for multi-week campaigns, so it was working as designed, for the wrong use case.</span></div>
-<div class="st"><b>So<small>fix + influence</small></b><span>With my PM, I picked the lowest-lift fix: a Live-only initial bid multiplier during ramp-up, validated with budget-controlled experiments.<br>The pacing team had no bandwidth, so we proposed a shared incremental-revenue goal backed by my lift sizing; our team ran the experiment and they reviewed the code changes.</span></div>
-<div class="st"><b>Next<small>outcome + learning</small></b><span>Large advertisers kept their trust and their spend. I now look at where the variation comes from, not just the overall number, and treat benchmarks as things to review, not set once.</span></div>
+<div class="st"><b>Answer<small>result first</small></b><span>I cut p75 time to first impression for large Live campaigns from <b>35 to 10 minutes</b>. Treated campaigns showed <b>+5% revenue</b> and <b>−7% [cost per impression or purchase: pick the true one]</b> with no extra budget.</span></div>
+<div class="st"><b>Because<small>where I looked first</small></b><span>I split the 35 minutes into queue, review and ramp-up. Queue and review were steady; only ramp-up varied, so that's where I dug.<br>I ruled out budget size and peak competition first (obvious suspects, cheap to check). Pacing logs showed bids ramping slowly: pacing was built for multi-week campaigns that can catch up later, which Live can't.</span></div>
+<div class="st"><b>So<small>fix + prioritisation</small></b><span>I tested the lowest-lift fix, a Live-only initial bid multiplier, in a budget-controlled experiment with guardrails on [cost per impression, other advertisers' delivery].<br>The pacing team had no bandwidth, so a shared revenue goal backed by my lift sizing got it prioritised; we built it and they reviewed the code.</span></div>
+<div class="st"><b>Next<small>prevention loop</small></b><span>A real-time tracker alerts [owner] when p75 passes 10 minutes, so problems surface in hours, not months. Large advertisers kept their spend.</span></div>
 </div>
 <details><summary>Your answer, as given</summary>
 <div class="yours"><b>Situation:</b> For about six months, large advertisers kept telling us delivery was unreliable. On Live, the audience exists for only a few hours, so an ad needs to start almost immediately and then spend steadily through the stream. The problem required deep domain expertise on foundational pacing systems. We needed to ensure large advertisers continue to maintain high trust in our ad reliability so that they would not pull back spend.<br><br><b>Task:</b> I had to clearly measure the problem space, find the root cause, and get it fixed. Success metric here is defined as a stricter bar of p75 time to first ad impression. The current performance was 35 minutes, we needed to drive it down towards 5-10 minutes.<br><br><b>Action:</b> I did three things. First, break down our primary metric into its key components. I broke the 35 minutes into its three stages: the ad review queue, the review itself, and the ramp-up, where the system gradually increases spend. Queue and review times were steady. The ramp-up was the one that varied, and the slow campaigns were slow because their ramp-up ran long. Second, build hypotheses. I checked the obvious explanations, big budgets and peak-stream competition, and the delay persisted across both, so neither was the cause. Then I audited the pacing logs for a sample of delayed campaigns. The system was designed for multi-week campaigns (long warm-up periods). Live needs the opposite: start within five minutes, then spend steadily over four to eight hours. It was working as designed, so the ask changed from 'fix reliability' to 'recalibrate pacing for Live'. Third, design an experimentation plan and get it prioritised. After sharing the key insights with my PM and TL, we brainstormed several proposals to address this slow ramp up; shorten the ramp-up by adding an initial bid multiplier for Live ads only, implement a dedicated live pacing system, etc. Eventually PM and I agreed on the approach which required the lowest lift which was a Live-only initial bid multiplier during ramp-up with a learning purpose; we needed to validate this treatment with budget-controlled experiments. The pacing team had their own roadmap and no bandwidth, so my PM proposed joint goals on incremental revenue and I supplemented a sizing on the estimated lift. A shared goal gave both teams the same incentive. Our product team offered to run the experiment as long as the pacing team reviewed the diffs.<br><br><b>Result:</b> The typical slow campaign now started in under 10 minutes, down from 35. In the experiments, treated campaigns spent more of their committed budget, giving a 5% revenue lift with no extra advertiser budget, and advertisers paid 7% less per impression. This was a launch decision, Live is a small share of the total Meta revenue so the lift was diluted and underpowered. Ultimately, we saw segment level gains but undetected at global Meta incremental revenue. Ultimately we still managed to address a root cause of slow start → larger advertisers maintain trust → continue to spend → defend topline.<br><br><b>Learnings:</b> Two things stuck with me. First, the overview hid the cause: queue and review times were steady, and the whole problem was in the variable stage, so I now look at where the variation comes from, not only the overall. Second, since the benchmark I set two years ago was right then and wrong now, I treat benchmarks as things to review, not to set once.</div>
 </details>
+<details><summary>Your spoken answer in mock 6</summary>
+<div class="yours">I reduced an advertiser painpoint focused on time to first ad impression from 35 mins at P75 to 10mins, this win generated +5% improvement in ad revenue as well as -7% in terms of cost per purchase without increasing ad budgets. I discovered the root cause by breaking down the quality metric into key mutually exclusive components. I discovered via scrutinising pacing logs that longer durations are caused by slower ramp ups in ad bid. This led me to build the main hypothesis that global pacing does not fit Live use case where we need to accelerate delivery within a short 4-8 hour window, versus global ads can eventually close early spending gaps. So i designed an experiment set up comparing user traffic on prod versus user traffic with increased live ad bidding. This treatment proved successful as by delivering ad impressions earlier, we are able to spend budgets more efficiently and closing budget utilisation gaps which happened in treatment. Next to prevent this from happening again, we launched real time trackers on time to first ad impressions and monitoring spikes when it exceeds the market expectations of 10mins. This enabled us to diagnose the problematic cases earlier, closing feedback loop earlier and subsequently maintaining advertiser trust. this improved overall reliability for live and we were able to maintain advertisers spend.</div>
+</details>
+<p class="sec">Mock 6 weak points</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Skipped "how did you decide where to look first", half the question.</td><td>"Queue and review were steady; only ramp-up varied. I ruled out budget size and peak competition first: obvious and cheap to check."</td></tr>
+<tr><td>Skipped "how did you get it prioritised", the other half.</td><td>"The pacing team had no bandwidth, so a shared revenue goal backed by my sizing; we built it, they reviewed."</td></tr>
+<tr><td>−7% "cost per purchase" here, "cost per impression" in the written version.</td><td>Pick the true metric and keep it consistent.</td></tr>
+<tr><td>"+5% ad revenue" with no scope.</td><td>"+5% on treated Live campaigns; too small a share of Meta to show up globally, as expected."</td></tr>
+<tr><td>Experiment vague: "prod traffic vs increased live bidding".</td><td>"Budget-controlled experiment on Live campaigns: a Live-only initial bid multiplier during ramp-up", plus guardrails.</td></tr>
+<tr><td>The alert has no owner.</td><td>"It alerts [team] when p75 passes 10 minutes, and they [action]."</td></tr>
+</table></div>
+<p><b>New and strong in mock 6:</b> the real-time tracker with a 10-minute alert, a prevention loop that fits Think Systematically. Keep it.</p>
 <div class="cmp-wrap"><table class="cmp">
 <tr><th>Weak point</th><th>Replace with</th></tr>
 <tr><td>Long, in STAR order: the result arrives last.</td><td>Answer → Because → So → Next, result first.</td></tr>
@@ -1357,6 +1434,27 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
 <div class="st"><b>Probe 5</b><span><b>Why ship when the global revenue test was underpowered?</b><br>Live is a small share, so the global test couldn't detect it; we judged it at the segment level, where it was powered.</span></div>
 </div>`,
     trap: "Lead with 35 → under 10 minutes. Explain the variation, not the average, and be ready for the 7% cheaper per impression probe." },
+  { cluster: "🧑‍💼 My experience", q: "Story 6 · Follow-up: You chose the lowest-lift fix over a dedicated Live pacing system. How did you size that trade-off, and what would have made you build the bigger system?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>same upside</small></b><span>Both options went after the same upside: the unspent committed budget of delayed campaigns (about $[X] a month). So the choice came down to cost, speed and risk.</span></div>
+<div class="st"><b>Because<small>cost side</small></b><span>The multiplier took [N] engineering-weeks and could be switched off; a dedicated system needed [a quarter of a team]. The cheap version also tested the root cause before we invested more.</span></div>
+<div class="st"><b>So<small>what happened</small></b><span>We shipped the multiplier first; it closed [X]% of the gap.</span></div>
+<div class="st"><b>Next<small>escalation triggers</small></b><span>Build the dedicated system if the multiplier stalled above 10 minutes, if it closed less than [N]% of the gap, or if the remaining gap grew bigger than the build cost. Or if keeping Live as an exception inside global pacing became risky for the core system.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">I chose the lowest lift fix by sizing the ideal scenario where we managed to capture the budget utilisation gaps between delayed campaigns versus normal campaigns. What would have made me build the bigger system is in two scenarios, one is market expectations are getting steeper such that our regular pacing systems cannot support, second is teams owning regular pacing systems are resistant to supporting edge cases. In our case we knew that we needed revenue evidence to showcase impact, therefore we built the lowest-lift first.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Sized only the benefit, and both options chase the same upside.</td><td>Size the cost, speed and risk of each: engineering-weeks, reversibility, share of the gap captured.</td></tr>
+<tr><td>No number on the upside.</td><td>"Delayed campaigns left about $[X] a month of committed budget unspent."</td></tr>
+<tr><td>Escalation triggers are vague.</td><td>Measurable triggers: p75 stuck above 10 minutes; gap closed below [N]%; remaining gap larger than build cost.</td></tr>
+<tr><td>"Teams resistant" is the weaker trigger.</td><td>A system reason: exceptions inside global pacing becoming risky for the core system.</td></tr>
+</table></div>
+<p><b>Keep:</b> "evidence before investment" as the reason to start small.</p>`,
+    trap: "Two options with the same upside are decided on cost, speed and risk. Size those, and make the escalation triggers measurable." },
 
   { cluster: "🧑‍💼 My experience", q: "Story 7 · PM pushback: Tell me about a time a PM or business partner pushed back on your analysis. What did you do?",
     a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
@@ -1796,6 +1894,187 @@ COUNT(DISTINCT CASE WHEN order_dt &gt;= effective_dt THEN order_dt END) AS days_
 <tr><td>No option for heavy searchers; no prevention; no bridge.</td><td>3 slots or relevance-gated slots; pre-agreed ship criteria; the Meta ad-load bridge.</td></tr>
 </table></div>`,
     trap: "Convert GMV to contribution before comparing it with ad revenue, and never call a non-significant lift a lift." },
+  { cluster: "🎯 Mock case", q: "Case 5: Rocket Delivery tested raising the free-shipping minimum for non-WOW customers from ₩19,800 to ₩29,800 (₩3,000 fee below it). The VP says: \"GMV per user is up 8%. Should we roll it out?\"",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>GMV is up because baskets are bigger, but people order less often, and new customers are coming back 15% less. I'd roll this out to existing customers only, where it adds profit without hurting retention, and keep the old minimum for new customers while we test a middle option.</div>
+<p class="sec">Exhibit 1: 4-week A/B, user-level, non-WOW customers</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Per user, 4 weeks</th><th>Control (₩19,800)</th><th>Treatment (₩29,800)</th><th>Change</th></tr>
+<tr><td>Orders</td><td>1.00</td><td>0.90</td><td>−10%</td></tr>
+<tr><td>Average order value</td><td>₩24,000</td><td>₩28,800</td><td>+20%</td></tr>
+<tr><td>GMV</td><td>₩24,000</td><td>₩25,920</td><td>+8%</td></tr>
+<tr><td>Shipping fee revenue</td><td>₩300</td><td>₩900</td><td>+₩600</td></tr>
+</table></div>
+<p>Delivery cost ₩3,000 per order; product margin 20% of GMV.</p>
+<p class="sec">Weekly trend (treatment vs control)</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Week</th><th>Orders</th><th>Average order value</th></tr>
+<tr><td>1</td><td>−8%</td><td>+21%</td></tr>
+<tr><td>2</td><td>−9%</td><td>+20%</td></tr>
+<tr><td>3</td><td>−11%</td><td>+20%</td></tr>
+<tr><td>4</td><td>−12%</td><td>+19%</td></tr>
+</table></div>
+<p class="sec">Exhibit 2: by customer type</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Segment</th><th>Share of users</th><th>Orders</th><th>Avg order value</th><th>8-week repeat</th></tr>
+<tr><td>New (first 90 days)</td><td>20%</td><td>−22%</td><td>+18%</td><td>−15% (relative)</td></tr>
+<tr><td>Existing</td><td>80%</td><td>−7%</td><td>+20%</td><td>−1% (ns)</td></tr>
+</table></div>
+<p class="sec">Case framework — Clarify → Decompose → Locate → Size → Recommend → Prevent</p>
+<div class="steps">
+<div class="st"><b>Clarify</b><span>Objective: contribution profit per non-WOW customer without hurting long-term customer growth. GMV is the VP's framing, not the goal.</span></div>
+<div class="st"><b>Decompose</b><span>GMV = orders × AOV, so the −10% orders is already in the +8%.<br>Contribution = 20% × GMV + fees − orders × ₩3,000.<br>Control: 4,800 + 300 − 3,000 = <b>₩2,100</b>. Treatment: 5,184 + 900 − 2,700 = <b>₩3,384</b>. <b>+₩1,284</b> per user per 4 weeks.</span></div>
+<div class="st"><b>Locate</b><span>The order decline is growing (−8% → −12%) while AOV holds (+21% → +19%), so the gain is shrinking.<br>The harm sits with new customers: −22% orders, 15% lower repeat rate.</span></div>
+<div class="st"><b>Size</b><span>Existing GMV: 0.93 × 1.20 = +11.6%. New GMV: 0.78 × 1.18 = −8%.<br>New-customer cost = lifetime value × 15% lost repeat, on 20% of users, vs the short-term gain. [Need new-customer lifetime value.]</span></div>
+<div class="st"><b>Recommend</b><span>Roll out to existing customers; keep ₩19,800 for new customers in their first 90 days; test a middle threshold (₩24,800); 5% long-term holdout with order and repeat-rate guardrails.</span></div>
+<div class="st"><b>Prevent</b><span>New-customer repeat rate becomes a standing guardrail for any fee or threshold change, with ship criteria agreed before the test.</span></div>
+</div>
+<details><summary>Your answers, as given</summary>
+<div class="yours">May i check in on what we are looking to optimise with raising free-shipping minimum? It looks like the gains from GMV per user is reduced by number of orders which means theres a net neutral to negative change. How can i interpret shipping fee revenue?</div>
+<div class="yours">To calculate contribution profit, is it correct to take 20% * GMV + shipping fee revenue?</div>
+<div class="yours">For control = 20% * 24000 + 300 - 1 * 3000 = 2100. For test, 20% * 25920 + 900 - 0.9 * 3000 = 3384. The net difference is +1284 (+61%) which is pretty significant. Can we further breakdown to the weekly trends of order volume changes?</div>
+<div class="yours">The weekly change in orders appears to be accelerating in decline. … The weekly change in average order value is also reducing over time which means that net net the gains would be smaller than expected. May we differentiate against existing versus new non-WOW customers?</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"GMV gains reduced by the number of orders": misread.</td><td>GMV = orders × AOV, so the order drop is already netted into the +8%.</td></tr>
+<tr><td>Contribution formula missed delivery cost at first.</td><td>20% × GMV + fees − orders × ₩3,000. Delivery cost is why the test exists.</td></tr>
+<tr><td>"+61%" on its own.</td><td>Quote the won figure too: +₩1,284 per user per 4 weeks.</td></tr>
+<tr><td>"AOV is also reducing".</td><td>AOV is nearly flat (+21% → +19%); the order decline is what grows. Say which driver moves.</td></tr>
+</table></div>`,
+    trap: "Don't judge on GMV: it's AOV up with fewer orders. Compute contribution including delivery cost, then follow the trend and the segments." },
+
+  { cluster: "🎯 Mock case", q: "Case 5 · Size and Recommend: which customers get the higher free-shipping minimum, and how do you protect long-term growth?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<p class="sec">Model answer</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>targeted rollout</small></b><span>Roll out ₩29,800 to existing non-WOW customers only; keep ₩19,800 for new customers in their first 90 days.</span></div>
+<div class="st"><b>Because<small>where the cost sits</small></b><span>Contribution rose ₩1,284 per user over 4 weeks, but the gain is shrinking as order losses grow. New customers carry the harm: −22% orders and a 15% lower repeat rate, which costs lifetime value even if short-term contribution holds.</span></div>
+<div class="st"><b>So<small>with a safety net</small></b><span>5% long-term holdout on existing customers, guardrails on orders and repeat rate. Check the margin on items added to clear the minimum. For new customers, test a middle threshold (₩24,800).</span></div>
+<div class="st"><b>Next<small>prevent</small></b><span>New-customer repeat rate becomes a standing guardrail for any fee or threshold change.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">My conclusion is that existing non-WOW customers are less sensitive to free-shipping minimum as they have shown net positive contribution profits (-7% + 20% = +14%) with persistent repeat rates, whereas new non-WOW customers are seeing significant reductions (-22% + +18% = -4%) with reduced 15% repeat purchase rates. So I would recommend to launch to existing non-WOW customers to be able to capture the GMV gains with minimal impact to customer retention while excluding new non-WOW customers from launch. I would launch a 5% long term holdout on existing non-WOW customers to monitor that the orders volume do not continue to drop further, cannibalising the GMV gains we expect as well as maintain their repeat rate. For New non-WOW customers, i would experiment with improving the messaging by testing different thresholds to the free-shipping minimum to find an optimal point for launch.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Adding % changes: "−7% + 20% = +14%".</td><td>Multiply: 0.93 × 1.20 = +11.6% (existing); 0.78 × 1.18 = −8% (new).</td></tr>
+<tr><td>Called those "contribution profits"; they're GMV.</td><td>New customers' contribution may hold short term (fewer deliveries, more fees); the real cost is retention.</td></tr>
+<tr><td>"Capture the GMV gains".</td><td>"Capture the contribution gain", your stated objective.</td></tr>
+<tr><td>No sizing of the new-customer cost.</td><td>Lifetime value × 15% lost repeat × 20% of users vs the short-term gain; say what you'd need to know.</td></tr>
+<tr><td>Didn't ask what was added to clear the minimum.</td><td>Filler items are often low margin; 20% average margin overstates the gain.</td></tr>
+<tr><td>Didn't ask about WOW sign-ups.</td><td>A higher minimum may push customers into WOW: upside, or pull-forward.</td></tr>
+<tr><td>No prevention step.</td><td>New-customer repeat rate as a standing guardrail; ship criteria agreed before the test.</td></tr>
+</table></div>`,
+    trap: "Multiply percentage changes, don't add them, and convert GMV to contribution before recommending. This is the third case where that came up." },
+  { cluster: "🎯 Mock case", q: "Case 6: Search tested a ranking boost for Rocket Delivery items (1P + Rocket-fulfilled 3P). The 3P seller team is worried. The VP says: \"Customers convert more. Should we ship?\"",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>Customers do convert more, but the boost costs small sellers about a fifth of their sales and they're starting to leave, which puts our long-tail selection at risk. I'd ship it only on popular searches, keep it off niche ones, set a seller-health limit with the seller team, and help those sellers move into Rocket fulfilment.</div>
+<p class="sec">Exhibit 1: 2-week A/B, user-level 50/50</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Metric</th><th>Result</th></tr>
+<tr><td>Search conversion</td><td>10.0% → 10.3% (+3%, CI +2% to +4%)</td></tr>
+<tr><td>GMV per user</td><td>+1.5% (CI +0.5% to +2.5%)</td></tr>
+<tr><td>Rocket share of GMV</td><td>70% → 74%</td></tr>
+<tr><td>Non-Rocket 3P GMV (treatment users)</td><td>−12% (CI −14% to −10%)</td></tr>
+<tr><td>Coupang contribution per user</td><td>+2.5% (already nets fulfilment costs and fees)</td></tr>
+</table></div>
+<p class="sec">Exhibit 2: non-Rocket 3P sellers by size (40,000 sellers)</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Seller size</th><th>Share of sellers</th><th>GMV from treatment users</th></tr>
+<tr><td>Small (under ₩10M a month)</td><td>85%</td><td>−18%</td></tr>
+<tr><td>Large</td><td>15%</td><td>−6%</td></tr>
+</table></div>
+<p>Listing deactivations over 2 weeks: 1.2% → 1.9% (same period last year: 1.2%).</p>
+<p class="sec">Exhibit 3: by type of search</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Query type</th><th>Share of searches</th><th>Conversion</th></tr>
+<tr><td>Head (popular items)</td><td>85%</td><td>+4%</td></tr>
+<tr><td>Long tail (no Rocket item in top 20)</td><td>15%</td><td>−2%</td></tr>
+</table></div>
+<p>Distinct products purchased per 1,000 users: −4%.</p>
+<p class="sec">Rocket vs non-Rocket 3P</p>
+<p>Rocket-fulfilled 3P: Coupang stores and delivers (next-day or dawn), the item gets the Rocket badge, and the seller pays fulfilment fees plus commission. Non-Rocket 3P: the seller ships, delivery is slower, Coupang earns commission only; often small sellers carrying long-tail selection.</p>
+<p class="sec">Case framework — Clarify → Decompose → Locate → Size → Recommend → Prevent</p>
+<div class="steps">
+<div class="st"><b>Clarify</b><span>Objective: grow contribution while keeping both sides healthy (customers, and the 3P sellers who bring selection). No seller-harm threshold agreed yet.</span></div>
+<div class="st"><b>Decompose</b><span>Customer side: +3% conversion, +1.5% GMV, +2.5% contribution. Seller side: non-Rocket GMV −12% from treatment users.</span></div>
+<div class="st"><b>Locate</b><span>Harm concentrates in small sellers (−18%); long-tail searches get worse (−2% conversion); selection narrows (−4%).</span></div>
+<div class="st"><b>Size</b><span>Non-Rocket is about 30% of GMV: −12% × 30% = −3.6 points; Rocket added about +5.1 points. The +1.5% is already net. The risk is what the test can't see: at full rollout sellers feel about −12% of total GMV (vs about −6% in the test), and churn erodes selection over months.</span></div>
+<div class="st"><b>Recommend</b><span>Relevance-gated boost on head queries; hold on long tail; seller guardrails agreed with the seller team, measured with a seller-level design; offer non-Rocket sellers a path into Rocket fulfilment.</span></div>
+<div class="st"><b>Prevent</b><span>Seller-health guardrails (small-seller GMV, deactivations, breadth of selection) become standard for every ranking change.</span></div>
+</div>
+<p class="sec">Drill 1 (reworked): size it in three sentences</p>
+<div class="vp"><b>Say it like this</b>"Customers gain: +3% conversion, +1.5% GMV and +2.5% contribution, already net of seller losses. Non-Rocket sellers lose 12% of sales from treated customers, about 3.6 points of total GMV; during the test they felt only about half of that, so at full rollout they'd lose the full 12%, and small sellers 18%. A two-week test can't show the lagged effect: deactivations are already up at half exposure, and if sellers leave, selection shrinks and customers go elsewhere."</div>
+<details><summary>Your drill answer</summary>
+<div class="yours">Boost is improving conversions by +3% as well as GMV per user by +1.5% (net across entire ecosystem). The seller side shows that drilling down to non-Rocket 3P, they are seeing -12% reduced GMV. this is especially so for smaller sellers -18% reduced GMV. Sellers would have felt this from the reduced exposure to 50% of total users, therefore a full launch at rollout would continue to persist at same level assuming we extrapolated the impact to full launch. The test cant show beyond the early novelty effects of seller gmv loss translating into retention reductions. This would be under reported at this rate given sellers typically need time to decide on retaining within coupang ecosystem. This is a real risk since this can potentially lead to future reduced product mix on coupang and therefore users may choose to shop on other platforms for the same diversity, cannibalising the gmv gains.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Customer side in GMV and conversion only.</td><td>Add contribution +2.5%: it's the objective.</td></tr>
+<tr><td>Seller loss not in points of total GMV.</td><td>−12% × 30% = −3.6 points, which shows the +1.5% is already net of it.</td></tr>
+<tr><td>"Persists at the same level" at full rollout.</td><td>Sellers felt about −6% of total sales in the test (half the customers); at full rollout −12%, small sellers −18%.</td></tr>
+<tr><td>"Novelty effects".</td><td>Lagged effects: sellers take time to leave. Cite the evidence: deactivations already 1.2% → 1.9%.</td></tr>
+</table></div>
+<details><summary>Your answers, as given</summary>
+<div class="yours">May i find out what the key objective here is? Also, are we incurring more costs by promoting rocket-fulfilled 3p? … What is the difference between rocket and non-rocket 3p sellers? … Can we breakdown the stats by seller size?</div>
+<div class="yours">So far my read is that the ranking boost has promoted more heavily sellers with Rocket 3P which potentially cannibalised the listings from small sellers and large sellers non-rocket 3P, small sellers to a greater degree. This will inevitably skew the marketplace towards larger players, as evidenced from the increased seller listing deactivations from 1.2% to 1.9%.</div>
+<div class="yours">To size this, we saw a 0.85*0.18 + 0.15*0.06 = -0.162 drop in non-Rocket 3P sellers GMV. We need to translate this into global share of GMV drop off, by calculating 0.16*0.162 = -2.59% of global GMV. Then compare this against the global GMV per user gains +1.5%.</div>
+<div class="yours">-12% * 0.3 = -3.6% loss. This means Rocket impact achieved 1.5% - (-3.6%) = +5.1% GMV so far. The maximum tolerable range would be if non-Rocket 3P impact were to accelerate to 5.1%/0.3 = 17% losses. In the scenario that we launch fully, the sellers would likely face GMV losses of double current rate which is 24% loss.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Weighted the seller loss by seller count (85% / 15%).</td><td>Weight by GMV share; Exhibit 1 already gives the GMV-weighted −12%.</td></tr>
+<tr><td>Used 16% as the non-Rocket share.</td><td>Rocket is 70%, so non-Rocket is about 30%.</td></tr>
+<tr><td>Subtracted the seller loss from +1.5% GMV.</td><td>The +1.5% is already net; check whether a headline number is net before subtracting.</td></tr>
+<tr><td>&quot;Full rollout doubles −12% to −24%.&quot;</td><td>−12% is per treatment user; what doubles is what sellers feel: about −6% → −12% of their total GMV.</td></tr>
+</table></div>`,
+    trap: "Don't ship on customer metrics alone, and read the seller numbers through the test design: a 50/50 user split halves what sellers feel." },
+  { cluster: "🎯 Mock case", q: "Case 6 · Recommend and Prevent: where do you ship the Rocket ranking boost, and what seller-harm threshold do you set?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<p class="sec">Model answer (45 seconds)</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>where to ship</small></b><span>Ship the boost on head queries only; keep it off long-tail queries.</span></div>
+<div class="st"><b>Because<small>the trade-off</small></b><span>Customers gain +2.5% contribution, but small non-Rocket sellers lose 18% of sales, and deactivations are already 1.9% with half the exposure. On long-tail searches the boost even hurts customers (−2% conversion).</span></div>
+<div class="st"><b>So<small>guardrails, measurement, lever</small></b><span>Guardrails agreed with the seller team before launch: small-seller deactivations ≤ 1.4% (normal variation around the 1.2% baseline), and small-seller GMV loss below the drop that has historically pushed sellers to leave.<br>Measure with a <b>category-level holdout</b> (boost off in randomly chosen comparable categories), since a user split can't show seller churn.<br>Offer sellers a <b>graduation path into Rocket fulfilment</b>.</span></div>
+<div class="st"><b>Next<small>decision rule + prevent</small></b><span>If deactivations stay above 1.4% for two weeks, pull the boost back. Seller-health guardrails become standard for every ranking change.</span></div>
+</div>
+<details><summary>Your answers, as given</summary>
+<div class="yours">Okay this suggests that we should ship directly to head queries where the rocket recommendations are strong at driving conversions, while we hold on long-tail queries where we see impact on the long tail sellers. I would set up a long term holdout on top of the head queries which allows us to monitor the gmv and conversion gains while setting up a guardrail on top of long tail seller retention and delist rates. I would change my mind on the rollout if we observe that head queries are still impacting the long tail seller retention and delist rates at a higher rate than the +4% conversion and gmv lifts.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>No threshold, which was the question.</td><td>Anchor it to the baseline and the cost of lost selection, and say who agrees it, before launch.</td></tr>
+<tr><td>Revisit condition compares different units (churn rate vs +4% conversion).</td><td>Separate thresholds, or convert both to long-term value.</td></tr>
+<tr><td>Gating to head queries may not remove seller harm.</td><td>Check how much of the −12% comes from head queries; use a relevance-gated boost.</td></tr>
+<tr><td>No seller-side lever.</td><td>Offer non-Rocket sellers Rocket fulfilment.</td></tr>
+<tr><td>A user-level holdout can't measure seller churn.</td><td>Seller- or market-level design for seller guardrails.</td></tr>
+<tr><td>No prevention step.</td><td>Seller-health guardrails on every ranking change.</td></tr>
+</table></div>
+<p class="sec">Drill 2 (reworked): the threshold</p>
+<div class="vp"><b>Say it like this</b>"I'd guard small-seller deactivations and small-seller GMV. Deactivations should stay within normal variation of the 1.2% baseline, about 1.4%, and we're already at 1.9% with half the exposure. For GMV, I'd set the limit below the sales drop that has historically pushed sellers to leave. GMV break-even is about −17%, but that's the ceiling, not the guardrail. I'd agree both with the seller team before the next test."</div>
+<details><summary>Your drill answer</summary>
+<div class="yours">The metrics i would guardrail on are small seller GMV and small seller deactivation rate. The number is based on whether it can potentially cannibalise the gmv gains obtained by rocket 3P sellers which is up by +5.1% GMV (1.5% - (-3.6%)). The threshold would be 5.1% / 0.3 = -17%. I will ask the small seller team to agree on this threshold before we start the experiment run.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>−17% is a GMV break-even.</td><td>A guardrail must trip well before break-even; by then many sellers have left.</td></tr>
+<tr><td>Anchored in GMV.</td><td>The objective is contribution, and Rocket earns more per unit.</td></tr>
+<tr><td>Ignores what you're protecting: selection.</td><td>Anchor deactivations on the baseline (≈1.4%); anchor GMV on the historical drop that triggers seller exits.</td></tr>
+</table></div>
+<p class="sec">Drill 3 (reworked): the 60-second recommendation</p>
+<details><summary>Your drill answer</summary>
+<div class="yours">I would ship the boost to head queries where the conversion lift, gmv lift and contribution lift are persistent. I would exclude long tail queries where most of the listings are driven by non-rocket sellers. I would define guardrail metrics as small-seller gmv and small-seller deactivation rate. I would suggest small-seller deactivation rate to remain within a tolerable range of 1.2% - 1.4%, whereas small-seller gmv reduction should stay within a tolerable range before that caused sellers to churn. One lever for sellers would be to propose a graduation path towards becoming rocket 3p sellers as well. This way they would be able to grow in size and be able to capture the same gains. How i would measure seller impact properly is to launch a 5% seller level holdout over a long term to monitor the effects of this launch in terms of contribution profit, gmv and contribution. i want to see the same gains persist and for dropoff on small sellers to remain within tolerable range.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>No "Because".</td><td>One sentence with the trade-off in numbers.</td></tr>
+<tr><td>"Where lifts are persistent".</td><td>Persistence by query type isn't known; cite head queries +4% conversion.</td></tr>
+<tr><td>5% seller-level holdout.</td><td>Hard to define, since the boost changes Rocket items' ranking. Use a category-level holdout.</td></tr>
+<tr><td>Ends with a hope.</td><td>A decision rule: deactivations above 1.4% for two weeks → pull the boost back.</td></tr>
+</table></div>
+<p><b>Keep:</b> the graduation path into Rocket fulfilment: Coupang earns fulfilment fees and sellers regain visibility.</p>`,
+    trap: "A threshold needs an anchor (baseline, cost of lost selection) and an owner agreed before launch." },
 
   // ---- Price index, joint optimization, bundles ----
   { cluster: "🏗️ System design", q: "What is a price index target, and how can a price index be below 100?",
@@ -1850,6 +2129,224 @@ COUNT(DISTINCT CASE WHEN order_dt &gt;= effective_dt THEN order_dt END) AS days_
 </table></div>`,
     trap: "Bundle sales always look good. Separate switchers from converts and judge on whole-basket contribution." },
 
+  // ---- SQL: gaps and islands ----
+  { cluster: "💻 SQL", q: "Gaps and islands: for September 2026, find the 10 products with the longest run of consecutive out-of-stock days, plus their total out-of-stock days.",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the pattern</small></b><span>Keep the out-of-stock days, number them per product with <code>ROW_NUMBER</code>, and subtract the number from the date. Every day in the same run gets the same <code>dt − rn</code>, so <code>GROUP BY</code> it.</span></div>
+<div class="st"><b>Because<small>why it works</small></b><span>Inside a run, the date and <code>rn</code> both rise by 1 a day, so the difference is constant. After a gap the date jumps by more than 1 while <code>rn</code> rises by 1, so the difference changes.</span></div>
+<div class="st"><b>So<small>three steps</small></b><span><b>1.</b> Out-of-stock days only, numbered per product.<br><b>2.</b> Group by <code>(product, dt − rn)</code>: one row per run, <code>COUNT(*)</code> = run length.<br><b>3.</b> Per product: <code>MAX</code> = longest streak, <code>SUM</code> = total days.</span></div>
+<div class="st"><b>Next<small>where else</small></b><span>Login streaks, longest run at the same price, consecutive loss days, grouping events into sessions.</span></div>
+</div>
+<p class="sec">Worked example</p>
+<p>Out of stock on 1–3 Sep, 20–25 Sep and 28 Sep. Correct answer: longest 6, total 10.</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>dt</th><th>rn</th><th>dt − rn</th><th>Run</th></tr>
+<tr><td>1 Sep</td><td>1</td><td>31 Aug</td><td>A</td></tr>
+<tr><td>2 Sep</td><td>2</td><td>31 Aug</td><td>A</td></tr>
+<tr><td>3 Sep</td><td>3</td><td>31 Aug</td><td>A</td></tr>
+<tr><td>20 Sep</td><td>4</td><td>16 Sep</td><td>B</td></tr>
+<tr><td>… 25 Sep</td><td>… 9</td><td>16 Sep</td><td>B</td></tr>
+<tr><td>28 Sep</td><td>10</td><td>18 Sep</td><td>C</td></tr>
+</table></div>
+<p>Runs: A = 3, B = 6, C = 1 → longest <b>6</b>, total <b>10</b>.</p>
+<p class="sec">Query</p>
+<pre><code>WITH oos AS (
+  SELECT
+    i.product_id,
+    i.dt,
+    ROW_NUMBER() OVER (
+      PARTITION BY i.product_id
+      ORDER BY i.dt
+    ) AS rn
+  FROM inventory_daily i
+  WHERE i.on_hand_qty = 0
+    AND i.dt &gt;= DATE '2026-09-01'
+    AND i.dt &lt;  DATE '2026-10-01'
+),
+
+runs AS (
+  SELECT
+    product_id,
+    DATE_ADD('day', -CAST(rn AS INTEGER), dt) AS run_id,
+    COUNT(*) AS run_length
+  FROM oos
+  GROUP BY 1, 2
+),
+
+per_product AS (
+  SELECT
+    product_id,
+    MAX(run_length) AS longest_oos_streak,
+    SUM(run_length) AS total_oos_days
+  FROM runs
+  GROUP BY 1
+)
+
+SELECT
+  pp.product_id,
+  p.category,
+  pp.longest_oos_streak,
+  pp.total_oos_days
+FROM per_product pp
+LEFT JOIN products p
+  ON pp.product_id = p.product_id
+ORDER BY
+  pp.longest_oos_streak DESC,
+  pp.total_oos_days DESC
+LIMIT 10;</code></pre>
+<p>Postgres: <code>dt - rn::int</code> instead of <code>DATE_ADD</code>.</p>
+<p class="sec">What went wrong in the mock</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Your approach</th><th>Problem</th></tr>
+<tr><td>Self-join each day to the next day, then <code>MIN</code>/<code>MAX</code> per product</td><td>Merges separate runs: 1 Sep → 25 Sep looks like one streak.</td></tr>
+<tr><td><code>date_diff(min, max)</code></td><td>Off by one: a 3-day run gives 2. Use <code>COUNT(*)</code>.</td></tr>
+<tr><td>Inner self-join</td><td>Drops single-day runs (28 Sep).</td></tr>
+<tr><td><code>count(minimum_dt)</code> on one row per product</td><td>Always 1.</td></tr>
+<tr><td><code>agg (select …</code>; non-aggregated column with <code>GROUP BY</code></td><td>Missing <code>AS</code>; won't run.</td></tr>
+</table></div>
+<p><b>Scope note:</b> filtering to September before numbering counts only a run's September days. For whole runs, extend the window, then keep runs that touch September.</p>`,
+    trap: "Don't self-join neighbours and take MIN/MAX per entity: it merges separate runs. Label each run with dt − ROW_NUMBER and count it." },
+
+  { cluster: "💻 SQL", q: "Product pairs bought together: for completed September 2026 orders, find the 10 most frequent product pairs with orders_together and attach_rate.",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the pattern</small></b><span>Self-join order lines on <code>order_id</code> with <code>a.product_id &lt; b.product_id</code>: exactly one row per pair per order.</span></div>
+<div class="st"><b>Because<small>why <</small></b><span><code>!=</code> creates mirror rows (5,9) and (9,5), so counts double unless hidden by <code>DISTINCT</code>; <code>&lt;</code> also removes self-pairs, with no <code>LEAST</code>/<code>GREATEST</code> needed.</span></div>
+<div class="st"><b>So<small>three steps</small></b><span><b>1.</b> One row per product per completed order (<code>DISTINCT</code> guards duplicate lines).<br><b>2.</b> Self-join with <code>&lt;</code>, <code>COUNT(*)</code> per pair.<br><b>3.</b> Denominator: orders containing <code>product_a</code>.</span></div>
+<div class="st"><b>Next<small>staff point</small></b><span>Attach rate has a direction: with <code>&lt;</code>, product_a is just the lower ID. For bundling, show both directions; the anchor product is what you price around.</span></div>
+</div>
+<pre><code>WITH lines AS (
+  SELECT DISTINCT
+    oi.order_id,
+    oi.product_id
+  FROM order_items oi
+  JOIN orders o
+    ON o.order_id = oi.order_id
+  WHERE o.status = 'completed'
+    AND o.order_ts &gt;= DATE '2026-09-01'
+    AND o.order_ts &lt;  DATE '2026-10-01'
+),
+
+pairs AS (
+  SELECT
+    a.product_id AS product_a,
+    b.product_id AS product_b,
+    COUNT(*)     AS orders_together
+  FROM lines a
+  JOIN lines b
+    ON  a.order_id   = b.order_id
+    AND a.product_id &lt; b.product_id
+  GROUP BY 1, 2
+),
+
+product_orders AS (
+  SELECT product_id, COUNT(*) AS orders_with_product
+  FROM lines
+  GROUP BY 1
+)
+
+SELECT
+  p.product_a,
+  p.product_b,
+  p.orders_together,
+  p.orders_together * 1.0
+    / po.orders_with_product AS attach_rate
+FROM pairs p
+JOIN product_orders po
+  ON po.product_id = p.product_a
+ORDER BY p.orders_together DESC, p.product_a, p.product_b
+LIMIT 10;</code></pre>
+<p class="sec">What went wrong in the mock</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Your version</th><th>Problem</th></tr>
+<tr><td><code>SELECT order_id</code> after joining two tables that both have it</td><td>Ambiguous column: won't run. Qualify every column after a join.</td></tr>
+<tr><td><code>agg (select …</code></td><td>Missing <code>AS</code>.</td></tr>
+<tr><td><code>LEFT JOIN a b … !=</code></td><td>Single-product orders give NULL pairs; <code>LEAST(5, NULL)</code> is NULL.</td></tr>
+<tr><td><code>!=</code> with <code>count(1)</code></td><td>Mirror rows: every pair counted twice.</td></tr>
+<tr><td><code>GROUP BY 1,2,3</code> with ungrouped columns and two <code>product_id</code> columns</td><td>Won't run in strict SQL.</td></tr>
+</table></div>`,
+    trap: "Use a.product_id < b.product_id for pairs. != creates mirror rows that silently double counts." },
+
+  { cluster: "💻 SQL", q: "Before and after a price change: for products whose price changed exactly once in September 2026, compare average daily units 7 days before vs 7 days after.",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the pattern</small></b><span>Count changes per product with a window, keep <code>n_changes = 1</code>, roll orders up to daily units, then two <code>CASE</code> sums divided by 7.</span></div>
+<div class="st"><b>Because<small>the traps</small></b><span><code>GROUP BY</code> every column always gives a count of 1, so filter on a per-product count. A window can't be filtered in the same <code>SELECT</code>. Work in dates so both windows are exactly 7 days.</span></div>
+<div class="st"><b>So<small>window choice</small></b><span>Before: the 7 days before the change date. After: the change date + 6 days (the change day belongs to after). <code>ELSE 0</code> so no-sale days count; <code>NULLIF</code> on the before value.</span></div>
+<div class="st"><b>Next<small>staff caveat</small></b><span>A raw before/after is confounded by seasonality, promos and stock-outs. For elasticity, compare with similar unchanged products (difference-in-differences).</span></div>
+</div>
+<pre><code>WITH changes AS (
+  SELECT
+    product_id,
+    DATE(change_ts) AS change_date,
+    old_price,
+    new_price,
+    COUNT(*) OVER (PARTITION BY product_id) AS n_changes
+  FROM price_changes
+  WHERE change_ts &gt;= DATE '2026-09-01'
+    AND change_ts &lt;  DATE '2026-10-01'
+),
+
+one_change AS (
+  SELECT * FROM changes WHERE n_changes = 1
+),
+
+daily AS (
+  -- 25 Aug (1 Sep - 7) to 6 Oct (30 Sep + 6)
+  SELECT
+    oi.product_id,
+    DATE(o.order_ts) AS order_date,
+    SUM(oi.qty)      AS units
+  FROM order_items oi
+  JOIN orders o
+    ON o.order_id = oi.order_id
+  WHERE o.status = 'completed'
+    AND o.order_ts &gt;= DATE '2026-08-25'
+    AND o.order_ts &lt;  DATE '2026-10-07'
+  GROUP BY 1, 2
+),
+
+windows AS (
+  SELECT
+    c.product_id,
+    c.old_price,
+    c.new_price,
+    SUM(CASE
+          WHEN d.order_date &gt;= DATE_ADD('day', -7, c.change_date)
+           AND d.order_date &lt;  c.change_date
+          THEN d.units ELSE 0
+        END) / 7.0 AS units_per_day_before,
+    SUM(CASE
+          WHEN d.order_date &gt;= c.change_date
+           AND d.order_date &lt;  DATE_ADD('day', 7, c.change_date)
+          THEN d.units ELSE 0
+        END) / 7.0 AS units_per_day_after
+  FROM one_change c
+  LEFT JOIN daily d
+    ON d.product_id = c.product_id
+  GROUP BY 1, 2, 3
+)
+
+SELECT
+  product_id,
+  new_price * 1.0 / old_price - 1 AS pct_price_change,
+  units_per_day_before,
+  units_per_day_after,
+  units_per_day_after
+    / NULLIF(units_per_day_before, 0) - 1 AS pct_units_change
+FROM windows
+ORDER BY pct_units_change;</code></pre>
+<p class="sec">What went wrong in the mock</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Your version</th><th>Problem</th></tr>
+<tr><td><code>GROUP BY 1,2,3,4 HAVING count(1) = 1</code></td><td>Each change row is its own group, so the count is always 1: no filtering.</td></tr>
+<tr><td>Added a <code>COUNT(*) OVER</code> beside the old <code>HAVING</code></td><td>When revising, delete what the fix replaces, then re-read the CTE.</td></tr>
+<tr><td>Timestamp windows; after started at change + 1 day</td><td>Change day in neither window; after was 6 days but divided by 7.</td></tr>
+<tr><td><code>o.order_ts</code> referenced inside a CTE built from <code>base</code>; a missing <code>)</code>; <code>NULL_IF</code></td><td>Won't run; the function is <code>NULLIF</code>.</td></tr>
+<tr><td><code>ELSE NULL</code>; inner join to sales</td><td>Zero-sale days and products disappear.</td></tr>
+</table></div>`,
+    trap: "Filter 'exactly once' on a per-entity count, not a GROUP BY of every column, and make both windows 7 whole days." },
 ];
 
 
@@ -1892,6 +2389,30 @@ if (!localStorage.getItem("pricing_marked_v6")) {
   marked.clear(); moved.forEach(i => marked.add(i));
   localStorage.setItem("pricing_marked_cards", JSON.stringify([...marked]));
   localStorage.setItem("pricing_marked_v6", "1");
+}
+if (!localStorage.getItem("pricing_marked_v7")) {
+  const moved = [...marked].map(i => (i >= 43 ? i + 2 : i));
+  marked.clear(); moved.forEach(i => marked.add(i));
+  localStorage.setItem("pricing_marked_cards", JSON.stringify([...marked]));
+  localStorage.setItem("pricing_marked_v7", "1");
+}
+if (!localStorage.getItem("pricing_marked_v8")) {
+  const moved = [...marked].map(i => (i >= 67 ? i + 2 : i));
+  marked.clear(); moved.forEach(i => marked.add(i));
+  localStorage.setItem("pricing_marked_cards", JSON.stringify([...marked]));
+  localStorage.setItem("pricing_marked_v8", "1");
+}
+if (!localStorage.getItem("pricing_marked_v9")) {
+  const moved = [...marked].map(i => (i >= 48 ? i + 1 : i));
+  marked.clear(); moved.forEach(i => marked.add(i));
+  localStorage.setItem("pricing_marked_cards", JSON.stringify([...marked]));
+  localStorage.setItem("pricing_marked_v9", "1");
+}
+if (!localStorage.getItem("pricing_marked_v10")) {
+  const moved = [...marked].map(i => (i >= 70 ? i + 2 : i));
+  marked.clear(); moved.forEach(i => marked.add(i));
+  localStorage.setItem("pricing_marked_cards", JSON.stringify([...marked]));
+  localStorage.setItem("pricing_marked_v10", "1");
 }
 
 const clusters = ["All", ...Array.from(new Set(CARDS.map(c => c.cluster)))];
