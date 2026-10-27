@@ -173,6 +173,9 @@
   table.cs { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
   table.cs td { padding: 11px 14px; border-top: 1px solid var(--border); vertical-align: top; font-size: 14px; }
   table.cs tr:first-child td { border-top: none; }
+  .cs-section pre { background: var(--panel-2); padding: 10px 12px; border-radius: 8px; overflow-x: auto; margin: 6px 0 0; line-height: 1.45; }
+  .cs-section pre code { font-family: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; color: var(--code-text); }
+  table.cs.hb .term { white-space: normal; width: 150px; }
   table.cs .term { font-weight: 700; color: var(--text); white-space: nowrap; width: 118px; }
   table.cs code { background: var(--panel-2); padding: 1px 6px; border-radius: 5px; font-family: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; color: var(--code-text); }
   table.cs .hint { color: var(--muted); }
@@ -421,6 +424,87 @@
         <tr><td class="term">Incrementality</td><td>(Treatment outcome − control outcome) ÷ incremental cost. Distinguishes promo-driven demand from demand that would have happened anyway.</td></tr>
         <tr><td class="term">Pull-forward</td><td>Post-promo dip in baseline sales. Net lift = promo-period lift − post-period dip.</td></tr>
         <tr><td class="term">Report quality checks</td><td>Freshness, row-count and null checks, reconciliation against finance, definition ownership, metric versioning. "Same number, one definition."</td></tr>
+      </table>
+    </div>
+
+    <div class="cs-group">🧮 SQL handbook</div>
+    <div class="cs-note">Every pattern and trap from the mocks. Say the plan before you type.</div>
+    <div class="cs-section">
+      <h2>Plan-first routine (say it out loud)</h2>
+      <table class="cs hb">
+        <tr><td class="term">1. Grain</td><td>Say the base grain and the output grain: "Base is order item; output is one row per category."</td></tr>
+        <tr><td class="term">2. Filter first</td><td>Filter at the base grain (status, dates), <em>then</em> aggregate. Once you roll up, columns like <code>order_id</code> are gone.</td></tr>
+        <tr><td class="term">3. Steps</td><td>Name each CTE in one line before typing: base → roll-up → window → final filter or count.</td></tr>
+        <tr><td class="term">4. Edge cases</td><td>Ties, zero-sale days, NULLs, time zone, integer division, entities with no rows, extra history for windows.</td></tr>
+        <tr><td class="term">5. Read back</td><td>Reread the question line by line against the query. Check every output column exists and every window is partitioned.</td></tr>
+      </table>
+    </div>
+    <div class="cs-section">
+      <h2>Window functions</h2>
+      <table class="cs hb">
+        <tr><td class="term">ROW_NUMBER / RANK / DENSE_RANK</td><td><code>ROW_NUMBER</code>: unique 1, 2, 3 (add a tiebreaker). <code>RANK</code>: 1, 1, 3. <code>DENSE_RANK</code>: 1, 1, 2. For "top N per group" with ties included, use <code>RANK</code>.</td></tr>
+        <tr><td class="term">LAG / LEAD</td><td>Previous or next row in the partition. Price change = <code>price - LAG(price) OVER (PARTITION BY sku ORDER BY dt)</code>. First row gives NULL.</td></tr>
+        <tr><td class="term">Group total on every row</td><td>No <code>ORDER BY</code> in the window, so it sums the whole partition. Use for shares.<pre><code>SUM(revenue) OVER (PARTITION BY category) AS cat_rev</code></pre></td></tr>
+        <tr><td class="term">Running total</td><td>Always write the frame. The default with <code>ORDER BY</code> is <code>RANGE</code>, which lumps ties together.<pre><code>SUM(revenue) OVER (PARTITION BY category
+                   ORDER BY revenue DESC, product_id
+                   ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)</code></pre></td></tr>
+        <tr><td class="term">Rolling 7 days</td><td><code>ROWS 6 PRECEDING</code> only means 7 days if every day has a row. With gaps, build a date spine first or use a <code>RANGE</code> interval.<pre><code>AVG(units) OVER (PARTITION BY sku ORDER BY dt
+                 ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)
+-- the 7 days before, excluding today:
+-- ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING</code></pre></td></tr>
+        <tr><td class="term">Count per entity</td><td>Keep every row and attach the count, then filter in the next CTE.<pre><code>COUNT(*) OVER (PARTITION BY product_id) AS n_changes</code></pre></td></tr>
+        <tr><td class="term">Filtering a window</td><td>A window can't go in <code>WHERE</code> or <code>HAVING</code> of the same <code>SELECT</code>. Compute it in one CTE, filter in the next (or use <code>QUALIFY</code> where supported).</td></tr>
+        <tr><td class="term">Filter order trap</td><td><code>WHERE</code> runs <em>before</em> windows. A date filter that feeds a <code>LAG</code> or a rolling average must include extra history; trim to the output dates afterwards.</td></tr>
+      </table>
+    </div>
+    <div class="cs-section">
+      <h2>Patterns from the mocks</h2>
+      <table class="cs hb">
+        <tr><td class="term">Latest row per key</td><td>Rank inside the key, keep rank 1, then apply the condition.<pre><code>WITH r AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY sku
+                               ORDER BY change_ts DESC) AS rn
+  FROM price_changes
+)
+SELECT * FROM r WHERE rn = 1 AND new_price &gt; old_price;</code></pre></td></tr>
+        <tr><td class="term">Exactly once</td><td>A <code>GROUP BY</code> of every column always counts 1. Count per entity with a window and keep <code>n = 1</code>.</td></tr>
+        <tr><td class="term">Top N per group</td><td><code>ROW_NUMBER</code> (or <code>RANK</code> for ties) partitioned by the group, then <code>WHERE rn &lt;= N</code>.</td></tr>
+        <tr><td class="term">Smallest N to reach 80%</td><td>Count a row if the share <em>before</em> it was under 80%. Excluding rows over 80% drops the one that crosses.<pre><code>COUNT(CASE WHEN cum_rev - revenue &lt; 0.8 * cat_rev THEN 1 END)</code></pre></td></tr>
+        <tr><td class="term">Share of total</td><td>Conditional sum over total, with <code>* 1.0</code>.<pre><code>SUM(CASE WHEN is_promo THEN revenue ELSE 0 END) * 1.0
+  / NULLIF(SUM(revenue), 0) AS promo_share</code></pre></td></tr>
+        <tr><td class="term">Average per day</td><td>Daily tables skip zero-sale days, so <code>AVG</code> overstates. Sum over the window and divide by the number of days.<pre><code>SUM(CASE WHEN dt &gt;= change_date - 7 AND dt &lt; change_date
+         THEN units ELSE 0 END) / 7.0</code></pre></td></tr>
+        <tr><td class="term">Before / after windows</td><td>Work in dates. Before = <code>[change − 7, change)</code>; after = <code>[change, change + 7)</code>, so the change day belongs to after. <code>LEFT JOIN</code> sales so products with none still appear.</td></tr>
+        <tr><td class="term">Gaps and islands</td><td>Consecutive days share the same <code>dt − ROW_NUMBER</code>. Group by that to get each run.<pre><code>WITH s AS (
+  SELECT sku, dt,
+         dt - ROW_NUMBER() OVER (PARTITION BY sku ORDER BY dt) * INTERVAL '1' DAY AS grp
+  FROM stockouts
+)
+SELECT sku, grp, COUNT(*) AS run_days, MIN(dt), MAX(dt)
+FROM s GROUP BY sku, grp;</code></pre></td></tr>
+        <tr><td class="term">Pairs bought together</td><td>Self-join on the order with <code>a.product_id &lt; b.product_id</code>. <code>!=</code> gives every pair twice. De-duplicate to one row per order and product first.<pre><code>SELECT a.product_id AS p1, b.product_id AS p2,
+       COUNT(DISTINCT a.order_id) AS orders_together
+FROM items a
+JOIN items b ON a.order_id = b.order_id
+            AND a.product_id &lt; b.product_id
+GROUP BY 1, 2;</code></pre></td></tr>
+        <tr><td class="term">Join fan-out</td><td>Joining two "many" tables multiplies rows (e.g. order items × promos stacked on the order). Collapse each many side to the join grain first, then join.</td></tr>
+        <tr><td class="term">Retention / cohorts</td><td>First activity per user (<code>MIN(dt)</code>) is the cohort; join activity back and count distinct users per cohort and period offset, divided by cohort size.</td></tr>
+        <tr><td class="term">Compare with a competitor</td><td>Join on the match key <em>and</em> date; use the latest competitor price at or before our date if feeds aren't daily. Watch the match quality.</td></tr>
+      </table>
+    </div>
+    <div class="cs-section">
+      <h2>Mistakes you've made before</h2>
+      <table class="cs hb">
+        <tr><td class="term">Unqualified columns</td><td>After a join, prefix every column (<code>oi.product_id</code>). Ambiguous names fail or silently pick the wrong table.</td></tr>
+        <tr><td class="term">CTE syntax</td><td><code>WITH a AS (...), b AS (...)</code>: every CTE needs <code>AS</code>, commas between, none after the last.</td></tr>
+        <tr><td class="term"><code>CASE … ELSE END</code></td><td>Syntax error. Leave the <code>ELSE</code> out for counts; use <code>ELSE 0</code> for sums so zero days count.</td></tr>
+        <tr><td class="term"><code>LEFT JOIN</code> + <code>WHERE</code> on the right table</td><td>Turns into an inner join. Put the condition in <code>ON</code>, or just use an inner join if that's what you mean.</td></tr>
+        <tr><td class="term">Aggregate, then filter</td><td>Filter at the base grain before rolling up.</td></tr>
+        <tr><td class="term">Default window frame</td><td>Write <code>ROWS BETWEEN …</code>; the default <code>RANGE</code> merges ties.</td></tr>
+        <tr><td class="term">Integer division</td><td><code>* 1.0</code> or <code>/ 7.0</code>, and <code>NULLIF(x, 0)</code> on denominators.</td></tr>
+        <tr><td class="term"><code>BETWEEN</code> on timestamps</td><td>Use half-open ranges: <code>&gt;= '2026-09-01' AND &lt; '2026-10-01'</code>.</td></tr>
+        <tr><td class="term">Fix beside old code</td><td>When revising, delete what the fix replaces, then reread the whole CTE.</td></tr>
+        <tr><td class="term"><code>ORDER BY</code> in a CTE</td><td>Does nothing. Order only in the final <code>SELECT</code>.</td></tr>
       </table>
     </div>
 
@@ -1099,6 +1183,7 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
 <tr><td>Situational</td><td>8 · Ad reliability for big live budgets</td><td>Big advertisers wanted to spend five-figure sums in a 4–8 hour live window with no precedent; I recommended higher budgets, split ad sets and early scheduling so reviews didn't block delivery.</td><td>Customer focus, ambiguity, risk</td><td><b>Move with Urgency</b>; Wow the Customer</td></tr>
 <tr><td>Situational</td><td>9 · Being wrong</td><td>Assumed mid-half growth would re-accelerate; it didn't (10% gap); ran the war room and cut the gap to 5%.</td><td>Being wrong, learning</td><td><b>Learn Voraciously</b>; Deliver Results with Grit</td></tr>
 <tr><td>Backup</td><td>10 · GTM measurement</td><td>Partners moved funds outside the measured design; re-scoped to a lower-bound reading and made traceability a precondition.</td><td>Failure or defect only</td><td><b>Think Systematically</b>; Learn Voraciously</td></tr>
+<tr><td>Situational</td><td>11 · Sole DS for 20 engineers</td><td>When the team grew from 2 to 20 engineers and I stayed the only DS, I kept my top 3 priorities and moved everything repeatable (e.g. upsell evaluations) to office hours and a self-serve framework.</td><td>Prioritisation, scaling yourself, what you dropped</td><td><b>Ruthless Prioritization</b>; Think Systematically; Hire and Develop the Best</td></tr>
 </table></div>
 <p class="sec">How to answer probes</p>
 <div class="steps keys">
@@ -1109,11 +1194,12 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
 </div>
 <p class="sec">Notes</p>
 <div class="steps">
-<div class="st"><b>Principle gaps</b><span>No story yet for <b>Ruthless Prioritization</b> (resume: setting roadmap goals across 4 cycles against team capacity) or <b>Hire and Develop the Best</b> (resume: onboarding buddy to 5 new DS). Bold = the principle to name out loud.</span></div>
+<div class="st"><b>Principle gaps</b><span><b>Ruthless Prioritization</b> is now covered by Sole DS for 20 engineers. No story yet for <b>Hire and Develop the Best</b> (resume: onboarding buddy to 5 new DS). Bold = the principle to name out loud.</span></div>
 <div class="st"><b>Live ads adoption programme</b><span>Tell it as a <b>system</b>, not a programme: rule-based eligibility, automated exception detection, a spend gate, leak controls.<br>Prepare for "Was the ROI of 4 incremental?" e.g. "No, it was observed ROI. Today I'd hold out a random slice of eligible advertisers to measure incremental spend."</span></div>
 <div class="st"><b>Live ads incrementality test</b><span>Frame it as DS driving a decision without authority: the key move was getting leads to agree the decision rule (reduce or maintain) before the test.</span></div>
 <div class="st"><b>Live ads on Reels and Stories</b><span>Say how the bar was agreed before the test, give the worst case of both ranges, and name persistence as the assumption that swings the answer. Fill in: the surface team's maximum engagement loss, test length, and what happened with Stories.</span></div>
 <div class="st"><b>Ad reliability for big live budgets</b><span>Lead with <b>Move with Urgency</b>: live windows are perishable, so waiting for precedent cost revenue and trust. Open with the advertiser's pain, not "incomplete data". For Dive Deep, use Live ad pacing reliability instead.<br>Fill in: a reliability number (share of budget delivered in the window, before and after).</span></div>
+<div class="st"><b>Sole DS for 20 engineers</b><span>Say the drop rule out loud (keep work where DS judgement changes the decision; hand off templated, low-risk work), the hard conversation with someone whose request you dropped, and the honest cost: self-served launches that faded and overlapped, fixed with a team-level holdback.<br>Fill in: who agreed the rule, the reported-vs-topline numbers, what the top 3 delivered.</span></div>
 <div class="st"><b>GTM measurement</b><span>Offline partner activations don't map well to Coupang, and the outcome is weak. If used, bridge it: "Same risk as 3P sellers or card issuers funding promos outside our measured design."</span></div>
 </div>`,
     trap: "Pick the story from the question type, not the one you know best. Lead with Stories 1–6; keep Story 10 for failure questions only." },
@@ -1137,7 +1223,37 @@ FROM base b CROSS JOIN caps c;</code></pre>`,
 <tr><td>Amazon link is loose; could sound like an overclaim.</td><td>Spell out the chain: flagged spike → product looped in sales → white-glove account. Claim only the step you can show.</td></tr>
 <tr><td>The middle rambles.</td><td>Three parts: template, one source of truth, fixed prompts.</td></tr>
 </table></div>
-<div class="todo"><b>Fill in before the interview:</b> weeks of private QA; how accuracy was checked; whether automated pre-send checks existed; the week Amazon was flagged and their spend.</div>
+<p class="sec">Also asked as (mock 8): "Something you built that kept delivering value after you stopped working on it. How did you design it to last?"</p>
+<details><summary>Your answer, as given</summary>
+<div class="yours">I launched an llm-powered revenue report which delivered weekly to leadership, saving 5 hours of analyst time weekly. I built a standardised template reading from source of truth data foundations and metric definitions, ensuring ai prompts always store the queries for reproducibility. How I designed it to last was by ensuring there is a layer of quality assurance, I checked on the common data traps which the llm may fall into which is incomplete data windows as well as mixed-units design. This provided clear automated sense checking so that no insights ship which are compromised by data quality. I also ensured that this reporting template includes strong documentation, therefore other data scientists can be easily onboarded on the same framework and extend it to their own team.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>No proof it kept delivering, which was half the question.</td><td>How long it ran without you, how many teams extended it, and one week a check caught.</td></tr>
+<tr><td>What happens when a check fails was never said.</td><td>"The section is held and an analyst is alerted" (or whatever was true).</td></tr>
+<tr><td>Nothing on ownership or definition changes.</td><td>Who owns it now; metric definitions are versioned.</td></tr>
+<tr><td>Value undersold at 5 hours a week.</td><td>What leadership did with it: one decision, or what it replaced.</td></tr>
+<tr><td>No context.</td><td>One line on what was broken before.</td></tr>
+</table></div>
+<div class="wex"><span class="wex-title">Tightened version</span>
+<span class="step"><b>Answer:</b> I built an LLM-generated weekly revenue report for leadership. It's run for [X months] without me, saves about 5 analyst hours a week, and [N] teams now use the framework.</span>
+<span class="step"><b>Because:</b> before, [analysts hand-built it and numbers drifted]. I designed it to last three ways: it reads only from source-of-truth tables and shared metric definitions; every query the LLM uses is stored, so any number can be reproduced; and automated checks catch the two LLM traps, incomplete date windows and mixed units.</span>
+<span class="step"><b>So:</b> if a check fails, [the section is held and an analyst alerted]. In [month] it caught [a partial week that would have shown a fake 20% drop].</span>
+<span class="step"><b>Next:</b> documentation let [team] adopt it in [time]. The principle I'd reuse: put the quality checks in the system, not in the analyst.</span></div>
+<p class="sec">Probe: why an LLM report rather than a dashboard? What risk did it add, and how did you size it?</p>
+<details><summary>Your answer, as given</summary>
+<div class="yours">The LLM-generated report was able to consolidate key insights on top of the wealth of data pulled, this adds a layer of abstraction which makes the content much easier to digest especially for senior leadership relative to the multiple datasources across different dashboards. The risk this adds would be if the LLM was unnecessarily optimistic or presents overly strong conclusions which may mislead leads, i address this by caveating heavily that this is an automated report. To determine whether this is worth delivering, i evaluated the efforts required to build the template versus the amount of time it can save on a weekly basis. In an esimate of 1 week once off effort with 5 weeks of evaluation, i asessed the trade-off as worth it.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"Caveating heavily" as the mitigation.</td><td>Design it out: the LLM writes words, never numbers; causal claims must name a driver; failed checks hold the section; analyst review for the first [N] weeks.</td></tr>
+<tr><td>Sizing counted only time saved; "5 weeks of evaluation" unclear.</td><td>About 40 build hours ÷ 5 hours a week = payback in about 8 weeks. Then size the risk side: one misleading week could cost more than the time saved.</td></tr>
+</table></div>
+<div class="wex"><span class="wex-title">Tightened probe answer</span>
+<span class="step">Dashboards showed what moved, but leadership wanted why, and they weren't opening five dashboards to get it.</span>
+<span class="step">The risk is an LLM sounding more confident than the data, so I designed it out instead of relying on caveats: the narrative is written only from stored, reproducible queries, any claim of cause must name a driver in the data, failed checks hold the section, and analysts reviewed it for the first [N] weeks until the error rate was [X].</span>
+<span class="step">Cost: about 40 hours to build against 5 a week saved, so payback in about 2 months. The review period was the price of making sure a wrong number never reached leadership.</span></div>
+<div class="todo"><b>Fill in before the interview:</b> weeks of private QA; how accuracy was checked; whether automated pre-send checks existed; the week Amazon was flagged and their spend; how long it has run without you; teams that adopted it; one week a check caught something; what happens when a check fails.</div>
 <p class="sec">Likely probes</p>
 <div class="steps">
 <div class="st"><b>Probe 1</b><span><b>How did you decide what went into the report?</b><br>Start from the decisions leadership makes with it (goal status, where we're off track); use metrics already in the source of truth; drop anything nobody acted on. [Fill in: what you cut.]</span></div>
@@ -2347,6 +2463,745 @@ ORDER BY pct_units_change;</code></pre>
 <tr><td><code>ELSE NULL</code>; inner join to sales</td><td>Zero-sale days and products disappear.</td></tr>
 </table></div>`,
     trap: "Filter 'exactly once' on a per-entity count, not a GROUP BY of every column, and make both windows 7 whole days." },
+  { cluster: "💻 SQL", q: "Sales concentration: for completed September 2026 orders, for each category return products with sales, the smallest number of top products reaching 80% of category revenue, and that number as a share of products with sales.",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the pattern</small></b><span>Filter at order-item grain, roll up to product revenue, add a running sum and a category total (both partitioned by category), then count products whose share <em>before</em> them was still under 80%.</span></div>
+<div class="st"><b>Because<small>the traps</small></b><span>Excluding rows with running share &gt; 80% drops the product that crosses the line (off by one; returns 0 if one product holds 90%). The default <code>RANGE</code> frame makes tied products cross together.</span></div>
+<div class="st"><b>So<small>the rule</small></b><span>Count a product if <code>cum_rev - revenue &lt; 0.8 * cat_rev</code>. Compare money with money, so no division inside the test. Use <code>ROWS</code> and a tiebreaker.</span></div>
+<div class="st"><b>Next<small>staff caveat</small></b><span>A low share (e.g. 5% of products make 80% of revenue) marks a head-heavy category: price those products as KVIs and protect the price index there; the long tail tolerates more margin.</span></div>
+</div>
+<p class="sec">Say the plan first (30 seconds)</p>
+<p>"Base grain is order item. I filter to completed September orders, roll up to product revenue per category, then add a running sum and a category total, both partitioned by category. N is the first product where the running share reaches 80%, and I divide by the product count. ROWS frame so ties don't jump together."</p>
+<pre><code>WITH product_rev AS (
+  SELECT p.category,
+         oi.product_id,
+         SUM(oi.qty * oi.unit_price) AS revenue
+  FROM order_items oi
+  JOIN orders o   ON o.order_id = oi.order_id
+  JOIN products p ON p.product_id = oi.product_id
+  WHERE o.status = 'completed'
+    AND o.order_ts &gt;= '2026-09-01'
+    AND o.order_ts &lt;  '2026-10-01'
+  GROUP BY p.category, oi.product_id
+),
+running AS (
+  SELECT category,
+         product_id,
+         revenue,
+         SUM(revenue) OVER (PARTITION BY category
+                            ORDER BY revenue DESC, product_id
+                            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cum_rev,
+         SUM(revenue) OVER (PARTITION BY category) AS cat_rev
+  FROM product_rev
+)
+SELECT category,
+       COUNT(*) AS products_with_sales,
+       COUNT(CASE WHEN (cum_rev - revenue) &lt; 0.8 * cat_rev THEN 1 END) AS products_for_80pct,
+       COUNT(CASE WHEN (cum_rev - revenue) &lt; 0.8 * cat_rev THEN 1 END) * 1.0
+         / COUNT(*) AS pct_products_for_80pct
+FROM running
+GROUP BY category;</code></pre>
+<p class="sec">What went wrong in the mock</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Your version</th><th>Problem</th></tr>
+<tr><td>Plan: aggregate to product, then join <code>orders</code> to filter</td><td>Once aggregated, <code>order_id</code> is gone. Filter at order-item grain first, then roll up.</td></tr>
+<tr><td>Plan: <code>products</code> as the left-most table</td><td>The denominator is products <em>with</em> sales, so an inner join is right.</td></tr>
+<tr><td><code>exclude</code> = rows with <code>perc_cum_rev &gt; 0.8</code></td><td>Drops the product that crosses 80%: off by one.</td></tr>
+<tr><td>No <code>ROWS</code> frame</td><td>Default <code>RANGE</code>: tied revenues share one running sum.</td></tr>
+<tr><td><code>CASE … ELSE END</code></td><td>Syntax error. Drop the <code>ELSE</code>; <code>COUNT</code> ignores the NULLs.</td></tr>
+<tr><td><code>exclude</code> CTE + self left join, <code>COUNT(DISTINCT)</code>, <code>ORDER BY</code> in a CTE, <code>COALESCE(qty, 0)</code></td><td>Not needed: a conditional count does it in one pass, rows are already one per product, and the coalesce hides bad data.</td></tr>
+</table></div>`,
+    trap: "Count a product if the share before it was under 80%; excluding everything over 80% drops the product that crosses the line." },
+  { cluster: "💻 SQL", q: "Latest price increase: for each product, return pct_increase and average daily units in the 14 days before and the 14 days from the change day (no-sale days count as zero).",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the pattern</small></b><span>Filter to increases, <em>then</em> rank by <code>change_ts DESC</code>, keep rank 1. <code>LEFT JOIN</code> daily sales on the 28-day range, split before and after with <code>CASE … ELSE 0</code>, divide by 14.0.</span></div>
+<div class="st"><b>Because<small>the traps</small></b><span>Ranking first gives the latest <em>change</em>; a product whose last change was a cut drops out. An inner join drops products with no sales, which are real zeros.</span></div>
+<div class="st"><b>So<small>completeness</small></b><span><code>daily_sales</code> only has days with sales, so counting distinct <code>dt</code> counts sales days, not data coverage. Completeness = does the table's last date reach change + 13?</span></div>
+<div class="st"><b>Next<small>staff caveat</small></b><span>Raw before/after is confounded by seasonality, promos and stock-outs. For elasticity, compare with similar unchanged products (difference-in-differences).</span></div>
+</div>
+<p class="sec">Say the plan first (30 seconds)</p>
+<p>"Output is one row per product. I filter to increases first, then rank, so I get the latest increase rather than the latest change. I left join daily sales on the 28 days around the change date, so products with no sales return zeros, split before and after with a CASE, and divide by 14. I flag products whose after window runs past the end of the data."</p>
+<pre><code>WITH increases AS (
+  SELECT product_id,
+         DATE(change_ts) AS change_dt,
+         old_price,
+         new_price,
+         ROW_NUMBER() OVER (PARTITION BY product_id
+                            ORDER BY change_ts DESC) AS rn
+  FROM price_changes
+  WHERE new_price &gt; old_price
+),
+latest AS (
+  SELECT * FROM increases WHERE rn = 1
+),
+data_end AS (
+  SELECT MAX(dt) AS max_dt FROM daily_sales
+)
+SELECT l.product_id,
+       l.new_price * 1.0 / NULLIF(l.old_price, 0) - 1 AS pct_increase,
+       SUM(CASE WHEN ds.dt &lt;  l.change_dt THEN ds.units ELSE 0 END) / 14.0 AS avg_units_before,
+       SUM(CASE WHEN ds.dt &gt;= l.change_dt THEN ds.units ELSE 0 END) / 14.0 AS avg_units_after,
+       e.max_dt &gt;= DATE_ADD('day', 13, l.change_dt) AS after_window_complete
+FROM latest l
+CROSS JOIN data_end e
+LEFT JOIN daily_sales ds
+  ON  ds.product_id = l.product_id
+  AND ds.dt &gt;= DATE_ADD('day', -14, l.change_dt)
+  AND ds.dt &lt;  DATE_ADD('day',  14, l.change_dt)
+GROUP BY l.product_id, l.change_dt, l.old_price, l.new_price, e.max_dt;</code></pre>
+<p>The <code>ON</code> clause already limits rows to the 28 days, so each <code>CASE</code> only splits before from after.</p>
+<p class="sec">What went wrong in the mock</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Your version</th><th>Problem</th></tr>
+<tr><td><code>COUNT(DISTINCT CASE … THEN ds.dt ELSE 0 END)</code> as data completeness</td><td>Counts days with sales, not coverage; 5 sales days out of 14 are real zeros, not missing data. <code>ELSE 0</code> also adds an extra value and mixes a date with an integer.</td></tr>
+<tr><td><code>daily_sales INNER JOIN recent_price</code></td><td>Products with no sales in the window disappear. Start from the price row and <code>LEFT JOIN</code> sales.</td></tr>
+<tr><td>Final <code>LEFT JOIN</code> back to <code>recent_price</code>; unqualified <code>new_price</code></td><td>Carry the prices through the <code>GROUP BY</code> and the join goes away.</td></tr>
+<tr><td>No <code>NULLIF(old_price, 0)</code>; no tiebreaker on <code>change_ts</code></td><td>Divide-by-zero risk; ties give an arbitrary row.</td></tr>
+</table></div>`,
+    trap: "Filter to increases before ranking, and measure completeness against the table's last date, not by counting days with sales." },
+
+  { cluster: "🤖 ML", q: "A colleague's model predicts daily units per product with price as a feature. Random 80/20 split, test R² 0.92. They want to use the price coefficient to set prices. What concerns do you have, and what do you fix first?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the main issue</small></b><span>R² measures prediction, but they want to use the coefficient for a causal decision. A good fit doesn't mean the coefficient is right.</span></div>
+<div class="st"><b>Because<small>endogeneity</small></b><span>Historical prices respond to demand: promos in peak weeks, cuts when sales slow, competitor matches. So the coefficient mixes price with demand shocks, and can even have the wrong sign. The random split adds leakage, which inflates the 0.92, and most of that R² comes from knowing which products sell well, not from price.</span></div>
+<div class="st"><b>So<small>fix first</small></b><span>Estimate elasticity from price variation that isn't demand-driven: experiments, or cost-driven and competitor-match changes with product and week fixed effects, excluding stock-out days. Move the forecast to a time-based split.</span></div>
+<div class="st"><b>Next<small>before acting</small></b><span>Validate the elasticity against a randomised price holdout (calibration), not R². Cap price moves to the range already observed.</span></div>
+</div>
+<p class="sec">Other concerns worth listing</p>
+<ul class="pts">
+<li><strong>Between-product variance</strong> inflates R²; it says nothing about price.</li>
+<li><strong>Stock-outs:</strong> a zero on a stock-out day isn't zero demand.</li>
+<li><strong>Limited price range:</strong> don't extrapolate beyond prices you've seen.</li>
+<li><strong>Collinearity:</strong> price moves with promo flags, ad spend and placement.</li>
+<li><strong>Cross-effects:</strong> a cut on one product takes sales from its substitutes.</li>
+</ul>
+<details><summary>Your answer, as given</summary>
+<div class="yours">The model is trained to predict per product daily units sold, where there is price as a feature. This model may face challenges with long tail products with low sales volumes, novelty products, net new products in the market. The model is also leveraging a random 80/20 train/test split when the training data is temporal which means the ideal scenario is to leverage a time-based split where we ensure that no future data is leaked as a training data set which can artificially bring up the model R^2. The first thing I would fix would be the train/test split mainly because this has the highest potential to cause the model to underperform within a live production deployment given the feature set provided is purely past data, no future data. I will then incorporate additional features to address the edge cases i mentioned earlier.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Missed that the use case is the coefficient.</td><td>"They want to act on a coefficient, so the question is causal, not accuracy." Lead with endogeneity.</td></tr>
+<tr><td>Fix first: the time split.</td><td>A time split fixes forecast evaluation; a perfect out-of-time R² can still give a wrong elasticity. Fix the source of price variation first.</td></tr>
+<tr><td>"Add features for edge cases."</td><td>Name the specific biases: stock-outs, collinearity, limited price range, cross-effects.</td></tr>
+</table></div>`,
+    trap: "When someone wants to act on a coefficient, the question is causal, not accuracy. Lead with endogeneity." },
+
+  { cluster: "🤖 ML", q: "Per-product elasticities: bestsellers look sensible (about −1.5) but long-tail estimates range from +0.8 to −9, and the pricing engine will use them directly. What's going on, how do you fix it, and what constraint do you put on the engine regardless?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>diagnosis</small></b><span>The variance side of the bias–variance trade-off. Long-tail products have few sales and few price changes, so their own estimates are mostly noise. A positive elasticity is a red flag, not a finding.</span></div>
+<div class="st"><b>Because<small>why</small></b><span>With almost no price variation, the slope is barely identified. Stock-outs add noise.</span></div>
+<div class="st"><b>So<small>the fix</small></b><span><b>Partial pooling</b> (hierarchical shrinkage, random effects): each product's estimate is pulled toward its subcategory average in proportion to how little data it has. Bestsellers keep their own estimate; the tail borrows strength. Same idea as the random-effects model in the Partnership Ads story.</span></div>
+<div class="st"><b>Next<small>input guardrails</small></b><span>Bound elasticities (never positive, e.g. −4 to −0.3). Cap price moves per week (e.g. ±5%). Low-confidence products fall back to rule-based pricing. KVIs stay pinned to the price index.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">The reason why the estimates vary widely for long-tail products is likely due to stockouts, low sales volumes with high variance. To fix the estimates, i would might leverage a category level or sub-category level elasticity to accumulate sufficient data representative to the long-tail products. The business constraint i would put on the engine regardless is the margin contribution as well as price index.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Didn't mention little price variation, or call out +0.8 as implausible.</td><td>"Few price changes means the slope is barely identified; demand rising with price is noise or endogeneity."</td></tr>
+<tr><td>Switch to category-level elasticity.</td><td>All-or-nothing throws away the product's own signal. Shrink toward the group, don't replace with it.</td></tr>
+<tr><td>Margin and price index as the constraint.</td><td>Those guard the outcome. The problem is a bad input: bound the elasticity, cap moves, gate on confidence.</td></tr>
+</table></div>`,
+    trap: "Few data per entity: shrink toward the group, don't replace with the group. Then guard the engine against the estimates you still don't trust." },
+
+  { cluster: "🤖 ML", q: "A classifier catches mispriced listings before they go live. 0.5% of 400,000 daily price changes are errors; the model has 99.4% accuracy; reviewers can check 2,000 flags a day. Is the accuracy good, which metric instead, and how do you set the threshold?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>accuracy</small></b><span>No. Predicting "correct" for everything scores 99.5%, so 99.4% is below the do-nothing baseline.</span></div>
+<div class="st"><b>Because<small>metric</small></b><span>With 0.5% positives, accuracy (and ROC-AUC) are dominated by true negatives. Use precision, recall and PR-AUC, and the metric reviewers feel: precision and recall at 2,000 flags a day.</span></div>
+<div class="st"><b>So<small>threshold</small></b><span>The threshold is the model's score cutoff. Capacity sets it: flag the top 2,000 a day (2,000 ÷ 400,000 = 0.5%, about the number of real errors). Rank by expected loss, P(error) × GMV at risk, not by probability. Hard rules auto-block the obvious cases (below cost, more than 50% under the last price).</span></div>
+<div class="st"><b>Next<small>monitoring</small></b><span>Reviewed flags measure precision. A random audit of unflagged listings measures recall. If recall at 2,000 flags is too low, that's the case for more reviewers.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">The model accuracy of 99.4% appears artificially high, it may be the case that the model predicts that all listings are priced correctly whereas the net difference 0.6% is the false positive and false negative rates added together. 0.5% is false negative, 0.1% false positive. The metric i would use instead is precision, recall and pr-auc. To set the threshold, i would leverage the team of reviwers' 2000 flags per day to generate a human reviewed sample of precision and recall, this would set the benchmarks of where we are today. When you mention threshold, are you referring to what is the minimum precision and recall to meet as a bar?</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Split the 0.6% into 0.5% FN and 0.1% FP.</td><td>Nothing tells you the split. Argue from the baseline: all-"correct" = 99.5%.</td></tr>
+<tr><td>Unsure what "threshold" meant.</td><td>The score cutoff above which a listing is flagged; capacity (top 2,000) sets it.</td></tr>
+<tr><td>Reviewed sample for precision and recall.</td><td>Flags only give precision. Recall needs a random sample of unflagged listings.</td></tr>
+</table></div>`,
+    trap: "For rare events, compare accuracy against the do-nothing baseline, and let reviewer capacity set the threshold." },
+
+  { cluster: "🎯 Mock case", q: "Case 7: an ML pricing engine (elasticity model maximising contribution) was piloted on Home &amp; Kitchen mid- and long-tail products against rule-based prices. The VP says: \"Contribution is up 6%. Should we roll the model out to every category?\"",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>Not every category. Ship mid-tail Home &amp; Kitchen only: +6.5% contribution, significant, units down just 1%. Long-tail stays on rules: its result isn't significant and the big price moves come from noisy estimates. Two cautions: the test can't see shoppers who leave Coupang when a whole subcategory gets pricier, and the model under-predicts how much units fall, so it over-prices. We ship with a weekly move cap, a price-index limit and no KVIs, and hold out 10% of subcategories for 8 weeks.</div>
+<p class="sec">Exhibit 1: 4-week product-level A/B, 4,000 products randomised 50/50 within subcategories</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Per product, vs control</th><th>Change</th><th>95% CI</th></tr>
+<tr><td>Average price</td><td>+2%</td><td></td></tr>
+<tr><td>Units</td><td>−3%</td><td>−4% to −2%</td></tr>
+<tr><td>GMV</td><td>−1%</td><td>−2% to 0%</td></tr>
+<tr><td>Contribution</td><td>+6%</td><td>+3% to +9%</td></tr>
+</table></div>
+<p>Contribution is net of the unit drop. The engine's only constraint was a cost floor: no price-index target, no limit on moves.</p>
+<p class="sec">Exhibit 2: interference</p>
+<ul class="pts">
+<li>Control products' units: +1.5% vs their own pre-period; subcategories outside the test flat.</li>
+<li>About 30% of the units treated products lost went to a control substitute.</li>
+<li>Subcategory price index +1 point in the test (half treated); about +2 at full rollout.</li>
+<li>Visits and basket size can't be read: every shopper saw both arms.</li>
+</ul>
+<p class="sec">Exhibit 3: mid vs long tail, and the model</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Segment</th><th>Products</th><th>Contribution share</th><th>Price</th><th>Units</th><th>Contribution (CI)</th></tr>
+<tr><td>Mid-tail</td><td>60%</td><td>85%</td><td>+1.5%</td><td>−1%</td><td>+6.5% (+3.5% to +9.5%)</td></tr>
+<tr><td>Long-tail</td><td>40%</td><td>15%</td><td>+5%</td><td>−17%</td><td>+4% (−5% to +13%)</td></tr>
+</table></div>
+<ul class="pts">
+<li>70% of products moved within ±5%; 12% moved more than 15%, almost all long-tail; 3% rose more than 25%.</li>
+<li>Calibration: the model predicted units −1.5%; actual −3%. It underestimates price sensitivity, so it over-prices.</li>
+<li>"Price went up" customer contacts doubled on the &gt;25% movers. Repeat purchase −1% (not significant).</li>
+</ul>
+<p class="sec">Case framework — Clarify → Decompose → Locate → Size → Recommend → Prevent</p>
+<div class="steps">
+<div class="st"><b>Clarify</b><span>Objective: contribution subject to what (price index, customer trust)? Is the +6% net? Which categories are in scope?</span></div>
+<div class="st"><b>Decompose</b><span>Contribution = units × margin per unit. Price +2% on a 20% margin → margin per unit +10%; × 0.97 units ≈ +6%. GMV is down: the gain is margin, not growth.</span></div>
+<div class="st"><b>Locate</b><span>Mid-tail carries the lift; long-tail is not significant and has the big moves. The model is miscalibrated (over-prices).</span></div>
+<div class="st"><b>Size</b><span>Diversion to control inflates control, so the product-level lift is if anything understated. But full rollout adds costs the test can't see: price index doubles, and shoppers with no cheap substitute on Coupang leave with their basket. Net direction unknown.</span></div>
+<div class="st"><b>Recommend</b><span>Mid-tail Home &amp; Kitchen only, with guardrails (move cap, price-index limit, no KVIs). Subcategory or geo holdout for 8+ weeks. Long-tail: pooled elasticities, then a randomised capped arm.</span></div>
+<div class="st"><b>Prevent</b><span>Every pricing-model release: calibration against a randomised holdout, move caps, price-index guardrails, and a pre-agreed rollout bar.</span></div>
+</div>
+<details><summary>Your answers, as given</summary>
+<div class="yours">I'm interested in the main objective of the pricing engine, with maximum contribution, is this net of the reduced units and gmv already?</div>
+<div class="yours">are you able to drilldown between the mid and long-tail products here? Im considering the scenario that majority of the contributions lift are coming from mid products.</div>
+<div class="yours">The above data shows that the pricing algorithm is able to move mid-tail contributions upwards by a statistically significant result while minimising trade-off in units volumes, however long-tail is suffering from wide variance in price increases which is impacting unit volumes to a large degree. Overall two questions, are we able to assess if the pricing algorithm has a cap of 5% price increase maximum and are we able to launch only to mid-tail products?</div>
+<div class="yours">For the 5% cap, i would like to breakdown the long-tail products by products who's prices moved only by maximum 5% versus that above 5% to see the impact to units and contribution. This would potentially be a smaller segment within the long-tail products therefore it may be not representative of the overall long-tail Home &amp; Kitchen category. For mid-tail only, i would likely expect to see 85% * 6.5% lift = 5.525% lift given it is a subset of the total Home &amp; Kitchen category.</div>
+<div class="yours">Within the test, the price-sensitive shopper is able to compare prices across test and control therefore spending more on control gorup and diluting the lift. However in the full rollout, the overall price would have moved upwards which means the lift can potentially be higher.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Read a 5% cap from products that moved ≤5%.</td><td>Selection: the model chose those products, and control has no matching split. "I can't read a cap from this test; I'd add a randomised capped arm."</td></tr>
+<tr><td>85% × 6.5% = 5.5% when asked whether +6.5% holds.</td><td>Correct share weighting, but a different question. Ask whether the per-product lift survives full rollout.</td></tr>
+<tr><td>"Lift could be higher at full rollout."</td><td>Right that diversion compresses the gap. But shoppers can leave for a competitor with their basket, which a product-level test can't see. Direction unknown, so cluster randomisation.</td></tr>
+<tr><td>Didn't ask about the model itself.</td><td>Check calibration: predicted −1.5% vs actual −3% means it over-prices.</td></tr>
+</table></div>`,
+    trap: "Product-level randomisation within subcategories lets shoppers switch to control substitutes: the test can't give the full-rollout effect in either direction." },
+
+  { cluster: "🎯 Mock case", q: "Case 7 · Recommend: should the ML pricing engine go to every category? If not, what exactly do you ship, and how do you measure it?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<p class="sec">Model answer (45 seconds)</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>scope</small></b><span>Not every category. Ship mid-tail Home &amp; Kitchen only. Other categories need their own tests, e.g. KVI-heavy grocery where a 2-point index rise costs traffic.</span></div>
+<div class="st"><b>Because<small>evidence</small></b><span>Mid-tail: +6.5% contribution, significant, units −1%. Long-tail: not significant, big moves from noisy estimates. The product-level lift is robust; the category-level effect is the open question.</span></div>
+<div class="st"><b>So<small>guardrails + measurement</small></b><span>Weekly move cap (e.g. ±10%), price-index limit with a circuit breaker, KVIs excluded. Hold out 10% of mid-tail subcategories (or geos) on rules for 8+ weeks: never a shopper-level holdout, which means two shoppers see different prices for the same product.</span></div>
+<div class="st"><b>Next<small>decision rule</small></b><span>In one unit: if held-out shoppers' visits and baskets are worth more contribution per shopper than the engine's gain, roll back; threshold agreed in advance. Recalibrate elasticities from this test; re-test long-tail with pooled estimates and a capped arm.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">My read on the treatment would be to launch to mid-tail only, the main reason being we are able to see strong contribution margin lift despite control group potentially receiving more units and gmv sales due to switching. This gives strong evidence that we will continue to see the lift. I would avoid launching to long-tail without a price cap enforced given the steep pricing lifts have an outsized impact on long-tail based on this experiment results. To monitor shoppers' long term retention on coupang despite the overall mid-tail pricing lift, I propose to launch a 5% shopper level holdout which will help us to monitor their basket size as well as order frequency relative to those who received the pricing algorithm rollout. within the 8 week mark, we can revisit the launch decision if we saw that the basket size and order frequency is strong enough to offset the contribution margin gains.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Didn't answer "every category?" first.</td><td>Open with "No, not every category" and the scope.</td></tr>
+<tr><td>"Strong evidence we will continue to see the lift."</td><td>Diversion only covers shoppers who stay on Coupang. Say the category-level effect is open.</td></tr>
+<tr><td>5% shopper-level holdout.</td><td>Personalised pricing: trust, fairness and regulatory risk. Hold out subcategories or geos.</td></tr>
+<tr><td>Rollback if basket and frequency "offset the contribution gains".</td><td>Backwards: roll back if the holdout's better visits and baskets outweigh the gain, in contribution per shopper.</td></tr>
+<tr><td>Long-tail: just add a cap.</td><td>Pool the elasticities first, then test a randomised capped arm.</td></tr>
+</table></div>`,
+    trap: "Test your own fix against business constraints: a shopper-level price holdout is personalised pricing." },
+  { cluster: "💻 SQL", q: "Undercut response time: for each competitor observation in September 2026 that undercuts our price in effect at that moment, find when we first matched (our price ≤ theirs). By category: undercut_events, pct_matched_within_24h, median_hours_to_match (matched only).",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the pattern</small></b><span>"Value in effect at time t" = validity intervals with <code>LEAD</code>, then a range join. Then a second lookup: <code>MIN(effective_ts)</code> of a later price ≤ theirs, one match per event.</span></div>
+<div class="st"><b>Because<small>the traps</small></b><span><code>effective_ts &lt; observed_ts</code> alone matches every earlier price (fan-out). A window can't go in <code>ON</code>. <code>BETWEEN</code> with a null <code>LEAD</code> drops events against our current price.</span></div>
+<div class="st"><b>So<small>grain + filters</small></b><span>Grain: one row per event (product, competitor, observed_ts). Filter only competitor observations to September; never date-filter our prices (need the price before 1 Sep and matches after 30 Sep).</span></div>
+<div class="st"><b>Next<small>edge cases</small></b><span>Repeated scrapes of one undercut (say how you count them); censoring for late-September events; median function depends on engine.</span></div>
+</div>
+<p class="sec">Say the plan first (30 seconds)</p>
+<p>"Grain is one row per undercut event. I turn our prices into validity intervals with LEAD, join September competitor observations to the interval in effect and keep those where they're cheaper. Then I look up the first later price of ours at or below theirs with MIN, without date-filtering our prices. Then aggregate by category."</p>
+<pre><code>WITH our_intervals AS (
+  SELECT product_id,
+         price,
+         effective_ts AS valid_from,
+         LEAD(effective_ts) OVER (PARTITION BY product_id
+                                  ORDER BY effective_ts) AS valid_to
+  FROM our_prices
+),
+events AS (
+  SELECT c.product_id,
+         c.competitor,
+         c.observed_ts,
+         c.price AS comp_price,
+         o.price AS our_price
+  FROM comp_prices c
+  JOIN our_intervals o
+    ON  o.product_id = c.product_id
+    AND c.observed_ts &gt;= o.valid_from
+    AND (c.observed_ts &lt; o.valid_to OR o.valid_to IS NULL)
+  WHERE c.observed_ts &gt;= TIMESTAMP '2026-09-01'
+    AND c.observed_ts &lt;  TIMESTAMP '2026-10-01'
+    AND c.price &lt; o.price
+),
+matches AS (
+  SELECT e.product_id,
+         e.competitor,
+         e.observed_ts,
+         MIN(p.effective_ts) AS match_ts
+  FROM events e
+  LEFT JOIN our_prices p
+    ON  p.product_id = e.product_id
+    AND p.effective_ts &gt; e.observed_ts
+    AND p.price &lt;= e.comp_price
+  GROUP BY e.product_id, e.competitor, e.observed_ts
+)
+SELECT pr.category,
+       COUNT(*) AS undercut_events,
+       COUNT(CASE WHEN m.match_ts &lt; m.observed_ts + INTERVAL '24' HOUR THEN 1 END) * 1.0
+         / COUNT(*) AS pct_matched_within_24h,
+       APPROX_PERCENTILE(DATE_DIFF('minute', m.observed_ts, m.match_ts) / 60.0, 0.5)
+         AS median_hours_to_match
+FROM matches m
+JOIN products pr ON pr.product_id = m.product_id
+GROUP BY pr.category;</code></pre>
+<p>Unmatched events keep a null <code>match_ts</code>: they count in the denominator, and <code>APPROX_PERCENTILE</code> ignores them for the median.</p>
+<p class="sec">What went wrong in the mock</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Your version</th><th>Problem</th></tr>
+<tr><td>Query didn't follow the agreed plan.</td><td>Write the plan as CTE names first, then fill them in.</td></tr>
+<tr><td><code>LEAD()</code> inside <code>JOIN … ON</code></td><td>Won't run. Build intervals in their own CTE.</td></tr>
+<tr><td><code>o.price &lt; c.price</code></td><td>That's us being cheaper. Undercut is <code>c.price &lt; o.price</code>.</td></tr>
+<tr><td><code>our_prices LEFT JOIN comp_prices</code>; <code>count(1)</code></td><td>Grain is price rows, not events. Start from competitor observations.</td></tr>
+<tr><td><code>matched_events</code> not tied to an event; final join on product only</td><td>Fan-out. One <code>MIN(effective_ts)</code> per event key.</td></tr>
+<tr><td><code>BETWEEN … LEAD(…)</code></td><td>Null <code>LEAD</code> drops current-price events; inclusive ends double-match.</td></tr>
+<tr><td><code>count(case … else 0 end)</code>; two columns named <code>price</code></td><td>Counts every row; ambiguous names. Drop the <code>ELSE</code>; alias <code>our_price</code>, <code>comp_price</code>.</td></tr>
+<tr><td>No September filter; no 24-hour column; median from our <code>effective_ts</code></td><td>Read back against the question; time runs from the observation to the match.</td></tr>
+</table></div>`,
+    trap: "'The value in effect at time t' means intervals with LEAD in their own CTE, then a range join with valid_to IS NULL handled." },
+
+  { cluster: "💻 SQL", q: "Sessionising: a session ends after more than 30 minutes of inactivity. For 1–7 October 2026, by the date of each session's first event: sessions, pct_sessions_with_purchase, avg_views_per_converting_session.",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the pattern</small></b><span><code>LAG</code> for the gap → flag a new session → running <code>SUM</code> of the flag = session ID → roll up to session → filter on session start → aggregate by day.</span></div>
+<div class="st"><b>Because<small>the trap</small></b><span>Flags on their own only mark the <em>first</em> event of a session. Without a session ID you can't see the purchases and views later in the session.</span></div>
+<div class="st"><b>So<small>filters</small></b><span>Sessionise with a buffer of events either side, then filter on <code>session_start</code>. Filtering events first splits sessions that cross midnight on 30 Sep into fake new ones.</span></div>
+<div class="st"><b>Next<small>edge cases</small></b><span>Exactly 30 minutes is the same session ("more than"). Compare seconds (<code>&gt; 1800</code>): minutes truncate. Average views is over converting sessions only.</span></div>
+</div>
+<p class="sec">Say the plan first (30 seconds)</p>
+<p>"Three grains: event, session, day. LAG per user for the gap; flag a new session when there's no previous event or the gap is over 30 minutes; a running sum of the flag is the session ID. Roll up to session for start time, a purchase flag and a view count. Buffer the dates, filter on session start, aggregate by day."</p>
+<pre><code>WITH base AS (
+  SELECT user_id,
+         event_ts,
+         event_type,
+         LAG(event_ts) OVER (PARTITION BY user_id ORDER BY event_ts) AS previous_event_ts
+  FROM events
+  WHERE event_ts &gt;= TIMESTAMP '2026-09-30'      -- buffer either side
+    AND event_ts &lt;  TIMESTAMP '2026-10-09'
+),
+flagged AS (
+  SELECT *,
+         CASE WHEN previous_event_ts IS NULL
+                OR DATE_DIFF('second', previous_event_ts, event_ts) &gt; 1800
+              THEN 1 ELSE 0 END AS is_new_session
+  FROM base
+),
+numbered AS (
+  SELECT *,
+         SUM(is_new_session) OVER (PARTITION BY user_id
+                                   ORDER BY event_ts
+                                   ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS session_id
+  FROM flagged
+),
+sessions AS (
+  SELECT user_id,
+         session_id,
+         MIN(event_ts) AS session_start,
+         MAX(CASE WHEN event_type = 'purchase' THEN 1 ELSE 0 END) AS has_purchase,
+         COUNT(CASE WHEN event_type = 'view' THEN 1 END) AS views
+  FROM numbered
+  GROUP BY user_id, session_id
+)
+SELECT DATE(session_start) AS ds,
+       COUNT(*) AS sessions,
+       AVG(has_purchase * 1.0) AS pct_sessions_with_purchase,
+       AVG(CASE WHEN has_purchase = 1 THEN views END) AS avg_views_per_converting_session
+FROM sessions
+WHERE session_start &gt;= TIMESTAMP '2026-10-01'
+  AND session_start &lt;  TIMESTAMP '2026-10-08'
+GROUP BY 1
+ORDER BY 1;</code></pre>
+<p><code>AVG</code> of a 0/1 flag is a percentage. <code>AVG(CASE WHEN … THEN views END)</code> averages over converting sessions only, because the NULLs are ignored.</p>
+<p class="sec">What went wrong in the mock</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Your version</th><th>Problem</th></tr>
+<tr><td>No session ID; purchase and view flags only on new-session rows</td><td>Only counts sessions whose <em>first</em> event is a purchase or view. Add the running sum and group by it.</td></tr>
+<tr><td>Frame clause on <code>LAG</code></td><td><code>LAG</code> takes no frame; the syntax was invalid.</td></tr>
+<tr><td>Final <code>SELECT</code> uses <code>event_ts</code> that <code>sessions</code> doesn't carry</td><td>Won't run. Use <code>DATE(session_start)</code>.</td></tr>
+<tr><td>Avg views = view-first sessions ÷ purchase-first sessions</td><td>Views in converting sessions ÷ converting sessions.</td></tr>
+<tr><td><code>date_diff('minute', …) &gt; 30</code>; <code>event_name</code></td><td>Minutes truncate; the column is <code>event_type</code>.</td></tr>
+<tr><td>Filtered at the end (good)</td><td>Add a buffer in <code>base</code> so it doesn't scan the whole table.</td></tr>
+</table></div>`,
+    trap: "A new-session flag alone only marks the first event. The running SUM of the flag is what turns it into a session ID." },
+
+  { cluster: "🤖 ML", q: "A weekly demand forecast drives stock orders. MAPE is 45%, mostly from long-tail products selling 0–3 units a week, and the team wants to replace the model. Is MAPE right, what instead, and how should stock-out vs overstock costs change the model?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the metric</small></b><span>MAPE is the wrong metric here; don't replace the model on it.</span></div>
+<div class="st"><b>Because<small>why MAPE fails</small></b><span>At 0–3 units the small denominator blows it up; on zero weeks it's undefined. It's asymmetric: under-forecasting is capped at 100%, over-forecasting isn't, so it pushes the model to forecast low, which causes stock-outs. And 45% means nothing without a baseline.</span></div>
+<div class="st"><b>So<small>what instead</small></b><span>WAPE (total absolute error ÷ total actual units) against a naive forecast (e.g. last 4 weeks' average). Set stock from the cost ratio: order to the demand quantile Cu ÷ (Cu + Co). Stock-out ₩4,000 vs overstock ₩1,000 → 0.8 → stock to the 80th percentile. So forecast quantiles (pinball loss) or a distribution (Poisson / intermittent demand), not averages.</span></div>
+<div class="st"><b>Next<small>evaluation</small></b><span>Judge the model on total cost per product (lost margin + holding cost), not forecast error.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">MAPE stands for mean average percentage error which would be artifically large and heavily penalising when the baseline is small at 0-3 units, i would recommend to move towards MAE standing for mean absolute error as this would measure in terms of absolute units error range instead to address this. This really depends on what is the most painful trade-off, in a stock-out this could potentially result in forfeit orders or delayed delivery. in a overstock situation, this may result in incurred warehousing storage costs. overall can we clarify further what the objective of the supply chain is?</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Small denominator only.</td><td>Also undefined on zero weeks, and biased toward under-forecasting.</td></tr>
+<tr><td>MAE as the replacement.</td><td>WAPE, compared with a naive baseline: "45% compared with what?"</td></tr>
+<tr><td>Listed the costs, then asked for the objective.</td><td>Answer conditionally: "if a stock-out costs more, order to a higher quantile: Cu ÷ (Cu + Co)."</td></tr>
+</table></div>`,
+    trap: "With asymmetric costs, forecast a distribution and pick the quantile Cu ÷ (Cu + Co). Don't argue about point-forecast error." },
+
+  { cluster: "🤖 ML", q: "A churn model sends a ₩5,000 coupon to the top 10% by churn risk each month. Retention among them is up 8 points on last year. Does this show it works, what's wrong with targeting by risk, and what would you build instead?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>does it work?</small></b><span>Not shown. A year-on-year rise in the targeted group doesn't show the coupon caused it.</span></div>
+<div class="st"><b>Because<small>two problems</small></b><span>Seasonality and regression to the mean lift a group chosen for extreme risk. And risk isn't responsiveness: of persuadables, sure things, lost causes and sleeping dogs, only persuadables are worth paying.</span></div>
+<div class="st"><b>So<small>build</small></b><span>Randomise coupons for a slice of customers to get uplift labels. Uplift model: P(retain | coupon) − P(retain | no coupon), e.g. two models or uplift trees; evaluate with a Qini curve on randomised holdout data. Target the highest uplift × customer value per won.</span></div>
+<div class="st"><b>Next<small>evaluate</small></b><span>Policy A/B at the same budget, comparing all eligible customers in each arm (not the targeted subsets). Metric: incremental contribution = uplift × future contribution − ₩5,000 × redemptions.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">We would need to compare with the retention amongst those who fall right below the top 10% identified to see if the retention gain also exists in this cohort versus flat. This can then form a fair benchmark to assess whether the model and coupon are working. Targeting by churn risk may expose us to customers who have already made up their mind to churn which means the 5000 won coupon may not be enough to sway their mind. instead it would make sense to target those who have a highest propensity to switch from churn to retained with the 5000 won incentive. to build this proposed model, i would look at modeling the customer's likelihood to retain with 5000 won coupon. I will evaluate by running an ab randomised experiment where control has the current model and set up whereas treatment has the new proposed model with same set up and budget. over time, i would monitor the retention rate of those targeted by the model to see if there is a net lift.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Just-below-cutoff comparison, unnamed.</td><td>Name it: regression discontinuity. Valid only near the cutoff. Cleanest: a randomised holdout inside the top 10%.</td></tr>
+<tr><td>Didn't say why year-on-year fails.</td><td>Seasonality, product changes, regression to the mean.</td></tr>
+<tr><td>"Likelihood to retain with a coupon."</td><td>Uplift needs both outcomes, so randomised training data; history only has coupons for high-risk customers.</td></tr>
+<tr><td>Compare retention of those targeted in each arm.</td><td>The arms target different people: compare all eligible customers per arm.</td></tr>
+<tr><td>Retention as the objective.</td><td>Incremental contribution, including coupons redeemed by sure things.</td></tr>
+</table></div>`,
+    trap: "When targeting a treatment, model the change it causes, not the outcome, and that needs randomised data." },
+
+  { cluster: "🎯 Mock case", q: "Case 8: Rocket Fresh launched a new demand-forecasting model on 1 August for all fresh products, with no holdout. The Ops VP says: \"Waste is up 35% since the new model. Should we roll it back?\"",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>Don't roll back. Most of the waste increase isn't the model: about 0.75 points is the new salad line, which had no history, and about 0.2 is Chuseok. The model adds roughly 0.3–0.5 points (about ₩0.4B a month) but cut stock-outs from 6% to under 4%, worth about ₩0.5–1B of margin. The fix is the ordering rule: it orders every fresh product to the 95th percentile, right for dairy but too high for produce. Set the level per subcategory from the cost of waste vs a lost sale (produce about 60th, meat 75th), give new products a cold-start rule, and add a holdout by fulfilment centre.</div>
+<p class="sec">Exhibit 1: monthly, fresh category (GMV about ₩100B in Sep; margin 25%)</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Metric</th><th>Jun</th><th>Jul</th><th>Aug</th><th>Sep</th></tr>
+<tr><td>Write-off (% of sales)</td><td>3.0%</td><td>3.1%</td><td>3.6%</td><td>4.2%</td></tr>
+<tr><td>Stock-out rate (% of product-days)</td><td>6.0%</td><td>6.1%</td><td>4.5%</td><td>3.8%</td></tr>
+<tr><td>Fresh GMV, month on month</td><td>+2%</td><td>+2%</td><td>+6%</td><td>+7%</td></tr>
+</table></div>
+<p>Objective at launch: fewer stock-outs. No waste limit or combined cost target.</p>
+<p class="sec">Exhibit 2: new products and last year</p>
+<ul class="pts">
+<li>Prepared salads launched in September: 5% of fresh sales, write-off 15%, no sales history.</li>
+<li>Last year: write-off Aug 3.0%, Sep 3.2% (Chuseok). GMV month on month Aug +2%, Sep +5%.</li>
+</ul>
+<p class="sec">Exhibit 3: by subcategory (existing products) and the ordering rule</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Subcategory</th><th>Sales share</th><th>Margin</th><th>Shelf life</th><th>Write-off Jul → Sep</th><th>Stock-outs Jul → Sep</th><th>Cost ratio</th></tr>
+<tr><td>Produce</td><td>40%</td><td>20%</td><td>2–3 days</td><td>4.0% → 5.2%</td><td>7% → 4%</td><td>0.6</td></tr>
+<tr><td>Dairy</td><td>35%</td><td>25%</td><td>7–14 days</td><td>2.5% → 2.6%</td><td>5% → 3.5%</td><td>0.95</td></tr>
+<tr><td>Meat</td><td>25%</td><td>30%</td><td>3–5 days</td><td>2.4% → 2.7%</td><td>6% → 4%</td><td>0.75</td></tr>
+</table></div>
+<p>WAPE improved 28% → 22%. New rule: order to the 95th percentile of forecast demand for every fresh product (old: point forecast + 10% buffer). Cost ratio = stock-out cost ÷ (stock-out cost + overstock cost).</p>
+<p class="sec">Case framework — Clarify → Decompose → Locate → Size → Recommend → Prevent</p>
+<div class="steps">
+<div class="st"><b>Clarify</b><span>Objective should be total cost (waste + lost sales), not waste alone. "35%" is relative: 3.1% → 4.2% = +1.1 points. What else changed besides the model?</span></div>
+<div class="st"><b>Decompose</b><span>Reconcile the +1.1 points: new salads 5% × 15% = 0.75; Chuseok about 0.2; the model about 0.3–0.5.</span></div>
+<div class="st"><b>Locate</b><span>Among existing products, produce is about 81% of the rise (1.2 × 0.4 ÷ 0.59); dairy barely moved.</span></div>
+<div class="st"><b>Size</b><span>Model waste 0.3–0.5 points × ₩100B ≈ ₩0.3–0.5B a month. Gain: GMV 2–4 points above last year's pattern ≈ ₩2–4B × 25% ≈ ₩0.5–1B margin. Net positive.</span></div>
+<div class="st"><b>Recommend</b><span>Keep the model; fix the decision layer: order to the percentile equal to the cost ratio (produce 60th, meat 75th, dairy 95th). Cold-start rule for new products. Holdout by fulfilment centre or switchback.</span></div>
+<div class="st"><b>Prevent</b><span>One cost metric (waste + lost-sale margin); every model or policy change ships with a holdout; ordering quantiles set from cost inputs.</span></div>
+</div>
+<details><summary>Your answers, as given</summary>
+<div class="yours">I'm interested in what we are optimising for with the new demand forecasting model, are we looking at reducing stockout rate? also i would like to breakdown within the fresh category if there are subcategory dimension available</div>
+<div class="yours">it looks like the Produce Subcategory has contributed 81% of the increased write-offs as calculated by this: (5.2-4)*0.4/0.59. correspondingly, Dairy represents 5% and Meat represents 13%. I want to discuss further on whether Product, Dairy and Meat have teh same margin of sales.</div>
+<div class="yours">alright, with the margins itself the revenue gains we are able to achieve by increasing stock for Produce is 20% * (7-4%) = 0.6% gains in margin. However we are incurring 5.2%-4.0% = 1.2% additional costs. The only way we can break even is if the Stockouts further reduce to 4% - 0.6% = 3.4%. If that is a reasonable target, we should set 3.4% to be the new stock out expectation while ensuring write-offs maintain at current state 5.2% or below for Produce. While we are pressure testing this assumption, we can rollout this new Demand forecast model to Dairy and Meat as there is a net positive effect these two sub caategories.</div>
+<div class="yours">Is the Fresh category made up of new product subcategories as well besides product, dairy and meat?</div>
+<div class="yours">I see what else could have changed between July and September is the seasonality or weather, there may be more freshproduct and harvests which may have changed the costs of order these fresh product. Overall, we might want to compare the movement in this year's july to september period versus previous year's july to septemeber period to evaluate if the write-off and stockout follows the same pattern to address seasonal effect. Generally my two recommendations would be to scale back on overordering for Produce and New Products such as prepared-salads line. it would be useful to make sure we have a tolerable range where margin * sales need to exceed the write-off amount else there will be a negative costs.</div>
+<div class="yours">The absolute write-off from this year has actually increased relative to last year, the delta between aug and sept has also increased this year relative to last year. If model's forecast accuracy improved, this may be because it is benchmarking against fresh gmv instead of actual stockout and writeoff ratio</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Break-even: 4% − 0.6% = 3.4% stock-outs.</td><td>Mixed units (margin points vs stock-out points). 0.6 ÷ 20% = 3 more points, to 1%. And fewer stock-outs means more waste: both move with the same lever (how much to order).</td></tr>
+<tr><td>"Roll out to dairy and meat."</td><td>The model is already live everywhere; the decision is roll back or not.</td></tr>
+<tr><td>Subcategories add to +0.59 but the headline is +1.1: not reconciled.</td><td>Always check the parts add to the total before recommending.</td></tr>
+<tr><td>Why is produce over-ordering if WAPE improved? "Benchmarking against GMV."</td><td>Forecast vs decision layer: the forecast got better, but the ordering rule (95th percentile everywhere) over-orders short-shelf-life products.</td></tr>
+</table></div>`,
+    trap: "Reconcile the headline before you recommend: here most of the waste increase was new products and Chuseok, not the model." },
+
+  { cluster: "🎯 Mock case", q: "Case 8 · Recommend: should Rocket Fresh roll back the forecasting model? If not, what changes?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<p class="sec">Model answer (45 seconds)</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the decision</small></b><span>Don't roll back. The forecast got better (WAPE 28% → 22%) and stock-outs fell from 6.1% to 3.8%.</span></div>
+<div class="st"><b>Because<small>reconciled + sized</small></b><span>Of +1.1 points of waste, 0.75 is new salads (cold start) and about 0.2 is Chuseok; the model adds 0.3–0.5 (≈ ₩0.3–0.5B a month) against ≈ ₩0.5–1B of margin from fewer stock-outs.</span></div>
+<div class="st"><b>So<small>fix the ordering rule</small></b><span>The cost ratio is an input, not a target: order to the percentile equal to it. Produce 0.6 → 60th; meat 0.75 → 75th; dairy 0.95 → keep 95th. New products: forecast from similar products, small first orders, mark down before expiry.</span></div>
+<div class="st"><b>Next<small>measure + prevent</small></b><span>Holdout by fulfilment centre (or switchback by centre and day). Track one cost metric, waste + lost-sale margin, per subcategory.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">So far there is a higher likelihood of wastage from overstocking Produce followed by Meat, Dairy is not an isue. Produce is the highest leverage point for improvement, Meat to a smaller degree given the higher margins. Therefore focusing on Produce, we can explore tuning the model such that we order up to a lower threshold of the forecast demand, ideally we reduce this by 20pp ~75th percentile to bring the ratio of stock-out cost to stockout cost+ overstock cost to closer to 0.8 and above. I would also suggest to revisit the demand forecast for the new prepared salads line to consider a more conservative forecast with the most recent september data. Overall once we have made these adjustments, we will continue to monitor the same metrics write-off and stock out at weekly intervals to further tune. A healthy ratio for stock out rate and write-off should be defined per subcategory so that we can evaluate success clearly.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Never answered "roll back?".</td><td>Open with "Don't roll back."</td></tr>
+<tr><td>Lower produce to the 75th "to bring the ratio closer to 0.8".</td><td>Backwards: the ratio is fixed by the economics; order to the percentile equal to it (produce 60th).</td></tr>
+<tr><td>No sizing.</td><td>Model waste ≈ ₩0.3–0.5B a month vs ≈ ₩0.5–1B margin gain.</td></tr>
+<tr><td>"More conservative forecast" for salads.</td><td>A cold-start rule: similar-product forecasts, small first orders, markdowns.</td></tr>
+<tr><td>Weekly before/after monitoring; a "healthy ratio".</td><td>A holdout for causality; one combined cost metric.</td></tr>
+</table></div>`,
+    trap: "The newsvendor ratio is an input: order to the percentile equal to Cu ÷ (Cu + Co), set per subcategory." },
+  { cluster: "🧑‍💼 My experience", q: "Story 11 · Sole DS for 20 engineers: Tell me about a time you had more important work than you could do. What did you deliberately drop, and how did you explain it to the people affected?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>what you dropped</small></b><span>When the team grew from 2 to 20 engineers and I stayed the only DS, I stopped evaluating upsell experiments myself and put everything except my top 3 priorities on self-serve.</span></div>
+<div class="st"><b>Because<small>the drop rule</small></b><span>Keep work where DS judgement changes the decision; hand off work that follows a known template and is low-risk if done slightly wrong. Upsell evaluations were the clearest case: same design, same decision rule, run [N] times. [Manager or PMs] agreed the rule.</span></div>
+<div class="st"><b>So<small>the system</small></b><span>Three tiers: tech leads and PMs came to me directly; engineers used weekly office hours and a DS cheatsheet with the upsell framework; I published my top 3 every two weeks. When [a PM] pushed back on losing support for [request], I [walked them through the template / reviewed their first run].</span></div>
+<div class="st"><b>Next<small>result + honest cost</small></b><span>Ad hoc requests fell [X%]; the top 3 delivered [result]. The cost: self-served launches showed short-term wins that faded and overlapped, so I added a team-level holdback and fixed the template.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">My team scaled from 2 engineers to 20 engineers whereas i remained the sole DS representative, what i deliberately worked on was to establish a system where i interfaced mostly with the eng tech lead and product managers whereas the remaining engineers would be reaching out via scheduled ds office hours and ds cheatsheet documentation. One example of work i dropped was demand adoption upsells evaluation because this was a repeatable experiment design and decision framework we had seen multiple times. To make this transition happen, i published my top 3 priorities bi weekly aligned with core stakeholders, all remaining needed to be self-supported via self-serve materials.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"Repeatable" without a rule.</td><td>The full drop rule, and who agreed it.</td></tr>
+<tr><td>"How did you explain it" answered with a broadcast.</td><td>The hard conversation: whose request you turned down, how they reacted, what you offered instead.</td></tr>
+<tr><td>Unclear whether dropped work still got done properly.</td><td>Say the team ran it on your framework, and how you checked.</td></tr>
+<tr><td>No result and no cost.</td><td>What the top 3 delivered, the drop in ad hoc requests, and one honest cost.</td></tr>
+</table></div>
+<p class="sec">Probe: did anything go wrong because of what you dropped? How did you know self-serve evaluations were still right?</p>
+<details><summary>Your answer, as given</summary>
+<div class="yours">what went wrong was when engineers made hacky launch decisions which were short term gains which did not persist and had overlapping impacts. I had to step in when i observed this metric hacking by enforcing a consolidated backtest so that we can continue to have a clear comparison of what the net impact was across the whole team.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"I observed": no signal.</td><td>"Launches claimed [+X%] combined; the topline moved [+Y%]."</td></tr>
+<tr><td>"Consolidated backtest" unexplained.</td><td>A team-level holdback: a small share of users kept off all launches, measuring the combined, lasting effect.</td></tr>
+<tr><td>"Metric hacking" blames engineers.</td><td>The template rewarded short-term, per-launch lift; fix the template, not the people.</td></tr>
+<tr><td>Second half of the probe unanswered.</td><td>The holdback is the ongoing check: a self-served win only counts if it shows up there.</td></tr>
+</table></div>
+<div class="wex"><span class="wex-title">Tightened probe answer</span>
+<span class="step">Yes. Self-served launches started showing short-term wins that faded and overlapped: together they claimed [+X%] while the topline moved [+Y%]. The template rewarded short-term lift per launch, so that's what engineers optimised.</span>
+<span class="step">I set up a team-level holdback, a small share of users kept off all launches, to measure the combined, lasting effect, and added [a minimum duration and a guardrail metric] to the template.</span>
+<span class="step">The holdback became the ongoing check: a self-served win only counted if it showed up there.</span></div>
+<p class="sec">Likely probes</p>
+<div class="steps">
+<div class="st"><b>Probe 1</b><span><b>How did you choose your top 3?</b><br>Impact × whether DS judgement changes the decision × reversibility. [Fill in: the three, and one you ranked fourth.]</span></div>
+<div class="st"><b>Probe 2</b><span><b>Who pushed back, and how did you handle it?</b><br>[Fill in: the person, the request, what you offered instead.]</span></div>
+<div class="st"><b>Probe 3</b><span><b>Why not ask for another DS?</b><br>[Fill in: did you make the case? Headcount timeline; self-serve was needed either way because 20 engineers outnumber any DS team.]</span></div>
+<div class="st"><b>Probe 4</b><span><b>How did you size the cost of dropping it?</b><br>Hours per evaluation × evaluations a month, against the risk of a wrong call on a templated, reversible decision.</span></div>
+</div>`,
+    trap: "Name the rule for what you dropped and one honest cost; a prioritisation story with no cost sounds rehearsed." },
+
+  { cluster: "💻 SQL", q: "KVI baskets: for completed orders July–September 2026, per month: orders, pct_orders_with_kvi (any item a KVI on the order date, from kvi_list with valid_from/valid_to), aov_with_kvi, aov_without_kvi, and the month-on-month change in percentage points.",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the pattern</small></b><span>Start from orders (needs the date), join items, <code>LEFT JOIN</code> KVI rows valid on the order date, roll up to order (value + <code>MAX</code> flag), then month, then <code>LAG</code> on monthly rows, filtered in an outer query.</span></div>
+<div class="st"><b>Because<small>the traps</small></b><span>A flag compared with 0 later needs <code>ELSE 0</code>; without it non-KVI orders are NULL and <code>= 0</code> or <code>!= 1</code> never match. <code>WHERE</code> runs before windows, so filtering June in the same <code>SELECT</code> leaves July's <code>LAG</code> empty.</span></div>
+<div class="st"><b>So<small>dates</small></b><span>Compare dates: <code>DATE(order_ts) &gt;= valid_from AND (DATE(order_ts) &lt; valid_to OR valid_to IS NULL)</code>. Avoid <code>COALESCE(…, CURRENT_DATE)</code>: results change with the run date.</span></div>
+<div class="st"><b>Next<small>staff caveat</small></b><span>KVI baskets are bigger almost by definition (more items, more chances to include a KVI). To claim KVIs drive basket size, compare at the same item count or test it.</span></div>
+</div>
+<pre><code>WITH base AS (
+  SELECT o.order_id,
+         DATE_TRUNC('month', DATE(o.order_ts)) AS month,
+         MAX(CASE WHEN k.product_id IS NOT NULL THEN 1 ELSE 0 END) AS has_kvi,
+         SUM(oi.qty * oi.unit_price) AS order_value
+  FROM orders o
+  JOIN order_items oi ON oi.order_id = o.order_id
+  LEFT JOIN kvi_list k
+    ON  k.product_id = oi.product_id
+    AND DATE(o.order_ts) &gt;= k.valid_from
+    AND (DATE(o.order_ts) &lt; k.valid_to OR k.valid_to IS NULL)
+  WHERE o.status = 'completed'
+    AND o.order_ts &gt;= TIMESTAMP '2026-06-01'
+    AND o.order_ts &lt;  TIMESTAMP '2026-10-01'
+  GROUP BY o.order_id, DATE_TRUNC('month', DATE(o.order_ts))
+),
+monthly AS (
+  SELECT month,
+         COUNT(*) AS orders,
+         AVG(has_kvi * 1.0) AS pct_orders_with_kvi,
+         AVG(CASE WHEN has_kvi = 1 THEN order_value END) AS aov_with_kvi,
+         AVG(CASE WHEN has_kvi = 0 THEN order_value END) AS aov_without_kvi
+  FROM base
+  GROUP BY month
+),
+with_change AS (
+  SELECT *,
+         (pct_orders_with_kvi - LAG(pct_orders_with_kvi) OVER (ORDER BY month)) * 100
+           AS pct_change_pp
+  FROM monthly
+)
+SELECT *
+FROM with_change
+WHERE month &gt;= DATE '2026-07-01'
+ORDER BY month;</code></pre>
+<p class="sec">What went wrong in the mock</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Your version</th><th>Problem</th></tr>
+<tr><td><code>max(case when … then 1 end)</code>, then <code>= 0</code></td><td>Non-KVI orders are NULL, so <code>aov_without_kvi</code> is empty. Flags need <code>ELSE 0</code>.</td></tr>
+<tr><td>Revised to <code>!= 1</code></td><td><code>NULL != 1</code> is NULL, not true. Only <code>IS NULL</code> works on NULL.</td></tr>
+<tr><td><code>WHERE month_ts &gt; '2026-06-01'</code> beside the <code>LAG</code></td><td>June removed before the window runs; July's change is NULL. Filter in an outer query.</td></tr>
+<tr><td><code>date(order_ts) &gt; date(valid_from)</code></td><td>Misses orders on the first KVI day. Use <code>&gt;=</code>.</td></tr>
+<tr><td><code>'complete'</code> (first attempt)</td><td>Wrong status value silently returns nothing; check values.</td></tr>
+<tr><td><code>LEFT JOIN orders</code> + <code>WHERE o.status</code>; <code>count(distinct)</code></td><td>It's an inner join anyway; rows are already one per order.</td></tr>
+</table></div>`,
+    trap: "Any comparison with NULL returns NULL: a flag you'll test against 0 needs ELSE 0, and filters on a window's output go outside it." },
+
+  { cluster: "💻 SQL", q: "Re-buy gaps: for completed orders January–September 2026, per category: repeat_customers (bought the category on 2+ different days), median_days_between consecutive purchase days, and pct_within_30d (share of gaps ≤ 30 days).",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the pattern</small></b><span>De-duplicate to customer × category × purchase date, <code>LAG</code> over (customer, category) for the gap, then aggregate gaps by category.</span></div>
+<div class="st"><b>Because<small>the traps</small></b><span>"Previous row for the same entity" is a window, not a self-join (joining on category pairs different customers). Without de-duplicating to dates, same-day orders create 0-day gaps.</span></div>
+<div class="st"><b>So<small>grains + NULLs</small></b><span><code>repeat_customers</code> is customer grain; median and share are gap grain (denominator = gaps). <code>COUNT</code> counts 0s, so no <code>ELSE</code> in counts; a share is <code>AVG(… THEN 1.0 ELSE 0 END)</code>.</span></div>
+<div class="st"><b>Next<small>edge cases</small></b><span>Window edges bias gaps short (a December previous purchase is missed; long cycles don't fit). Heavy buyers contribute more gaps, so the per-gap median leans toward them.</span></div>
+</div>
+<pre><code>WITH purchase_days AS (
+  SELECT DISTINCT
+         p.category,
+         o.customer_id,
+         DATE(o.order_ts) AS purchase_date
+  FROM orders o
+  JOIN order_items oi ON oi.order_id = o.order_id
+  JOIN products p     ON p.product_id = oi.product_id
+  WHERE o.status = 'completed'
+    AND o.order_ts &gt;= TIMESTAMP '2026-01-01'
+    AND o.order_ts &lt;  TIMESTAMP '2026-10-01'
+),
+gaps AS (
+  SELECT category,
+         customer_id,
+         DATE_DIFF('day',
+                   LAG(purchase_date) OVER (PARTITION BY customer_id, category
+                                            ORDER BY purchase_date),
+                   purchase_date) AS gap_days
+  FROM purchase_days
+)
+SELECT category,
+       COUNT(DISTINCT customer_id) AS repeat_customers,
+       APPROX_PERCENTILE(gap_days, 0.5) AS median_days_between,
+       AVG(CASE WHEN gap_days &lt;= 30 THEN 1.0 ELSE 0 END) AS pct_within_30d
+FROM gaps
+WHERE gap_days IS NOT NULL
+GROUP BY category;</code></pre>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>You want</th><th>Write</th></tr>
+<tr><td>A count</td><td><code>COUNT(CASE WHEN … THEN 1 END)</code> (no <code>ELSE</code>)</td></tr>
+<tr><td>A share</td><td><code>AVG(CASE WHEN … THEN 1.0 ELSE 0 END)</code></td></tr>
+<tr><td>A flag compared to 0 later</td><td><code>MAX(CASE WHEN … THEN 1 ELSE 0 END)</code></td></tr>
+</table></div>
+<p class="sec">What went wrong in the mock</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Your version</th><th>Problem</th></tr>
+<tr><td>Plan: self-join on category</td><td>Pairs every customer with every other: fan-out and cross-customer gaps. Use <code>LAG</code>.</td></tr>
+<tr><td><code>count(case … then 1 else 0 end)</code></td><td>Counts every row: the share is always 100%. Third mock running.</td></tr>
+<tr><td>No <code>GROUP BY category</code></td><td>One company-wide row; the question asked per category.</td></tr>
+<tr><td>De-duplicated on <code>order_ts</code>; <code>date_diff</code> on timestamps</td><td>Same-day orders give 0-day gaps; timestamp diffs count 24-hour periods.</td></tr>
+<tr><td><code>LEFT JOIN orders</code> with filters in <code>ON</code></td><td>Conditions in <code>ON</code> of a <code>LEFT JOIN</code> don't remove rows: cancelled and out-of-range items stay with NULL customer and date.</td></tr>
+</table></div>`,
+    trap: "COUNT counts zeros: leave out ELSE in counts, use AVG with ELSE 0 for shares." },
+
+  { cluster: "🤖 ML", q: "The team proposes replacing A/B price tests with a multi-armed bandit: each product cycles through 5 candidate prices and traffic shifts toward the best. What's the advantage, what could go wrong, and what business constraints would you set?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<p class="sec">What a bandit is</p>
+<ul class="pts">
+<li>Explore (try every option) vs exploit (use the best so far). An A/B test explores first, then exploits; a bandit shifts traffic toward winners as results arrive.</li>
+<li>Algorithms: epsilon-greedy; <strong>Thompson sampling</strong> (traffic ∝ probability each option is best); upper confidence bound.</li>
+<li><strong>Regret</strong> = reward lost by not always picking the best option.</li>
+</ul>
+<div class="steps keys">
+<div class="st"><b>Answer<small>advantage</small></b><span>Less regret: it earns more while it learns. An A/B test pays full price for learning.</span></div>
+<div class="st"><b>Because<small>what breaks in pricing</small></b><span>Non-stationary demand (weekdays, promos, competitors) can lock in a fluke winner; per-visitor arms mean different shoppers see different prices; contribution is a noisy, delayed reward; adaptive allocation biases confidence intervals and overstates the winner; products interact; competitor bots react.</span></div>
+<div class="st"><b>So<small>constraints</small></b><span>Randomise by time so everyone sees one price at once; pre-approved candidate prices above cost; caps on change size and frequency; KVIs excluded; reward = contribution with conversion and price-index guardrails; circuit breaker on competitor reaction.</span></div>
+<div class="st"><b>Next<small>measurement</small></b><span>Keep a small fixed-split holdout for an unbiased read and a clean elasticity.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">The advantage over an ab test appears to be quicker time to market, given ab experiment typically runs for weeks of duration before a decision is made and productionised if launch. In the multi-armed bandit, it systematically chooses the best prices rather than wait for human intervention. What could go wrong is if the multi-armed bandit is making decisiosn on stale data or wrong data, causing the price settings to be random. Additionally it can also be optimising for local optimum on only one key objective such as contribution per visitor rather than looking at the entire ecosystem to take note of cannibalisation across products. What business constraints i would implement would be a price_index, price change cap, i also want to consider the number of price changes the model should be allowed.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Advantage = speed and automation.</td><td>Lower regret during the test.</td></tr>
+<tr><td>"Stale or wrong data" (true of any model).</td><td>Bandit-specific: non-stationarity, per-visitor prices, noisy reward, biased inference, competitor feedback.</td></tr>
+<tr><td>Good constraints (index, cap, frequency).</td><td>Add: same price for everyone at once, pre-approved price band, KVIs out, holdout.</td></tr>
+</table></div>`,
+    trap: "A pricing bandit must randomise by time, not visitor; per-visitor arms are personalised pricing." },
+
+  { cluster: "🤖 ML", q: "A gradient-boosted demand model is overridden by category managers as a black box; for some products it predicts higher sales at a higher price. The team proposes a simple linear model. What's the trade-off, how do you make the current model trustworthy, and what do you show managers?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>the trade-off</small></b><span>Switching won't help: the wrong-way demand curve is endogeneity in the data, and a linear model would learn it too.</span></div>
+<div class="st"><b>Because<small>cause</small></b><span>Prices went up when demand was strong, so the model learned that higher prices go with higher sales.</span></div>
+<div class="st"><b>So<small>fix</small></b><span>Keep the model; add a <strong>monotonic constraint</strong> on price (XGBoost / LightGBM) so demand can't rise with price. Train the price effect on experiments or cost-driven changes. Explain each price with SHAP values or partial dependence plots.</span></div>
+<div class="st"><b>Next<small>earn trust</small></b><span>On decisions, not fit: log every override and compare contribution where the model was followed vs overridden (randomised where possible). Show per-product reasons: "₩12,900 because of elasticity X, competitor at ₩13,500, 40 days of stock."</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">The trade off is that a simple linear model may underfit the actual feature set and therefore have poorer predictions. To make the current model trustworthy, i would identify the key scenarios where the model outputs do not make sense and incorporate these rules as sanity checks before the model outputs results. for example it has to ensure that increased prices should lead to reduced sales. additionally if the prediction is below a certain confidence threshold, do not recommend. What i would show the category managers is past case studies of the model predicted prices which matches reality and give it a score. Next i would surface the simple linear model as a comparison point, ideally i can surface the RMSE of gradient-boosted model versus the linear model to showcase the closer guess gradient boosted model can offer.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Trade-off = underfitting.</td><td>The cause is the data (endogeneity), not the model class.</td></tr>
+<tr><td>Sanity-check rules after the model.</td><td>Build it in: monotonic constraints.</td></tr>
+<tr><td>Show RMSE vs a linear model.</td><td>Fit isn't pricing quality. Show decision outcomes: followed vs overridden.</td></tr>
+</table></div>`,
+    trap: "A wrong-sign price effect is a data problem: a simpler model learns it too. Constrain it, and judge on decisions, not RMSE." },
+
+  { cluster: "🎯 Mock case", q: "Case 9: Coupang's opt-in auto-pricing tool adjusts 3P sellers' prices to win the Buy Box. Opt-in sellers got +25% units. The Marketplace VP asks: \"Should we turn auto-pricing on by default for all 3P sellers?\"",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<div class="vp"><b>Say it to a VP</b>Don't make it the default; keep it opt-in and make it safe. Today it works because bots rarely meet: products with one auto-pricing seller grew GMV 3% and got cheaper. Where two bots compete, prices fell 14% in 6 weeks, GMV fell 5% and 9% of those sellers pulled out; a default makes that the norm. Add seller and platform price floors, a match-don't-undercut setting, a repricing limit and a freeze on spirals, then promote it to a random set of sellers to measure the real effect. Most of the +25% is Buy Box share taken from other sellers.</div>
+<p class="sec">Exhibit 1: opt-in sellers, 3 months after vs before (12% opted in; Coupang takes about 10% commission)</p>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Per seller</th><th>Opt-in</th><th>Non-opt-in (same period)</th></tr>
+<tr><td>Buy Box win rate</td><td>31% → 46%</td><td>34% → 30%</td></tr>
+<tr><td>Units</td><td>+25%</td><td>−4%</td></tr>
+<tr><td>Average price</td><td>−6%</td><td>−1%</td></tr>
+<tr><td>Seller margin per unit</td><td>−18%</td><td>−2%</td></tr>
+</table></div>
+<p class="sec">Exhibit 2: where the units came from, and bot wars</p>
+<ul class="pts">
+<li>The tool changes price only (no coupons or placement).</li>
+<li>Shared products, all sellers: units +7%, price −4%, GMV +3%. 1P sells on about 20% of them; there 1P units −3%.</li>
+<li>Products with 2+ auto-pricing sellers: price −14% in 6 weeks, units +10%, GMV about −5%, seller margin −40%; 9% paused or delisted.</li>
+<li>Seller churn (3 months): opt-in 2.1%, non-opt-in 2.4%, last year 2.0%.</li>
+<li>Opt-in sellers were already growing: +8% units before opting in vs +1% for others.</li>
+</ul>
+<p class="sec">Case framework — Clarify → Decompose → Locate → Size → Recommend → Prevent</p>
+<div class="steps">
+<div class="st"><b>Clarify</b><span>Objective: customer price + Coupang commission + seller health. What does "default" mean (opt-out)? Who sets the floor?</span></div>
+<div class="st"><b>Decompose</b><span>+25% = Buy Box share taken from other sellers (zero-sum) + pre-existing growth (selection) + real market growth (total units +7%).</span></div>
+<div class="st"><b>Locate</b><span>Gains where one bot competes; harm where two or more do.</span></div>
+<div class="st"><b>Size</b><span>One bot: GMV +3%. Two or more: GMV −5%. Default-on moves most products into the second group, so it scales the −5%, not the +3%.</span></div>
+<div class="st"><b>Recommend</b><span>Not default. Keep opt-in with seller and platform floors, match-don't-undercut, damping, bot-war freeze. Measure with randomised encouragement. Default-on also raises seller-autonomy and fair-trade risk.</span></div>
+<div class="st"><b>Prevent</b><span>Seller-health guardrails (margin, delist rate) on any pricing tool; bot-war monitoring.</span></div>
+</div>
+<details><summary>Your answers, as given</summary>
+<div class="yours">What about the non 3p sellers, do you also have the stats for them during this same period? It looks like this treatment would boost the coupon-surface promotions on behalf of opt-in 3p sellers so all non opt-in include 1P sellers may suffer from lost traffic.</div>
+<div class="yours">It looks like we are achieving more competitive prices which in turn pushes up customer demand, however this trades off on the seller margin. Even across non-opt-in sellers, there could be an automatic pressure to reduce prices to remain competitive reducing their margins indirectly. The +25% units is heavily diluted by non-opt-in sellers (both across 3p and 1p). So far i understand that coupang earns 10% commission on top of 3p gmv so this suggests that coupang is net benefitting from the opt-in sellers and in general across the ecosystem since overall gmv is +3%. However I want to question whether this same gmv gain will persist from two povs. One is if we were to launch auto-pricing by default for all 3p sellers, then the 3p sellers would see fierce competitions for buy box win rate, meaning there may be a competitor price war if there is no breakswitch OR there is no stop gap on minimum seller margin. Second is with the thinner seller margins, seller retention is not featured here however there could be churn from the seller side which reduces ecosystem health. Are we able to surface seller retention?</div>
+<div class="yours">I would like to clarify if the products with 2 or more auto-pricing sellers competing saw net positive gains in GMV overall or net reductions?</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>Assumed the tool boosts coupon surfaces.</td><td>Check the mechanism before reasoning from it: it's price-only.</td></tr>
+<tr><td>"Coupang is net benefitting."</td><td>Offset 1P's −3% units, whose margin per unit beats a 10% commission.</td></tr>
+<tr><td>Never questioned the +25%.</td><td>Self-selection: opt-in sellers were already growing (+8% vs +1%). Randomised encouragement fixes it.</td></tr>
+</table></div>`,
+    trap: "Default-on doesn't scale the +3% from one bot; it scales the −5% from bot wars. Seller-level gains in a zero-sum Buy Box don't add up." },
+
+  { cluster: "🎯 Mock case", q: "Case 9 · Recommend: should auto-pricing be default for all 3P sellers? If not, what do you do with the tool?",
+    a: `<p><strong>Structure — Answer → Because → So → Next</strong></p>
+<p class="sec">Model answer (45 seconds)</p>
+<div class="steps keys">
+<div class="st"><b>Answer<small>scope</small></b><span>Not as default. It's already live as opt-in and net positive; keep it and make it safe to promote.</span></div>
+<div class="st"><b>Because<small>the flip</small></b><span>One bot per product: GMV +3%, cheaper for customers. Two or more: GMV −5%, margin −40%, 9% exit. A default makes bot-vs-bot the norm.</span></div>
+<div class="st"><b>So<small>the fixes</small></b><span>Seller-set minimum plus a platform floor (cost + X%); match-don't-undercut mode; limit repricing frequency; detect two bots undercutting each other and freeze at the match. Scope by competition structure, not product tier.</span></div>
+<div class="st"><b>Next<small>measure</small></b><span>Randomised encouragement: promote the tool to a random set of sellers and compare with those not offered it. Guardrails on seller margin and delist rate.</span></div>
+</div>
+<details><summary>Your answer, as given</summary>
+<div class="yours">Overall i would recommend a no ship for this auto-pricing tool. In the scenario that we launched this for all 3P sellers, we would initiate a pricing war which will have a margin shrinkage for merchants, resuling in lower GMV overall which also hurts coupang commissions. In the mid-long term, we will see increasing churn by +0.1pp to +0.4pp as a conservative estimate. This will result in less seller listing diversity and eventually cause customers to other platforms instead. In the slim chance we are still interested to run this auto-pricing tool, it would likely need to be on long-tail products with higher margins which can tolerate the margin trade-offs. We would need to exclude key value items as well as mid-tail items which typically already have narrow margins.</div>
+</details>
+<div class="cmp-wrap"><table class="cmp">
+<tr><th>Weak point</th><th>Replace with</th></tr>
+<tr><td>"No ship" for a tool that's live and working.</td><td>"Not as default; keep opt-in and make it safe."</td></tr>
+<tr><td>Churn +0.1–0.4 points, unexplained.</td><td>Size the flip: +3% (one bot) → −5% (two or more).</td></tr>
+<tr><td>No fixes.</td><td>Floors, match-don't-undercut, damping, bot-war freeze.</td></tr>
+<tr><td>Scope to long-tail; exclude KVIs.</td><td>Long-tail rarely has two sellers, so the tool does little; KVIs are where lower prices help most. Scope by competition structure.</td></tr>
+</table></div>`,
+    trap: "Before recommending, say what you'd build to fix it, not just whether to ship." },
 ];
 
 
